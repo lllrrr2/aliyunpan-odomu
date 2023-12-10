@@ -22,9 +22,6 @@
  <a href="LICENSE" target="_blank">
    <img src="https://img.shields.io/github/license/odomu/aliyunpan.svg?style=flat-square" />
  </a>
- <a href="https://t.me/+n1YbKE0JNo41MWRh" target="_blank">
-   <img src="https://img.shields.io/badge/Telegram-%E7%BE%A4%E7%BB%84-blue" />
- </a>
 </p>
 
 ## 项目说明
