@@ -2,7 +2,7 @@
  <img src="https://github.com/odomu/aliyunpan/blob/main/static/images/icon_256x256.png" alt="NebulaGraph Data Intelligence Suite(ngdi)">
 </p>
 
-<h2 align="center">阿里云盘小白羊 v3</h2>
+<h2 align="center">阿里云盘小白羊</h2>
 
 <p align="center">
   <strong>该项目只是满足个人的需求进行修改，部分功能能用就行 </strong><br>
@@ -46,10 +46,6 @@
 - 能够管理数万文件夹和数万文件，并一次性列出文件夹中的全部文件。
 - 支持一次性上传/下载百万级的文件/文件夹。
 
-## 请作者喝一杯咖啡
-<p align="left">
- <img height="280" width="280" src="https://github.com/odomu/aliyunpan/assets/50035498/75efbbf3-36c0-4991-9dff-4ae319d09e7c" />
-</p>
 
 ## Star History
 [![Star History Chart](https://api.star-history.com/svg?repos=odomu/aliyunpan&type=Date)](https://star-history.com/#odomu/aliyunpan&Date)
