@@ -34,6 +34,7 @@ const handleSite = (item: IShareSiteModel) => {
   // 动态创建WebView
   webview.value = document.createElement('webview')
   webview.value.className = 'site-content'
+  webview.value.id = 'webview'
   webview.value.setAttribute('src', siteUrl.value)
   webview.value.setAttribute('allowpopups', '')
   webview.value.setAttribute('partition', 'site:webview')
@@ -42,8 +43,9 @@ const handleSite = (item: IShareSiteModel) => {
   webview.value.setAttribute('webpreferences', 'allowRunningInsecureContent')
   content.value.appendChild(webview.value)
   webview.value.addEventListener('did-start-loading', handleStartLoad)
+  webview.value.addEventListener('new-window', handleSiteShareUrl)
   webview.value.addEventListener('will-navigate', handleSiteShareUrl)
-  webview.value.addEventListener('did-redirect-navigation', handleSiteShareUrl)
+  webview.value.addEventListener('will-redirect', handleSiteShareUrl)
 }
 const handleHideLeft = () => {
   hideLeft.value = !hideLeft.value
@@ -62,7 +64,7 @@ const handleStartLoad = () => {
 
 
 const handleSiteShareUrl = async (event: any) => {
-  // console.log('handleSiteShareUrl', event)
+  console.log('handleSiteShareUrl', event)
   // 获取点击的 URL
   const url = event.url || ''
   if (/(aliyundrive|alipan).com\/s\/[0-9a-zA-Z_]{11,}/.test(url)) {
@@ -74,7 +76,8 @@ const handleClose = () => {
   siteUrl.value = ''
   if (webview.value) {
     webview.value.removeEventListener('will-navigate', handleSiteShareUrl)
-    webview.value.removeEventListener('did-redirect-navigation', handleSiteShareUrl)
+    webview.value.removeEventListener('new-window', handleSiteShareUrl)
+    webview.value.removeEventListener('will-redirect', handleSiteShareUrl)
     webview.value.removeEventListener('did-start-loading', handleStartLoad)
     content.value.removeChild(webview.value)
     webview.value = {}

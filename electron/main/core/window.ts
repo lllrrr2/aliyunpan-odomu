@@ -284,8 +284,18 @@ export function createElectronWindow(width: number, height: number, center: bool
       let url = details.url
       if (!/(aliyundrive|alipan).com\/s\/[0-9a-zA-Z_]{11,}/.test(url)) {
         webContent.loadURL(url)
+      } else {
+        win.webContents.send('webview-new-window', webContent.id, details)
       }
       return { action: 'deny' }
+    })
+    webContent.on('will-redirect', (e, url) => {
+      if (!/(aliyundrive|alipan).com\/s\/[0-9a-zA-Z_]{11,}/.test(url)) {
+        webContent.loadURL(url)
+      } else {
+        win.webContents.send('webview-redirect', webContent.id, url)
+      }
+      e.preventDefault()
     })
     // 拦截链接跳转
     webContent.on('will-navigate', (e, url) => {
