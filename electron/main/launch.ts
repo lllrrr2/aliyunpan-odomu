@@ -80,6 +80,8 @@ export default class launch extends EventEmitter {
     app.commandLine.appendSwitch('ignore-certificate-errors')
     app.commandLine.appendSwitch('proxy-bypass-list', '<local>')
     app.commandLine.appendSwitch('wm-window-animations-disabled')
+    app.commandLine.appendSwitch('enable-features', 'PlatformHEVCDecoderSupport')
+    app.commandLine.appendSwitch('force_high_performance_gpu')
 
     app.name = 'aliyunxby'
     if (is.windows()) {

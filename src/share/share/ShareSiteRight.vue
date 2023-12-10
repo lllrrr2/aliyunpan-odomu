@@ -42,7 +42,6 @@ const handleSite = (item: IShareSiteModel) => {
   webview.value.setAttribute('webpreferences', 'allowRunningInsecureContent')
   content.value.appendChild(webview.value)
   webview.value.addEventListener('did-start-loading', handleStartLoad)
-  webview.value.addEventListener('new-window', handleSiteShareUrl)
   webview.value.addEventListener('will-navigate', handleSiteShareUrl)
   webview.value.addEventListener('did-redirect-navigation', handleSiteShareUrl)
 }
@@ -74,7 +73,6 @@ const handleSiteShareUrl = async (event: any) => {
 const handleClose = () => {
   siteUrl.value = ''
   if (webview.value) {
-    webview.value.removeEventListener('new-window', handleSiteShareUrl)
     webview.value.removeEventListener('will-navigate', handleSiteShareUrl)
     webview.value.removeEventListener('did-redirect-navigation', handleSiteShareUrl)
     webview.value.removeEventListener('did-start-loading', handleStartLoad)

@@ -280,11 +280,12 @@ export function createElectronWindow(width: number, height: number, center: bool
       }
     })
     // 不允许的网址则阻止页面跳转并拉取浏览器展示页面
-    webContent.addListener('new-window', (e, url) => {
-      e.preventDefault()
+    webContent.setWindowOpenHandler((details) => {
+      let url = details.url
       if (!/(aliyundrive|alipan).com\/s\/[0-9a-zA-Z_]{11,}/.test(url)) {
         webContent.loadURL(url)
       }
+      return { action: 'deny' }
     })
     // 拦截链接跳转
     webContent.on('will-navigate', (e, url) => {
@@ -292,9 +293,6 @@ export function createElectronWindow(width: number, height: number, center: bool
         e.preventDefault()
       }
     })
-  })
-  win.webContents.addListener('new-window', (e, url) => {
-    e.preventDefault()
   })
   win.webContents.on('will-navigate', (e, url) => {
     e.preventDefault()

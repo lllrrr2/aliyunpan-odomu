@@ -1,7 +1,7 @@
 {
   "name": "alixby",
   "description": "阿里云盘小白羊",
-  "version": "3.23.120721",
+  "version": "3.23.121017",
   "main": "dist/electron/main/index.js",
   "author": {
     "name": "Odomu",
@@ -45,7 +45,7 @@
     "dayjs": "^1.11.10",
     "dexie": "^3.2.4",
     "dom-to-image": "^2.6.0",
-    "electron": "21.4.4",
+    "electron": "^22.3.27",
     "electron-builder": "^24.9.1",
     "electron-is": "^3.0.0",
     "fast-levenshtein": "^3.0.0",

@@ -274,7 +274,7 @@ const PlayerUtils = {
                     exitCallBack: any) {
     const argsToStr = (args: string) => is.windows() ? `"${args}"` : `'${args}'`
     if ((is.windows() || is.macOS()) && !existsSync(command)) {
-      message.error(`找不到文件, ${command}`)
+      message.error(`启动失败，找不到文件, ${command}`)
     } else {
       let commandStr
       if (is.macOS()) {
@@ -287,6 +287,7 @@ const PlayerUtils = {
         windowsVerbatimArguments: true,
         ...options
       })
+      childProcess.unref()
       // childProcess.stdout.on('data', (data: any)=> {
       //   console.log('stdout', data.toString())
       // })
