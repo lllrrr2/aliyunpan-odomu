@@ -145,16 +145,18 @@ const handleForward = () => {
         </a-tab-pane>
       </template>
       <template v-else>
-        <a-card :bordered='false' class='site-list'>
-          <a-card-grid v-for='(siteItem, index) in serverStore.shareSiteList'
-                       :key='index'
-                       :hoverable='index % 2 === 0'
-                       class='sitelistitem'>
-            <a :style='{ color: siteItem.color }'
-               @click='handleSite(siteItem)'
-               v-html='`${siteItem.title}<small>${siteItem.tip}</small>`' />
-          </a-card-grid>
-        </a-card>
+        <a-tab-pane title='全部'>
+          <a-card :bordered='false' class='site-list'>
+            <a-card-grid v-for='(siteItem, index) in serverStore.shareSiteList'
+                         :key='index'
+                         :hoverable='index % 2 === 0'
+                         class='sitelistitem'>
+              <a :style='{ color: siteItem.color }'
+                 @click='handleSite(siteItem)'
+                 v-html='`${siteItem.title}<small>${siteItem.tip}</small>`' />
+            </a-card-grid>
+          </a-card>
+        </a-tab-pane>
       </template>
     </a-tabs>
   </div>

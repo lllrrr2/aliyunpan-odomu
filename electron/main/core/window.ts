@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Menu, MenuItem, MessageChannelMain, nativeTheme, screen, Tray } from 'electron'
+import { app, BrowserWindow, Menu, MenuItem, MessageChannelMain, nativeTheme, screen, shell, Tray } from 'electron'
 import { getAsarPath, getStaticPath, getUserDataPath } from '../utils/mainfile'
 import { existsSync, readFileSync, writeFileSync } from 'fs'
 import is from 'electron-is'
@@ -306,6 +306,7 @@ export function createElectronWindow(width: number, height: number, center: bool
   })
   win.webContents.on('will-navigate', (e, url) => {
     e.preventDefault()
+    shell.openExternal(url)
   })
   win.webContents.on('did-create-window', (childWindow) => {
     if (is.windows()) {

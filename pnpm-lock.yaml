@@ -8,9 +8,6 @@ devDependencies:
   '@arco-design/web-vue':
     specifier: ^2.53.3
     version: 2.53.3(vue@3.3.10)
-  '@electron/remote':
-    specifier: ^2.1.0
-    version: 2.1.0(electron@22.3.27)
   '@types/crypto-js':
     specifier: ^4.2.1
     version: 4.2.1
@@ -81,7 +78,7 @@ devDependencies:
     specifier: ^2.6.0
     version: 2.6.0
   electron:
-    specifier: ^22.3.1
+    specifier: ^22.3.27
     version: 22.3.27
   electron-builder:
     specifier: ^24.9.1
@@ -161,9 +158,6 @@ devDependencies:
   vite-plugin-electron-renderer:
     specifier: 0.14.5
     version: 0.14.5
-  vite-plugin-resolve:
-    specifier: ^2.5.1
-    version: 2.5.1
   vue:
     specifier: ^3.3.10
     version: 3.3.10(typescript@5.3.3)
@@ -585,14 +579,6 @@ packages:
       plist: 3.1.0
     transitivePeerDependencies:
       - supports-color
-    dev: true
-
-  /@electron/remote@2.1.0(electron@22.3.27):
-    resolution: { integrity: sha512-38jzz2beoYTo0DNS+aoaGyLS/fHeNTAc1Aom6HlYsxKnvVWjcg4xriC7J2IUkYSEDHGKX/D7jUst+mH4dHR6QA== }
-    peerDependencies:
-      electron: '>= 13.0.0'
-    dependencies:
-      electron: 22.3.27
     dev: true
 
   /@electron/universal@1.4.1:
@@ -2614,10 +2600,6 @@ packages:
       - supports-color
     dev: true
 
-  /lib-esm@0.4.1:
-    resolution: { integrity: sha512-tdSqfyryhnl5k09357x2iWmw3WeU84SaoP/vMGw/nw8z8RPTrfu9sxwRApn6p6GyStuBNyASgwXIV8ctZWlG1A== }
-    dev: true
-
   /linkify-it@4.0.1:
     resolution: { integrity: sha512-C7bfi1UZmoj8+PQx22XyeXCuBlokoyWQL5pWSP+EI6nzRylyThouddufc2c1NDIcP9k5agmN9fLpA7VNJfIiqw== }
     dependencies:
@@ -3503,12 +3485,6 @@ packages:
     dependencies:
       tree-kill: 1.2.2
       vite-plugin-electron-renderer: 0.14.5
-    dev: true
-
-  /vite-plugin-resolve@2.5.1:
-    resolution: { integrity: sha512-9dD0Yq5JT1RxHQGZOyhC7e/JlhyhMCftCpQ8TPzQa7KEB/3ERnoCPinH3VJk/0C8qHsA+l41bIcHh5BcHBTmAw== }
-    dependencies:
-      lib-esm: 0.4.1
     dev: true
 
   /vite@4.5.1(@types/node@20.10.4)(less@4.2.0)(terser@5.25.0):
