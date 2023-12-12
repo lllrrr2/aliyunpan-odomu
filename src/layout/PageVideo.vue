@@ -115,7 +115,7 @@ onMounted(async () => {
   // 创建播放窗口
   await createVideo(name)
   // 获取视频信息
-  await getPlayList(ArtPlayerRef)
+  await refreshPlayList(ArtPlayerRef)
   await getVideoInfo(ArtPlayerRef)
   // 加载设置
   await defaultSettings(ArtPlayerRef)
@@ -175,49 +175,54 @@ const initEvent = (art: Artplayer) => {
       await getVideoCursor(art, pageVideo.play_cursor)
       art.playbackRate = playbackRate
     }
-    // 视频播放完毕
-    art.on('video:ended', async (index: any) => {
-      if (playList.length > 1) {
-        autoPlayNumber = playList.findIndex(list => list.file_id == pageVideo.file_id)
-        if (art.storage.get('autoPlayNext')) {
-          const item = typeof index === 'number' ? playList[index] : playList[++autoPlayNumber]
-          if (!item) {
-            art.notice.show = '视频播放完毕'
-            return
-          }
-          await refreshSetting(art, item)
-          await getPlayList(art, item.file_id)
+  })
+  // 视频播放完毕
+  art.on('video:ended', async (index: any) => {
+    if (playList.length > 1 && art.video.readyState > art.video.HAVE_CURRENT_DATA) {
+      autoPlayNumber = index ? index : playList.findIndex(list => list.file_id == pageVideo.file_id)
+      if (art.storage.get('autoPlayNext')) {
+        const item = index ? playList[index] : playList[++autoPlayNumber]
+        if (!item) {
+          art.notice.show = '视频播放完毕'
+          return
         }
+        await updateVideoTime()
+        await refreshSetting(art, item)
+        await refreshPlayList(art, item.file_id)
       }
-    })
-    // 播放已暂停
-    art.on('video:pause', async () => {
+    }
+  })
+  // 播放已暂停
+  art.on('video:pause', async () => {
+    if (art.video.currentTime > 0
+      && !art.video.ended
+      && art.video.readyState > art.video.HAVE_CURRENT_DATA) {
       await updateVideoTime()
-    })
-    // 音量发生变化
-    art.on('video:volumechange', () => {
-      art.storage.set('videoVolume', art.volume)
-      art.storage.set('videoMuted', art.muted ? 'true' : 'false')
-    })
-    // 播放倍数变化
-    art.on('video:ratechange', async () => {
-      playbackRate = art.playbackRate
-    })
-    // 播放时间变化
-    art.on('video:timeupdate', (event: any) => {
-      const totalDuration = art.duration
-      const endDuration = art.storage.get('autoSkipEnd')
+    }
+  })
+  // 音量发生变化
+  art.on('video:volumechange', () => {
+    art.storage.set('videoVolume', art.volume)
+    art.storage.set('videoMuted', art.muted ? 'true' : 'false')
+  })
+  // 播放倍数变化
+  art.on('video:ratechange', async () => {
+    playbackRate = art.playbackRate
+  })
+  // 播放时间变化
+  art.on('video:timeupdate', async () => {
+    if (art.video.currentTime > 0 && !art.video.paused && !art.video.ended
+      && art.video.readyState > art.video.HAVE_CURRENT_DATA) {
       const currentTime = art.currentTime
-      if (totalDuration && endDuration) {
-        if (endDuration < currentTime
-          && pageVideo.file_id == playList[autoPlayNumber].file_id) {
-          art.emit('video:ended')
+      const endDuration = art.storage.get('autoSkipEnd')
+      if (currentTime > 0 && endDuration > 0) {
+        if (endDuration <= currentTime) {
+          await art.emit('video:ended')
         }
       }
-    })
+    }
   })
 }
-
 
 const curDirFileList: any[] = []
 const childDirFileList: any[] = []
@@ -353,7 +358,6 @@ const defaultControls = async (art: Artplayer) => {
           art.notice.show = '已经是最后一集了'
           return
         }
-        await updateVideoTime()
         await art.emit('video:ended', ++autoPlayNumber)
       }
     })
@@ -409,7 +413,7 @@ const getVideoInfo = async (art: Artplayer) => {
     if (data.urlLD) qualitySelector.push({ url: data.urlLD, html: '流畅 480P' })
     const qualityDefault = qualitySelector.find((item) => item.default) || qualitySelector[1]
     qualityDefault.default = true
-    await art.switchUrl(qualityDefault.url)
+    art.url = qualityDefault.url
     pageVideo.expire_time = data.expire_time
     art.controls.update({
       name: 'quality',
@@ -452,7 +456,7 @@ const getVideoInfo = async (art: Artplayer) => {
 }
 
 let playList: selectorItem[] = []
-const getPlayList = async (art: Artplayer, file_id?: string) => {
+const refreshPlayList = async (art: Artplayer, file_id?: string) => {
   if (!file_id) {
     let fileList: any = await getDirFileList(pageVideo.parent_file_id, false, 'video') || []
     if (fileList && fileList.length > 1) {
@@ -729,6 +733,8 @@ onBeforeUnmount(() => {
   if (AssSubtitleRef) {
     AssSubtitleRef.destroy()
   }
+  autoPlayNumber = 0
+  playbackRate = 1
   ArtPlayerRef && ArtPlayerRef.destroy(false)
 })
 
