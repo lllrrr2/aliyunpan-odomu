@@ -68,52 +68,54 @@ const refreshQrCode = async () => {
     message.error('未登录账号，该功能无法开启')
     return
   }
-  const codeUrl = await AliUser.OpenApiQrCodeUrl(token).catch(err => refreshStatus())
-  if (codeUrl) {
-    qrCodeLoading.value = false
-    qrCodeUrl.value = codeUrl
-    qrCodeStatusType.value = 'info'
-    qrCodeStatusTips.value = '状态：等待扫码登录'
-    // 监听状态
-    intervalId.value = setInterval(async () => {
-      const { authCode, statusCode, statusType, statusTips } = await AliUser.OpenApiQrCodeStatus(codeUrl)
-      if (!statusCode) {
-        refreshStatus()
-        clearInterval(intervalId.value)
-        return
-      }
-      qrCodeStatusType.value = statusType
-      qrCodeStatusTips.value = statusTips
-      if (statusCode === 'QRCodeExpired') {
-        message.error('二维码已超时，请刷新二维码')
-        clearInterval(intervalId.value)
-        refreshStatus()
-        return
-      }
-      if (authCode && statusCode === 'LoginSuccess') {
-        let loginData = await AliUser.OpenApiLoginByAuthCode(token, authCode)
-        // 更新token
-        await useSettingStore().updateStore({
-          uiOpenApiAccessToken: loginData.open_api_access_token,
-          uiOpenApiRefreshToken: loginData.open_api_refresh_token
-        })
-        token.open_api_access_token = loginData.open_api_access_token
-        token.open_api_refresh_token = loginData.open_api_refresh_token
-        token.open_api_expires_in = new Date().getTime() + loginData.expires_in * 1000
-        UserDAL.SaveUserToken(token)
-        window.WebUserToken({
-          user_id: token.user_id,
-          name: token.user_name,
-          access_token: token.access_token,
-          open_api_access_token: token.open_api_access_token,
-          refresh: true
-        })
-        clearInterval(intervalId.value)
-        message.success('登陆成功')
-        refreshStatus()
-      }
-    }, 1500)
+  const codeUrl = await AliUser.OpenApiQrCodeUrl(token)
+  if (!codeUrl) {
+    refreshStatus()
+    return
   }
+  qrCodeLoading.value = false
+  qrCodeUrl.value = codeUrl
+  qrCodeStatusType.value = 'info'
+  qrCodeStatusTips.value = '状态：等待扫码登录'
+  // 监听状态
+  intervalId.value = setInterval(async () => {
+    const { authCode, statusCode, statusType, statusTips } = await AliUser.OpenApiQrCodeStatus(codeUrl)
+    if (!statusCode) {
+      refreshStatus()
+      clearInterval(intervalId.value)
+      return
+    }
+    qrCodeStatusType.value = statusType
+    qrCodeStatusTips.value = statusTips
+    if (statusCode === 'QRCodeExpired') {
+      message.error('二维码已超时，请刷新二维码')
+      clearInterval(intervalId.value)
+      refreshStatus()
+      return
+    }
+    if (authCode && statusCode === 'LoginSuccess') {
+      let loginData = await AliUser.OpenApiLoginByAuthCode(token, authCode)
+      // 更新token
+      await useSettingStore().updateStore({
+        uiOpenApiAccessToken: loginData.open_api_access_token,
+        uiOpenApiRefreshToken: loginData.open_api_refresh_token
+      })
+      token.open_api_access_token = loginData.open_api_access_token
+      token.open_api_refresh_token = loginData.open_api_refresh_token
+      token.open_api_expires_in = new Date().getTime() + loginData.expires_in * 1000
+      UserDAL.SaveUserToken(token)
+      window.WebUserToken({
+        user_id: token.user_id,
+        name: token.user_name,
+        access_token: token.access_token,
+        open_api_access_token: token.open_api_access_token,
+        refresh: true
+      })
+      clearInterval(intervalId.value)
+      message.success('登陆成功')
+      refreshStatus()
+    }
+  }, 1500)
 }
 
 const closeQrCode = () => {

@@ -70,6 +70,7 @@ export default class AliDirFileList {
       name: item.name,
       namesearch: HanToPin(item.name),
       ext: item.file_extension?.toLowerCase() || '',
+      mime_type: item.mime_type || '',
       category: item.category || '',
       starred: item.starred || false,
       time: date.getTime(),
@@ -128,7 +129,7 @@ export default class AliDirFileList {
   }
 
 
-  static async ApiDirFileList(user_id: string, drive_id: string, dirID: string, dirName: string, order: string, type: string = '', albumID?: string): Promise<IAliFileResp> {
+  static async ApiDirFileList(user_id: string, drive_id: string, dirID: string, dirName: string, order: string, type: string = '', albumID?: string, refresh: boolean = true): Promise<IAliFileResp> {
     const dir: IAliFileResp = {
       items: [],
       itemsKey: new Set(),
@@ -198,7 +199,7 @@ export default class AliDirFileList {
             dir.itemsTotal = total
           })
         }
-        isGet = await AliDirFileList._ApiDirFileListOnePage(orders[0], orders[1], dir, type, pageIndex)
+        isGet = await AliDirFileList._ApiDirFileListOnePage(orders[0], orders[1], dir, type, pageIndex, refresh)
       }
 
       if (!isGet) {
@@ -224,7 +225,7 @@ export default class AliDirFileList {
     return dir
   }
 
-  private static async _ApiDirFileListOnePage(orderby: string, order: string, dir: IAliFileResp, type: string, pageIndex: number): Promise<boolean> {
+  private static async _ApiDirFileListOnePage(orderby: string, order: string, dir: IAliFileResp, type: string, pageIndex: number, refresh: boolean = true): Promise<boolean> {
     let url = 'adrive/v3/file/list'
     if (useSettingStore().uiShowPanMedia == false) {
       url += '?jsonmask=next_marker%2Cpunished_file_count%2Ctotal_count%2Citems(' + AliDirFileList.ItemJsonmask + ')'
@@ -247,7 +248,7 @@ export default class AliDirFileList {
       pageIndex = -1
     }
     const resp = await AliHttp.Post(url, postData, dir.m_user_id, '')
-    return AliDirFileList._FileListOnePage(orderby, order, dir, resp, pageIndex, type)
+    return AliDirFileList._FileListOnePage(orderby, order, dir, resp, pageIndex, type, refresh)
   }
 
 
@@ -577,7 +578,7 @@ export default class AliDirFileList {
   }
 
 
-  static _FileListOnePage(orderby: string, order: string, dir: IAliFileResp, resp: IUrlRespData, pageIndex: number, type: string = ''): boolean {
+  static _FileListOnePage(orderby: string, order: string, dir: IAliFileResp, resp: IUrlRespData, pageIndex: number, type: string = '', refresh: boolean = true): boolean {
     try {
       if (AliHttp.IsSuccess(resp.code)) {
         const dirPart: IAliFileResp = {
@@ -659,7 +660,7 @@ export default class AliDirFileList {
         dirPart.punished_file_count = resp.body.punished_file_count || 0
         dir.punished_file_count += resp.body.punished_file_count || 0
 
-        if (pageIndex >= 0 && type == '') {
+        if (pageIndex >= 0 && type == '' && refresh) {
           const pan = usePanFileStore()
           if (pan.DriveID == dir.m_drive_id) {
             pan.mSaveDirFileLoadingPart(pageIndex, dirPart, dir.itemsTotal || 0)

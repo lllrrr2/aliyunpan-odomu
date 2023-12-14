@@ -82,7 +82,10 @@ export interface SettingState {
 
   uiFileColorArray: { key: string; title: string }[]
 
-
+  webDavHost: string
+  webDavPort: number
+  webDavListCache: number
+  webDavStrategy: string
 
   downSavePath: string
 
@@ -119,7 +122,6 @@ export interface SettingState {
   downIngoredList: string[]
 
 
-
   ariaSavePath: string
 
   ariaUrl: string
@@ -149,7 +151,6 @@ export interface SettingState {
   debugFolderSizeCacheHour: number
 
 
-
   yinsiLinkPassword: boolean
 
   yinsiZipPassword: boolean
@@ -166,6 +167,7 @@ export interface SettingState {
 
   proxyPassword: string
 }
+
 const setting: SettingState = {
 
   uiTheme: 'system',
@@ -215,6 +217,11 @@ const setting: SettingState = {
     { key: '#ff9800', title: '金盏黄' }
   ],
 
+  webDavHost: '127.0.0.1',
+  webDavPort: 2000,
+  webDavListCache: 40,
+  webDavStrategy: 'redirect',
+
   downSavePath: '',
   downSavePathDefault: true,
   downSavePathFull: true,
@@ -259,6 +266,7 @@ const setting: SettingState = {
   proxyUserName: '',
   proxyPassword: ''
 }
+
 function _loadSetting(val: any) {
 
   setting.uiTheme = defaultValue(val.uiTheme, ['system', 'light', 'dark'])
@@ -304,6 +312,10 @@ function _loadSetting(val: any) {
   setting.uiFileListMode = defaultValue(val.uiFileListMode, ['list', 'image', 'bigimage'])
   if (val.uiFileColorArray && val.uiFileColorArray.length >= 6) setting.uiFileColorArray = val.uiFileColorArray
 
+  setting.webDavHost = defaultString(val.webDavHost, '127.0.0.1')
+  setting.webDavPort = defaultNumber(val.webDavPort, 2000)
+  setting.webDavListCache = defaultNumber(val.webDavListCache, 40)
+  setting.webDavStrategy = defaultValue(val.webDavStrategy, ['redirect', 'proxy'])
 
   setting.downSavePath = defaultString(val.downSavePath, '')
   setting.downSavePathDefault = defaultBool(val.downSavePathDefault, true)
@@ -351,6 +363,7 @@ function _loadSetting(val: any) {
   setting.proxyUserName = defaultString(val.proxyUserName, '')
   setting.proxyPassword = defaultString(val.proxyPassword, '')
 }
+
 let settingstr = ''
 
 
@@ -433,13 +446,13 @@ const useSettingStore = defineStore('setting', {
         window.WebToElectron({ cmd: { launchStart: this.uiLaunchStart, launchStartShow: this.uiLaunchStartShow } })
       }
       if (Object.hasOwn(partial, 'uiEnableOpenApi')
-          || Object.hasOwn(partial, 'uiOpenApiAccessToken')
-          || Object.hasOwn(partial, 'uiOpenApiRefreshToken')) {
+        || Object.hasOwn(partial, 'uiOpenApiAccessToken')
+        || Object.hasOwn(partial, 'uiOpenApiRefreshToken')) {
         await this.updateOpenApiToken()
       }
       if (Object.hasOwn(partial, 'uiShowPanMedia')
-          || Object.hasOwn(partial, 'uiFolderSize')
-          || Object.hasOwn(partial, 'uiFileOrderDuli')) {
+        || Object.hasOwn(partial, 'uiFolderSize')
+        || Object.hasOwn(partial, 'uiFileOrderDuli')) {
         await PanDAL.aReLoadOneDirToShow('', 'refresh', false)
       }
       if (Object.hasOwn(partial, 'proxyUseProxy')) {
@@ -468,7 +481,13 @@ const useSettingStore = defineStore('setting', {
         const proxy = this.proxyType + '://' + (auth ? auth + '@' : '') + this.proxyHost + ':' + this.proxyPort
         return proxy
       }
-      return { hostname: this.proxyHost, port: this.proxyPort, protocol: this.proxyType, username: this.proxyUserName, password: this.proxyPassword }
+      return {
+        hostname: this.proxyHost,
+        port: this.proxyPort,
+        protocol: this.proxyType,
+        username: this.proxyUserName,
+        password: this.proxyPassword
+      }
     },
     WebSetProxy() {
       let proxy = ''

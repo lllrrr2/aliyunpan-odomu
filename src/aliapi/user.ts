@@ -210,16 +210,16 @@ export default class AliUser {
       client_secret: useSettingStore().uiOpenApiClientSecret,
       scopes: ['user:base', 'file:all:read', 'file:all:write'],
       width: 348,
-      height: 400
+      height: 348
     }
     const url = 'https://openapi.alipan.com/oauth/authorize/qrcode'
     const resp = await AliHttp.Post(url, postData, '', '')
     if (AliHttp.IsSuccess(resp.code)) {
       return resp.body.qrCodeUrl
     } else {
-      message.error('获取二维码失败[' + resp.body?.message + ']，请检查配置')
+      message.error('获取二维码失败：' + resp.body?.message)
+      return ''
     }
-    return false
   }
 
   static async OpenApiQrCodeStatus(qrCodeUrl: string): Promise<any> {

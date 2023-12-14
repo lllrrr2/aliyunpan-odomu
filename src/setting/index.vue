@@ -11,6 +11,7 @@ import SettingUpload from './SettingUpload.vue'
 import SettingAria from './SettingAria.vue'
 import SettingLog from './SettingLog.vue'
 import SettingProxy from './SettingProxy.vue'
+import SettingWebDav from './SettingWebDav.vue'
 
 const appStore = useAppStore()
 
@@ -38,6 +39,7 @@ onMounted(() => {
   observer.observe(document.getElementById('SettingPlay')!)
   observer.observe(document.getElementById('SettingPan')!)
   observer.observe(document.getElementById('SettingAria')!)
+  observer.observe(document.getElementById('SettingWebDav')!)
   observer.observe(document.getElementById('SettingDebug')!)
   observer.observe(document.getElementById('SettingProxy')!)
   observer.observe(document.getElementById('SettingLog')!)
@@ -76,6 +78,10 @@ onUnmounted(() => {
         <a-menu-item key="SettingPan">
           <template #icon><i class="iconfont iconfile-folder" /></template>
           网盘设置
+        </a-menu-item>
+        <a-menu-item key='SettingWebDav'>
+          <template #icon><i class='iconfont iconchuanshu2' /></template>
+          WebDav
         </a-menu-item>
         <a-menu-item key="SettingDebug">
           <template #icon><i class="iconfont iconlogoff" /></template>
@@ -133,6 +139,12 @@ onUnmounted(() => {
             <a-divider orientation="center" class="settinghr">网盘设置</a-divider>
           </div>
           <SettingPan />
+        </div>
+        <div id='SettingWebDav'>
+          <div>
+            <a-divider orientation='center' class='settinghr'>WebDav</a-divider>
+          </div>
+          <SettingWebDav />
         </div>
         <div id="SettingDebug">
           <div>

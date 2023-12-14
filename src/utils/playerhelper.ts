@@ -181,8 +181,7 @@ const PlayerUtils = {
           }
           // 重定向
           res.writeHead(302, {
-            'Location': playInfo.playUrl,
-            'Content-Type': 'text/plain'
+            'Location': playInfo.playUrl
           })
           res.flushHeaders()
           res.end()

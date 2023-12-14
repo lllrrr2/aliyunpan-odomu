@@ -1,0 +1,324 @@
+import {
+  CopyInfo,
+  CreateInfo,
+  DeleteInfo,
+  Errors,
+  IContextInfo,
+  IUser,
+  MoveInfo,
+  OpenReadStreamInfo,
+  OpenWriteStreamInfo
+} from 'webdav-server/lib/index.v2'
+import { usePanTreeStore } from '../../../store'
+import TreeStore from '../../../store/treestore'
+import AliFile from '../../../aliapi/file'
+import AliDirFileList from '../../../aliapi/dirfilelist'
+import AliHttp from '../../../aliapi/alihttp'
+import AliFileCmd from '../../../aliapi/filecmd'
+import fs from 'fs'
+import { StructDirectory } from '../resource/ResourceStruct'
+import { getUserDataPath } from '../../../utils/electronhelper'
+import AliUploadMem from '../../../aliapi/uploadmem'
+import { IUploadCreat } from '../../../aliapi/models'
+import AliUser from '../../../aliapi/user'
+import AliUpload from '../../../aliapi/upload'
+import AliUploadHashPool from '../../../aliapi/uploadhashpool'
+import UserDAL from '../../../user/userdal'
+import axios from 'axios'
+import DebugLog from '../../../utils/debuglog'
+
+class Request {
+
+  static async getStructDirectory(ctx: IContextInfo, drive_id: string, file_id: string): Promise<StructDirectory[] | StructDirectory | Error> {
+    console.log('api.getStructDirectory, file_id', file_id)
+    try {
+      // 如果为根路径，加入备份盘和资源盘
+      if (file_id == 'root') {
+        let driveDetails = await AliUser.ApiUserDriveDetails(usePanTreeStore().user_id)
+        return [{
+          files: [],
+          folders: [],
+          current: {
+            name: '备份盘',
+            drive_id: usePanTreeStore().default_drive_id,
+            parent_file_id: '',
+            size: driveDetails.default_drive_used_size,
+            file_id: 'backup_root'
+          }
+        }, {
+          files: [],
+          folders: [],
+          current: {
+            name: '资源盘',
+            drive_id: usePanTreeStore().resource_drive_id,
+            parent_file_id: '',
+            size: driveDetails.resource_drive_used_size,
+            file_id: 'resource_root'
+          }
+        }]
+      }
+      // 获取访问的文件路径
+      let dir = TreeStore.GetDir(drive_id, file_id)
+      let dirPath = TreeStore.GetDirPath(drive_id, file_id)
+      if (!dir || (dirPath.length == 0 && !file_id.includes('root'))) {
+        let findPath = await AliFile.ApiFileGetPath(usePanTreeStore().user_id, drive_id, file_id)
+        if (findPath.length > 0) {
+          dirPath = findPath
+          dir = { ...dirPath[dirPath.length - 1] }
+        }
+      }
+      if (!dir || (dirPath.length == 0 && !file_id.includes('root'))) {
+        return Errors.ResourceNotFound
+      }
+      // 根据文件id加载文件列表
+      let files: any[] = []
+      let folders: any[] = []
+      const resp = await AliDirFileList.ApiDirFileList(usePanTreeStore().user_id, drive_id, file_id, '', 'name asc', '', '', false)
+      resp.items.forEach((item) => {
+        if (item.isDir) folders.push(item)
+        else files.push(item)
+      })
+      return { current: dir, files: files, folders: folders }
+    } catch (error) {
+      console.error('api.getStructDirectory', error)
+      throw error
+    }
+  }
+
+  static async getReadStream(ctx: OpenReadStreamInfo, drive_id: string, file_id: string, file_name: string) {
+    try {
+      const downloadPath = getUserDataPath('download')
+      const filePath = `${downloadPath}/${file_name}`
+      return fs.createReadStream(filePath)
+    } catch (error) {
+      console.error('api.getReadStream', error)
+      throw error
+    }
+  }
+
+  // `https://api.aliyundrive.com/v2/file/create_with_proof`
+  static async createFolder(ctx: CreateInfo, drive_id: string, parent_file_id: string, element: string) {
+    try {
+      let resp = await AliFileCmd.ApiCreatNewForder(usePanTreeStore().user_id, drive_id, parent_file_id, element)
+      return {
+        name: element,
+        drive_id: drive_id,
+        file_id: resp.file_id,
+        parent_file_id: parent_file_id
+      }
+    } catch (error) {
+      console.error('api.createFolder', error)
+      throw error
+    }
+  }
+
+  // `https://api.aliyundrive.com/v2/file/create_with_proof`
+  // todo: 创建文件
+  static async createFile(ctx: CreateInfo, drive_id: string, parent_file_id: string, filename: string, content: string) {
+    try {
+      const token = await UserDAL.GetUserTokenFromDB(usePanTreeStore().user_id)
+      let buff = Buffer.from([])
+      let hash = 'DA39A3EE5E6B4B0D3255BFEF95601890AFD80709'
+      let proof = ''
+      if (content.length > 0) {
+        buff = Buffer.from(content, 'utf-8')
+        const dd: any = await AliUploadHashPool.GetBuffHashProof(token!.access_token, buff)
+        hash = dd.sha1
+        proof = dd.proof_code
+      }
+      const size = buff.length
+      const resp = await AliUpload.UploadCreatFileWithFolders(usePanTreeStore().user_id, drive_id, parent_file_id, filename, size, hash, proof, 'refuse')
+      let upload_url = ''
+      if (resp.part_info_list && resp.part_info_list.length > 0) {
+        upload_url = resp.part_info_list[0].upload_url
+      }
+      return {
+        name: filename,
+        drive_id: drive_id,
+        errormsg: resp.errormsg || '',
+        upload_url: upload_url,
+        isexist: resp.isexist,
+        israpid: resp.israpid,
+        file_id: resp.file_id,
+        upload_id: resp.upload_id,
+        parent_file_id: parent_file_id
+      }
+    } catch (error) {
+      console.error('api.createFile', error)
+      throw error
+    }
+  }
+
+  // `https://api.aliyundrive.com/v3/file/delete`
+  // `https://api.aliyundrive.com/v2/recyclebin/trash`
+  static async deleteFolder(ctx: DeleteInfo, drive_id: string, file_id: string) {
+    try {
+      const url = 'v3/file/delete'
+      const postData = { drive_id: drive_id, file_id: file_id }
+      const resp = await AliHttp.Post(url, postData, usePanTreeStore().user_id, '')
+      console.log('deleteFolder', resp)
+      return { status: resp.code, drive_id: drive_id, file_id: resp.body.id || '' }
+    } catch (error) {
+      console.error('api.deleteFolder', error)
+      throw error
+    }
+  }
+
+  // `https://api.aliyundrive.com/v3/file/delete`
+  // `https://api.aliyundrive.com/v2/recyclebin/trash`
+  static async deleteFile(ctx: DeleteInfo, drive_id: string, file_id: string) {
+    try {
+      const url = 'v3/file/delete'
+      const postData = { drive_id: drive_id, file_id: file_id }
+      const resp = await AliHttp.Post(url, postData, usePanTreeStore().user_id, '')
+      console.log('deleteFile', resp)
+      return { status: resp.code, drive_id: drive_id, file_id: file_id || '' }
+    } catch (error) {
+      console.error('api.deleteFile', error)
+      throw error
+    }
+  }
+
+  // `https://api.aliyundrive.com/v3/file/copy`
+  static async copyFile(ctx: CopyInfo, drive_id: string, file_id: string, to_file_id: string) {
+    try {
+      const url = 'v3/file/copy'
+      const postData = {
+        drive_id: drive_id,
+        file_id: file_id,
+        to_parent_file_id: to_file_id,
+        auto_rename: true
+      }
+      const resp = await AliHttp.Post(url, postData, usePanTreeStore().user_id, '')
+      console.log('copyFile', resp)
+      return {
+        status: resp.code,
+        drive_id: resp.body.drive_id || '',
+        file_id: resp.body.file_id || ''
+      }
+    } catch (error) {
+      console.error('api.copyFile', error)
+      throw error
+    }
+  }
+
+  // `https://api.aliyundrive.com/v3/file/copy`
+  static async copyFolder(ctx: CopyInfo, drive_id: string, file_id: string, to_file_id: string) {
+    try {
+      const url = 'v3/file/copy'
+      const postData = {
+        drive_id: drive_id,
+        file_id: file_id,
+        to_parent_file_id: to_file_id,
+        auto_rename: true
+      }
+      const resp = await AliHttp.Post(url, postData, usePanTreeStore().user_id, '')
+      console.log('copyFolder', resp)
+      return {
+        status: resp.code,
+        drive_id: resp.body.drive_id || '',
+        file_id: resp.body.file_id || ''
+      }
+    } catch (error) {
+      console.error('api.copyFolder', error)
+      throw error
+    }
+  }
+
+  // `https://api.aliyundrive.com/v3/file/update`
+  static async renameFile(ctx: MoveInfo, drive_id: string, file_id: string, newName: string) {
+    try {
+      const url = 'v3/file/update'
+      const postData = {
+        drive_id: drive_id,
+        file_id: file_id,
+        name: newName,
+        check_name_mode: 'refuse'
+      }
+      const resp = await AliHttp.Post(url, postData, usePanTreeStore().user_id, '')
+      console.log('renameFile', resp)
+      return {
+        status: resp.code,
+        drive_id: resp.body.drive_id || '',
+        file_id: resp.body.file_id || '',
+        name: resp.body.name || ''
+      }
+    } catch (error) {
+      console.error('api.renameFolder', error)
+      throw error
+    }
+  }
+
+  // `https://api.aliyundrive.com/v3/file/update`
+  static async renameFolder(ctx: MoveInfo, drive_id: string, file_id: string, newName: string) {
+    try {
+      const url = 'v3/file/update'
+      const postData = {
+        drive_id: drive_id,
+        file_id: file_id,
+        name: newName,
+        check_name_mode: 'refuse'
+      }
+      const resp = await AliHttp.Post(url, postData, usePanTreeStore().user_id, '')
+      console.log('renameFile', resp)
+      return {
+        status: resp.code,
+        drive_id: resp.body.drive_id || '',
+        file_id: resp.body.file_id || '',
+        name: resp.body.name || ''
+      }
+    } catch (error) {
+      console.error('api.renameFolder', error)
+      throw error
+    }
+  }
+
+  //`https://api.aliyundrive.com/v3/file/move`
+  static async moveFile(ctx: MoveInfo, drive_id: string, file_id: string, to_file_id: string) {
+    try {
+      const url = 'v3/file/move'
+      const postData = {
+        drive_id: drive_id,
+        file_id: file_id,
+        to_parent_file_id: to_file_id,
+        auto_rename: true
+      }
+      const resp = await AliHttp.Post(url, postData, usePanTreeStore().user_id, '')
+      console.log('moveFolder', resp)
+      return {
+        status: resp.code,
+        drive_id: resp.body.drive_id || '',
+        file_id: resp.body.file_id || ''
+      }
+    } catch (error) {
+      console.error('api.moveFile', error)
+      throw error
+    }
+  }
+
+  //`https://api.aliyundrive.com/v3/file/move`
+  static async moveFolder(ctx: MoveInfo, drive_id: string, file_id: string, to_file_id: string) {
+    try {
+      const url = 'v3/file/move'
+      const postData = {
+        drive_id: drive_id,
+        to_drive_id: drive_id,
+        file_id: file_id,
+        to_parent_file_id: to_file_id,
+        auto_rename: true
+      }
+      const resp = await AliHttp.Post(url, postData, usePanTreeStore().user_id, '')
+      console.log('moveFolder', resp)
+      return {
+        status: resp.code,
+        drive_id: resp.body.drive_id || '',
+        file_id: resp.body.file_id || ''
+      }
+    } catch (error) {
+      console.error('api.moveFolder', error)
+      throw error
+    }
+  }
+}
+
+export default Request

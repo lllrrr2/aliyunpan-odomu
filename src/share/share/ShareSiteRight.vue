@@ -162,7 +162,7 @@ const handleForward = () => {
   </div>
   <div class='top-btn' style='height: 32px' v-show='siteUrl'>
     <div class='toppanbtn'>
-      <a-popconfirm content='确认要当前网站Cookies？' @ok='handleClearCookies'>
+      <a-popconfirm content='确认要清除当前网站Cookies？' @ok='handleClearCookies'>
         <a-button type='text' size='small' tabindex='-1'>
           <i class='iconfont icondelete' />清除Cookies
         </a-button>

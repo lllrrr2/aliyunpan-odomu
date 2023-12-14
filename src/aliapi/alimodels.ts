@@ -252,6 +252,7 @@ export interface IAliGetFileModel {
   name: string
   namesearch: string
   ext: string
+  mime_type: string
   category: string
   icon: string
   file_count?: number

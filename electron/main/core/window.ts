@@ -306,7 +306,9 @@ export function createElectronWindow(width: number, height: number, center: bool
   })
   win.webContents.on('will-navigate', (e, url) => {
     e.preventDefault()
-    shell.openExternal(url)
+    if (!url.includes(process.env.VITE_DEV_SERVER_URL)) {
+      shell.openExternal(url)
+    }
   })
   win.webContents.on('did-create-window', (childWindow) => {
     if (is.windows()) {
