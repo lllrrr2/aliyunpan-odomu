@@ -38,7 +38,7 @@ jobs:
           chmod -R 777 ./static/engine/
 
       - name: Build Electron App
-        uses: samuelmeuli/action-electron-builder@v1.6.0
+        uses: paneron/action-electron-builder@v1.8.1
         with:
           release: ${{ startsWith(github.ref, 'refs/tags') }}
-          github_token: ${{ secrets.github_token }}
+          github_token: ${{ secrets.ASSESS_TOKEN }}

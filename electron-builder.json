@@ -70,8 +70,10 @@
   },
   "publish": [
     {
+      "owner": "odomu",
+      "repo": "aliyunpan",
       "provider": "github",
-      "releaseType": "prerelease"
+      "releaseType": "draft"
     }
   ]
 }
