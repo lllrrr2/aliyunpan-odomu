@@ -10,15 +10,17 @@ import { useAppStore, useUserStore } from '../store'
 import ShareDAL from './share/ShareDAL'
 import FollowingDAL from './following/FollowingDAL'
 import { ref } from 'vue'
+import ShareHistoryRight from './share/ShareHistoryRight.vue'
 
 const appStore = useAppStore()
 const hideLeft = ref(false)
 
-appStore.$subscribe((mutation) => {
+appStore.$subscribe(() => {
   const appPage = appStore.GetAppTabMenu
 
   if (appPage == 'ShareSiteRight') ShareDAL.aLoadShareSite()
   if (appPage == 'MyShareRight') ShareDAL.aReloadMyShare(useUserStore().user_id, false)
+  if (appPage == 'ShareHistoryRight') ShareDAL.aReloadShareHistory(useUserStore().user_id, false)
   if (appPage == 'MyTransferShareRight') ShareDAL.aReloadMyTransferShare(useUserStore().user_id, false)
   if (appPage == 'MyFollowingRight') FollowingDAL.aReloadMyFollowing(useUserStore().user_id, false)
   if (appPage == 'OtherFollowingRight') FollowingDAL.aReloadOtherFollowingList(useUserStore().user_id, false)
@@ -41,7 +43,11 @@ const handleHideLeft = (val: boolean) => {
         </a-menu-item>
         <a-menu-item key='OtherShareRight'>
           <template #icon><i class='iconfont iconfenxiang1' /></template>
-          导入分享
+          我的导入
+        </a-menu-item>
+        <a-menu-item key='ShareHistoryRight'>
+          <template #icon><i class='iconfont iconfenxiang1' /></template>
+          历史导入
         </a-menu-item>
         <a-menu-item key='MyShareRight'>
           <template #icon><i class='iconfont iconfenxiang' /></template>
@@ -62,7 +68,7 @@ const handleHideLeft = (val: boolean) => {
       </a-menu>
     </a-layout-sider>
     <a-layout-content class='xbyright'>
-      <a-tabs type='text' :direction="'horizontal'" class='hidetabs' :justify='true'
+      <a-tabs :type="'text'" :direction="'horizontal'" class='hidetabs' :justify='true'
               :active-key='appStore.GetAppTabMenu'>
         <a-tab-pane key='ShareSiteRight' title='1'>
           <ShareSiteRight @hide-left='handleHideLeft' />
@@ -72,6 +78,9 @@ const handleHideLeft = (val: boolean) => {
         </a-tab-pane>
         <a-tab-pane key='MyShareRight' title='3'>
           <MyShareRight />
+        </a-tab-pane>
+        <a-tab-pane key='ShareHistoryRight' title='3'>
+          <ShareHistoryRight />
         </a-tab-pane>
         <a-tab-pane key='MyTransferShareRight' title='4'>
           <MyTransferShareRight />

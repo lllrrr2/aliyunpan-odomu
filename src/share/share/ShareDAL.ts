@@ -12,7 +12,8 @@ import AliShare from '../../aliapi/share'
 import { IAliShareAnonymous } from '../../aliapi/alimodels'
 import useMyTransferShareStore from './MyShareTransferStore'
 import AliTransferShareList from '../../aliapi/transfersharelist'
-import { IShareSiteGroupModel } from '../../store/serverstore'
+import { IShareSiteGroupModel } from '../../store'
+import useShareHistoryStore from './ShareHistoryStore'
 
 export default class ShareDAL {
 
@@ -34,6 +35,17 @@ export default class ShareDAL {
     const resp = await AliShareList.ApiShareListAll(user_id)
     myshareStore.aLoadListData(resp.items)
     myshareStore.ListLoading = false
+  }
+
+  static async aReloadShareHistory(user_id: string, force: boolean): Promise<void> {
+    if (!user_id) return
+    const shareHistoryStore = useShareHistoryStore()
+    if (!force && shareHistoryStore.ListDataRaw.length > 0) return
+    if (shareHistoryStore.ListLoading == true) return
+    shareHistoryStore.ListLoading = true
+    const resp = await AliShareList.ApiShareRecentListAll(user_id)
+    shareHistoryStore.aLoadListData(resp.items)
+    shareHistoryStore.ListLoading = false
   }
 
   static async aReloadMyTransferShare(user_id: string, force: boolean): Promise<void> {

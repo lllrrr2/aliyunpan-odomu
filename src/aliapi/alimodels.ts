@@ -168,6 +168,49 @@ export interface IAliShareItem {
   share_saved: string
 }
 
+export interface IAliShareRecentItem {
+  popularity: number;
+  browse_count: number;
+  share_id: string;
+  share_msg: string;
+  share_name: string;
+  share_url: string;
+  creator: string;
+  file_id_list: string[];
+  preview_count: number;
+  save_count: number;
+  status: string;
+  share_subtitle: string;
+  gmt_created: string;
+  gmt_modified: string;
+  is_public: boolean;
+  file_list: {
+    name: string;
+    type: string;
+    category: string;
+    parent_file_id: string;
+    drive_id: string;
+    file_id: string;
+    created_at: string;
+    updated_at: string;
+    trashed_at: string | null;
+  }[];
+  creator_name: string;
+  creator_uid: string;
+  file_count: number;
+  is_punished: boolean;
+  share_creator: {
+    userId: string;
+    avatar: string;
+    displayName: string;
+  };
+  popularity_str: string;
+  popularity_emoji: string;
+  full_share_msg: string;
+  share_title: string;
+  display_name: string;
+}
+
 export interface IAliShareAnonymous {
   shareinfo: {
     share_id: string
