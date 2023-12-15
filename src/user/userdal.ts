@@ -29,9 +29,10 @@ export default class UserDAL {
         if (token.user_id && await AliUser.ApiTokenRefreshAccount(token, false)) {
           if (token.user_id === defaultUser) {
             defaultUserAdd = true
-            await this.UserLogin(token).catch(() => {})
+            await this.UserLogin(token).catch(() => {
+            })
           } else {
-            await this.autoUserSign(token)
+            await this.UserAutoSign(token)
           }
         }
       }
@@ -166,7 +167,7 @@ export default class UserDAL {
     await DB.saveValueString('uiDefaultUser', token.user_id)
     useUserStore().userLogin(token.user_id)
     // 登陆后自动签到
-    await UserDAL.autoUserSign(token)
+    await UserDAL.UserAutoSign(token)
     window.WebUserToken({
       user_id: token.user_id,
       name: token.user_name,
@@ -239,7 +240,8 @@ export default class UserDAL {
       UserTokenMap.delete(user_id)
       return false
     }
-    await this.UserLogin(token).catch(() => {})
+    await this.UserLogin(token).catch(() => {
+    })
     return true
   }
 
@@ -280,7 +282,7 @@ export default class UserDAL {
     }
   }
 
-  static async autoUserSign(token: ITokenInfo) {
+  static async UserAutoSign(token: ITokenInfo) {
     // 自动签到
     if (token.user_id && useSettingStore().uiLaunchAutoSign) {
       const nowMonth = new Date().getMonth() + 1

@@ -128,8 +128,8 @@ class WebDavServer {
     const _this = this
     try {
       if (_this.webDavServer) {
-        _this.webDavServer.closeAllConnections()
         await promisify(_this.webDavServer.close).call(_this.webDavServer)
+        _this.webDavServer.closeAllConnections()
         return true
       } else {
         return false

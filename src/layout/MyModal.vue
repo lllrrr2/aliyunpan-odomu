@@ -25,9 +25,11 @@ import DownloadModal from '../pan/topbtns/DownloadModal.vue'
 import MoveToAlbumModal from '../pan/topbtns/MoveToAlbumModal.vue'
 import ShowUpdateLog from '../pan/topbtns/ShowUpdateLog.vue'
 import PostModal from '../pan/topbtns/PostModal.vue'
+import UserRewardSpace from '../user/UserRewardSpace.vue'
 
 export default defineComponent({
   components: {
+    UserRewardSpace,
     UserSpaceModal,
     RenameModal,
     RenameMultiModal,
@@ -62,6 +64,7 @@ export default defineComponent({
 
 <template>
   <UserSpaceModal :visible="modalStore.modalName == 'userspace'" />
+  <UserRewardSpace :visible="modalStore.modalName == 'userrewardspace'" :user_id="modalStore.modalData.user_id || ''"/>
   <CreatNewFileModal :visible="modalStore.modalName == 'creatfile'" />
   <CreatNewAlbumModal :visible="modalStore.modalName == 'creatalbum'" />
   <MoveToAlbumModal :visible="modalStore.modalName == 'movetoalbum'" :istree='modalStore.modalData.istree || false' />

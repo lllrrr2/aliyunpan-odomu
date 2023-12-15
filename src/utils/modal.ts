@@ -9,6 +9,10 @@ export function modalUserSpace() {
   useModalStore().showModal('userspace', {})
 }
 
+export function modalUserRewardSpace(user_id: string) {
+  useModalStore().showModal('userrewardspace', { user_id })
+}
+
 export function modalCreatNewFile() {
   useModalStore().showModal('creatfile', {})
 }

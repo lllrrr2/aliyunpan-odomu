@@ -361,6 +361,25 @@ export default class AliUser {
   }
 
 
+  static async ApiUserRewardSpace(user_id: string, gift_code: string) {
+    if (!user_id) return false
+    const url = 'https://member.aliyundrive.com/v1/users/rewards'
+    const postData = { code: gift_code }
+    const resp = await AliHttp.Post(url, postData, user_id, '')
+    if (AliHttp.IsSuccess(resp.code)) {
+      if (!resp.body || !resp.body.result) {
+        return { status: false, message: resp.body?.message }
+      }
+      if (!resp.body.success) {
+        return { status: false, message: resp.body?.message }
+      } else {
+        return { status: true, message: resp.body.result?.message }
+      }
+    } else {
+      return { status: false, message: resp.body?.message }
+    }
+  }
+
   static async ApiUserVip(token: ITokenInfo): Promise<boolean> {
     if (!token.user_id) return false
     const url = 'business/v1.0/users/vip/info'
