@@ -30,8 +30,6 @@ import {
 } from 'webdav-server/lib/index.v2'
 import AliFileSystemSerializer from './AliFileSystemSerializer'
 import { useSettingStore } from '../../../store'
-import fs from 'fs'
-import { getUserDataPath } from '../../../utils/electronhelper'
 
 
 const fixPath = function(path: Path) {
@@ -76,7 +74,7 @@ class AliFileSystem extends FileSystem {
       try {
         const { element, parentFolder } = Parser.parsePath(sPath)
         const struct = await this.manageResource.readDir({ context: ctx }, parentFolder)
-        console.log('_fastExistCheck.struct', struct)
+        // console.log('_fastExistCheck.struct', struct)
         if (!struct || struct instanceof Error) {
           callback(false)
           return
@@ -194,12 +192,11 @@ class AliFileSystem extends FileSystem {
             readStream = await this.manageResource.getReadStream(ctx, sPath)
             callback(Errors.None, readStream)
           } else {
-            readStream = await new Promise<Readable>((resolve, reject) => {
-              const filePath = getUserDataPath('webdav.txt')
-              if (!fs.existsSync(filePath)) {
-                fs.writeFileSync(filePath, '')
-              }
-              resolve(fs.createReadStream(filePath))
+            readStream = new Readable({
+              read() {
+                this.push('')
+              },
+              autoDestroy: true
             })
             callback(Errors.None, readStream)
           }
@@ -223,7 +220,7 @@ class AliFileSystem extends FileSystem {
     fixPath(path)
     const sPath = path.toString()
     const mimeType = this.manageResource.getMimeType(sPath, ctx)
-    console.log('mimeType', mimeType)
+    // console.log('mimeType', mimeType)
     callback(Errors.None, mimeType)
   }
 
@@ -240,9 +237,9 @@ class AliFileSystem extends FileSystem {
       const sPath = path.toString()
       const elements: string[] = []
       try {
-        console.log('readDir.path', sPath)
+        // console.log('readDir.path', sPath)
         const struct = await this.manageResource.readDir(ctx, sPath)
-        console.log('_readDir.struct', struct)
+        // console.log('_readDir.struct', struct)
         if (struct instanceof Error) {
           callback(struct)
           return
@@ -255,7 +252,7 @@ class AliFileSystem extends FileSystem {
         })
         callback(Errors.None, elements)
       } catch (error: any) {
-        console.log('_readDir.error', error)
+        console.error('_readDir.error', error)
         callback(error)
       }
     })()

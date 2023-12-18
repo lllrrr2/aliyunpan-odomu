@@ -4,10 +4,8 @@ import {
   DeleteInfo,
   Errors,
   IContextInfo,
-  IUser,
   MoveInfo,
-  OpenReadStreamInfo,
-  OpenWriteStreamInfo
+  OpenReadStreamInfo
 } from 'webdav-server/lib/index.v2'
 import { usePanTreeStore } from '../../../store'
 import TreeStore from '../../../store/treestore'
@@ -15,19 +13,19 @@ import AliFile from '../../../aliapi/file'
 import AliDirFileList from '../../../aliapi/dirfilelist'
 import AliHttp from '../../../aliapi/alihttp'
 import AliFileCmd from '../../../aliapi/filecmd'
-import fs from 'fs'
 import { StructDirectory } from '../resource/ResourceStruct'
-import { getUserDataPath } from '../../../utils/electronhelper'
-import AliUploadMem from '../../../aliapi/uploadmem'
-import { IUploadCreat } from '../../../aliapi/models'
 import AliUser from '../../../aliapi/user'
 import AliUpload from '../../../aliapi/upload'
 import AliUploadHashPool from '../../../aliapi/uploadhashpool'
 import UserDAL from '../../../user/userdal'
-import axios from 'axios'
-import DebugLog from '../../../utils/debuglog'
+import { Readable } from 'node:stream'
 
 class Request {
+  private static fileInfo: any
+
+  constructor() {
+
+  }
 
   static async getStructDirectory(ctx: IContextInfo, drive_id: string, file_id: string): Promise<StructDirectory[] | StructDirectory | Error> {
     console.log('api.getStructDirectory, file_id', file_id)
@@ -43,7 +41,8 @@ class Request {
             drive_id: usePanTreeStore().default_drive_id,
             parent_file_id: '',
             size: driveDetails.default_drive_used_size,
-            file_id: 'backup_root'
+            file_id: 'backup_root',
+            ext: ''
           }
         }, {
           files: [],
@@ -53,7 +52,8 @@ class Request {
             drive_id: usePanTreeStore().resource_drive_id,
             parent_file_id: '',
             size: driveDetails.resource_drive_used_size,
-            file_id: 'resource_root'
+            file_id: 'resource_root',
+            ext: ''
           }
         }]
       }
@@ -85,11 +85,53 @@ class Request {
     }
   }
 
-  static async getReadStream(ctx: OpenReadStreamInfo, drive_id: string, file_id: string, file_name: string) {
+  static async getReadStream(ctx: OpenReadStreamInfo, file: any) {
     try {
-      const downloadPath = getUserDataPath('download')
-      const filePath = `${downloadPath}/${file_name}`
-      return fs.createReadStream(filePath)
+      // 获取下载地址
+      if (!this.fileInfo || this.fileInfo.file_id != file.file_id) {
+        const data = await AliFile.ApiFileDownloadUrl(usePanTreeStore().user_id, file.drive_id, file.file_id, 14400)
+        let url = ''
+        if (typeof data !== 'string' && data.url && data.url != '') {
+          this.fileInfo = {
+            url: data.url,
+            name: file.name,
+            size: file.size,
+            file_id: file.file_id
+          }
+        }
+      }
+      // 获取流
+      let reqRange = ctx.context.headers.find('Range')
+      let response = await fetch(this.fileInfo.url, {
+        headers: {
+          Range: reqRange ? reqRange : 'bytes=0-' + file.size,
+          Referer: 'https://www.aliyundrive.com/'
+        }
+      })
+      if (!response.ok || !response.body) {
+        return Errors.ResourceNotFound
+      }
+      const reader = response.body!!.getReader()
+      return new Readable({
+        read(size) {
+          reader.read().then(({ done, value }) => {
+            if (done) {
+              reader.cancel()
+              this.push(null)
+              this.emit('close')
+            } else {
+              this.push(value)
+            }
+          }).catch(error => {
+            this.emit('error', error)
+          })
+        },
+        destroy() {
+          this.emit('close')
+          reader.cancel()
+        },
+        autoDestroy: true
+      })
     } catch (error) {
       console.error('api.getReadStream', error)
       throw error

@@ -1,7 +1,7 @@
 import {
   BasicPrivilege,
   HTTPRequestContext,
-  IUser, Path,
+  IUser,
   setDefaultServerOptions,
   SimplePathPrivilegeManager,
   WebDAVServer,
@@ -43,7 +43,7 @@ class WebDavServer {
   private execute() {
     const server = new WebDAVServer(this.options)
     server.beforeRequest(async (ctx: HTTPRequestContext, next: () => void) => {
-      console.log('beforeRequest', ctx.request.method)
+      // console.log('beforeRequest', ctx.request.method)
       const { headers, method } = ctx.request
       const { depth } = headers
       this.handleRequestPaths(ctx)
@@ -51,7 +51,7 @@ class WebDavServer {
       next()
     })
     server.afterRequest(async (ctx: HTTPRequestContext, next: () => void) => {
-      console.info('afterRequest.path', ctx.requested.path)
+      // console.info('afterRequest.path', ctx.requested.path)
       console.info('afterRequest.request', ctx.request)
       console.info('afterRequest.response', ctx.response)
       next()
@@ -71,27 +71,37 @@ class WebDavServer {
   }
 
   private async handleRequest(ctx: HTTPRequestContext) {
-    if (ctx.request.method == 'GET' && useSettingStore().webDavStrategy === 'redirect') {
+    if (ctx.request.method == 'GET') {
       const path = ctx.requested.path.paths.join('/')
       const user = ctx.user
       const { element, parentFolder } = Parser.parsePath('/' + path)
       const manageResource = this.rootFileSystem.manageResource
       const file = manageResource.findFile(manageResource.struct_cache.getStruct(parentFolder, user.uid), element)
-      console.log('beforeRequest.file', file)
       if (file) {
-        if (!this.fileInfo || this.fileInfo.file_id != file.file_id) {
-          const data = await AliFile.ApiFileDownloadUrl(usePanTreeStore().user_id, file.drive_id, file.file_id, 14400)
-          if (typeof data !== 'string' && data.url && data.url != '') {
-            this.fileInfo = {
-              url: data.url,
-              name: file.name,
-              file_id: file.file_id
+        if (useSettingStore().webDavStrategy === 'redirect') {
+          console.log('beforeRequest.file', file)
+          if (!this.fileInfo || this.fileInfo.file_id != file.file_id) {
+            const data = await AliFile.ApiFileDownloadUrl(usePanTreeStore().user_id, file.drive_id, file.file_id, 14400)
+            if (typeof data !== 'string' && data.url && data.url != '') {
+              this.fileInfo = {
+                url: data.url,
+                name: file.name,
+                file_id: file.file_id
+              }
             }
           }
+          // 302
+          ctx.response.writeHead(302, { 'Location': this.fileInfo.url })
+        } else {
+          if (file.mime_type?.includes('video')) {
+            ctx.response.writeHead(200, {
+              'Accept-Ranges': 'bytes',
+              'Content-Type': file.mime_type,
+              'Content-Disposition': 'attachment; filename=' + file.name,
+              'Content-Length': file.size
+            })
+          }
         }
-        // 302
-        ctx.setCode(200)
-        ctx.response.writeHead(302, { 'Location': this.fileInfo.url })
       }
     }
   }

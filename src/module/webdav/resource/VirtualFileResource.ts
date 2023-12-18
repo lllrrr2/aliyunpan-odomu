@@ -1,4 +1,4 @@
-import ResourceStruct, { StructDirectory } from './ResourceStruct'
+import ResourceStruct, { FileOrFolder, StructDirectory } from './ResourceStruct'
 import Parser from '../helper/propertyParser'
 import Request from '../request'
 import {
@@ -51,19 +51,19 @@ class VirtualFileResources {
     }
   }
 
-  findFolder(struct: any, element: string) {
+  findFolder(struct: any, element: string): FileOrFolder | null {
     try {
       return struct.folders.find((folder: any) => folder.name == element)
     } catch (error) {
-      return false
+      return null
     }
   }
 
-  findFile(struct: any, element: string) {
+  findFile(struct: any, element: string): FileOrFolder | null {
     try {
       return struct.files.find((file: any) => file.name == element)
     } catch (error) {
-      return false
+      return null
     }
   }
 
@@ -183,12 +183,13 @@ class VirtualFileResources {
       }
       virtualRootFolder = {
         files: [],
-        current: { file_id: '-1', parent_file_id: '', drive_id: '' },
+        current: { name: 'webdav', file_id: '-1', parent_file_id: '', drive_id: '', ext: '' },
         folders: [{
           name: 'webdav',
           drive_id: '',
           file_id: '0',
-          parent_file_id: '-1'
+          parent_file_id: '-1',
+          ext: ''
         }]
       }
       this.struct_cache.setStruct(path, user.uid, virtualRootFolder)
@@ -261,7 +262,11 @@ class VirtualFileResources {
     const { element, parentFolder } = Parser.parsePath(path)
     const file = this.findFile(this.struct_cache.getStruct(parentFolder, user.uid), element)
     if (file) {
-      return await Request.getReadStream(ctx, file.drive_id, file.file_id, file.name)
+      let readStream = await Request.getReadStream(ctx, file)
+      if (readStream instanceof Error) {
+        throw Errors.ResourceNotFound
+      }
+      return readStream
     } else {
       throw Errors.ResourceNotFound
     }
@@ -272,7 +277,7 @@ class VirtualFileResources {
     const user = ctx.context.user
     const { element, parentFolder } = Parser.parsePath(path)
     const struct = this.struct_cache.getStruct(parentFolder, user.uid)
-    const file = this.findFile(struct, element)
+    const file = this.findFile(struct, element)!!
     const content: any[] = []
     const positionId = this.created_now.indexOf(file.file_id)
     const token = await UserDAL.GetUserTokenFromDB(usePanTreeStore().user_id)

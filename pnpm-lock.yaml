@@ -125,9 +125,6 @@ devDependencies:
   socks-proxy-agent:
     specifier: ^8.0.2
     version: 8.0.2
-  sudo-prompt:
-    specifier: ^9.2.1
-    version: 9.2.1
   terser:
     specifier: ^5.26.0
     version: 5.26.0
@@ -3309,10 +3306,6 @@ packages:
   /strip-final-newline@2.0.0:
     resolution: {integrity: sha512-BrpvfNAE3dcvq7ll3xVumzjKjZQ5tI1sEUIKr3Uoks0XUl45St3FlatVqef9prk4jRDzhW6WZg+3bk93y6pLjA==}
     engines: {node: '>=6'}
-    dev: true
-
-  /sudo-prompt@9.2.1:
-    resolution: {integrity: sha512-Mu7R0g4ig9TUuGSxJavny5Rv0egCEtpZRNMrZaYS1vxkiIxGiGUwoezU3LazIQ+KE04hTrTfNPgxU5gzi7F5Pw==}
     dev: true
 
   /sumchecker@3.0.1:

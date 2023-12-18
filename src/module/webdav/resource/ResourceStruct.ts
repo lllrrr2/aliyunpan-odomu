@@ -2,7 +2,7 @@ import { IUser } from 'webdav-server/lib/index.v2'
 import { useSettingStore } from '../../../store'
 
 export type FileOrFolder = {
-  name?: string;
+  name: string;
   drive_id: string;
   file_id: string;
   parent_file_id: string;
@@ -12,6 +12,7 @@ export type FileOrFolder = {
   proof_version?: string;
   mime_type?: string;
   size?: number;
+  time?: number;
   ext?: string;
   access?: number;
   rootFolderType?: number,
