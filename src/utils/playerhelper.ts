@@ -261,6 +261,12 @@ const PlayerUtils = {
         await AliFile.ApiUpdateVideoTime(user_id, playInfo.drive_id, playInfo.playFileId, currentTime)
         await mpv.quit()
       })
+      if (useSettingStore().uiVideoPlayerExit) {
+        mpv.on('stopped', async () => {
+          message.info('播放完毕，自动退出软件')
+          await mpv.quit()
+        })
+      }
     } catch (error) {
       message.error('未知错误，请重新关闭播放器重新打开')
       await mpv.quit()

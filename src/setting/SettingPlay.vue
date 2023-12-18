@@ -165,13 +165,22 @@ const playerType = computed(() => {
           </MySwitch>
         </div>
       </template>
-      <template v-if='settingStore.uiVideoEnablePlayerList
-              && !playerType.includes("mpv")'>
+      <template v-if='settingStore.uiVideoEnablePlayerList && !playerType.includes("mpv")'>
         <div class='settingspace'></div>
         <div class='settinghead'>:播放器退出设置</div>
         <div class='settingrow'>
           <MySwitch :value='settingStore.uiVideoPlayerExit' @update:value='cb({ uiVideoPlayerExit: $event })'>
             跟随软件一同退出
+          </MySwitch>
+        </div>
+      </template>
+      <template v-if='(settingStore.uiVideoEnablePlayerList || settingStore.uiVideoPlayerHistory)
+                      && playerType.includes("mpv")'>
+        <div class='settingspace'></div>
+        <div class='settinghead'>:播放器退出设置</div>
+        <div class='settingrow'>
+          <MySwitch :value='settingStore.uiVideoPlayerExit' @update:value='cb({ uiVideoPlayerExit: $event })'>
+            播放完自动退出
           </MySwitch>
         </div>
       </template>
