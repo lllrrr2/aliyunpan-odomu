@@ -865,10 +865,13 @@ const onPanDragEnd = (ev: any) => {
             </div>
             <div class='filesize'>
               {{ item.sizeStr }}
-              <span>{{ item.media_duration }}</span>
-              <span>{{ item.media_width > 0 ? item.media_width + 'x' + item.media_height : '' }}</span>
             </div>
             <div class='filetime'>{{ item.timeStr }}</div>
+            <div class='filesize'>
+              <span>{{ '总时长：' + item.media_duration }}</span>
+              <span style='font-weight: bold' v-show='item.media_play_cursor'>{{ '已看：' + item.media_play_cursor }}</span>
+              <span>{{ item.media_width > 0 ? item.media_width + 'x' + item.media_height : '' }}</span>
+            </div>
           </div>
         </div>
       </template>

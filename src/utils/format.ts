@@ -148,6 +148,7 @@ export function humanTime(value: number | string | undefined): string {
   const hourStr = (hours < 10 ? '0' : '') + String(hours)
   const minStr = (minutes < 10 ? '0' : '') + String(minutes)
   const secStr = (seconds < 10 ? '0' : '') + String(seconds)
+  if (hourStr == '00') return minStr + ':' + secStr
   return hourStr + ':' + minStr + ':' + secStr 
 }
 

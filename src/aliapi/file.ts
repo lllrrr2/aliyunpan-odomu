@@ -97,7 +97,7 @@ export default class AliFile {
     const postData = {
       drive_id: drive_id,
       file_id: file_id,
-      expire_sec: useSettingStore().uiEnableOpenApi ? '36000' : expire_sec
+      expire_sec: useSettingStore().uiEnableOpenApi ? '14400' : expire_sec
     }
     const resp = await AliHttp.Post(url, postData, user_id, '', true)
     if (AliHttp.IsSuccess(resp.code)) {

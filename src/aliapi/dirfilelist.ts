@@ -109,11 +109,21 @@ export default class AliDirFileList {
         add.media_width = item.video_media_metadata.width || 0
         add.media_height = item.video_media_metadata.height || 0
         add.media_time = humanDateTimeDateStr(item.video_media_metadata.time)
+        if (item.play_cursor) {
+          add.media_play_cursor = humanTime(item.play_cursor)
+        } else if (item.user_meta) {
+          add.media_play_cursor = humanTime(JSON.parse(item.user_meta).play_cursor)
+        }
         add.media_duration = humanTime(item.video_media_metadata.duration)
       } else if (item.video_preview_metadata) {
         add.media_width = item.video_preview_metadata.width || 0
         add.media_height = item.video_preview_metadata.height || 0
-        add.media_time = humanDateTimeDateStr(item.video_preview_metadata.time)
+        if (item.play_cursor) {
+          add.media_play_cursor = humanTime(item.play_cursor)
+        } else if (item.user_meta) {
+          console.log('JSON.parse(item.user_meta)', JSON.parse(item.user_meta))
+          add.media_play_cursor = humanTime(JSON.parse(item.user_meta).play_cursor)
+        }
         add.media_duration = humanTime(item.video_preview_metadata.duration)
       } else if (item.image_media_metadata) {
         add.media_width = item.image_media_metadata.width || 0
@@ -230,7 +240,7 @@ export default class AliDirFileList {
     if (useSettingStore().uiShowPanMedia == false) {
       url += '?jsonmask=next_marker%2Cpunished_file_count%2Ctotal_count%2Citems(' + AliDirFileList.ItemJsonmask + ')'
     } else {
-      url += '?jsonmask=next_marker%2Cpunished_file_count%2Ctotal_count%2Citems(' + AliDirFileList.ItemJsonmask + '%2Cvideo_media_metadata(duration%2Cwidth%2Cheight%2Ctime)%2Cvideo_preview_metadata%2Fduration%2Cimage_media_metadata)'
+      url += '?jsonmask=next_marker%2Cpunished_file_count%2Ctotal_count%2Citems(' + AliDirFileList.ItemJsonmask + '%2Cuser_meta%2Cvideo_media_metadata(duration%2Cwidth%2Cheight%2Ctime)%2Cvideo_preview_metadata%2Fduration%2Cimage_media_metadata)'
     }
     let postData = {
       drive_id: dir.m_drive_id,

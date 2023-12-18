@@ -4,10 +4,14 @@ import AliHttp from './alihttp'
 import { IAliFileItem, IAliGetFileModel } from './alimodels'
 import AliDirFileList from './dirfilelist'
 import { ApiBatch, ApiBatchMaker, ApiBatchMaker2, ApiBatchSuccess } from './utils'
+import { IDownloadUrl } from './models'
 
 export default class AliFileCmd {
-  
-  static async ApiCreatNewForder(user_id: string, drive_id: string, parent_file_id: string, creatDirName: string): Promise<{ file_id: string; error: string }> {
+
+  static async ApiCreatNewForder(user_id: string, drive_id: string, parent_file_id: string, creatDirName: string, check_name_mode: string = 'refuse'): Promise<{
+    file_id: string;
+    error: string
+  }> {
     const result = { file_id: '', error: '新建文件夹失败' }
     if (!user_id || !drive_id || !parent_file_id) return result
     if (parent_file_id.includes('root')) parent_file_id = 'root'
@@ -16,7 +20,7 @@ export default class AliFileCmd {
       drive_id: drive_id,
       parent_file_id: parent_file_id,
       name: creatDirName,
-      check_name_mode: 'refuse',
+      check_name_mode: check_name_mode,
       type: 'folder'
     })
     const resp = await AliHttp.Post(url, postData, user_id, '')
@@ -31,7 +35,7 @@ export default class AliFileCmd {
     return result
   }
 
-  
+
   static async ApiTrashBatch(user_id: string, drive_id: string, file_idList: string[]): Promise<string[]> {
     const batchList = ApiBatchMaker('/recyclebin/trash', file_idList, (file_id: string) => {
       return { drive_id: drive_id, file_id: file_id }
@@ -39,7 +43,7 @@ export default class AliFileCmd {
     return ApiBatchSuccess('放入回收站', batchList, user_id, '')
   }
 
-  
+
   static async ApiDeleteBatch(user_id: string, drive_id: string, file_idList: string[]): Promise<string[]> {
     const batchList = ApiBatchMaker('/file/delete', file_idList, (file_id: string) => {
       return { drive_id: drive_id, file_id: file_id }
@@ -47,8 +51,13 @@ export default class AliFileCmd {
     return ApiBatchSuccess('彻底删除', batchList, user_id, '')
   }
 
-  
-  static async ApiRenameBatch(user_id: string, drive_id: string, file_idList: string[], names: string[]): Promise<{ file_id: string; parent_file_id: string; name: string; isDir: boolean }[]> {
+
+  static async ApiRenameBatch(user_id: string, drive_id: string, file_idList: string[], names: string[]): Promise<{
+    file_id: string;
+    parent_file_id: string;
+    name: string;
+    isDir: boolean
+  }[]> {
     const batchList = ApiBatchMaker2('/file/update', file_idList, names, (file_id: string, name: string) => {
       return { drive_id: drive_id, file_id: file_id, name: name, check_name_mode: 'refuse' }
     })
@@ -56,11 +65,16 @@ export default class AliFileCmd {
     if (batchList.length == 0) return Promise.resolve([])
     const successList: { file_id: string; parent_file_id: string; name: string; isDir: boolean }[] = []
     const result = await ApiBatch(file_idList.length <= 1 ? '' : '批量重命名', batchList, user_id, '')
-    result.reslut.map((t) => successList.push({ file_id: t.file_id!, name: t.name!, parent_file_id: t.parent_file_id!, isDir: t.type !== 'folder' }))
+    result.reslut.map((t) => successList.push({
+      file_id: t.file_id!,
+      name: t.name!,
+      parent_file_id: t.parent_file_id!,
+      isDir: t.type !== 'folder'
+    }))
     return successList
   }
 
-  
+
   static async ApiFavorBatch(user_id: string, drive_id: string, isfavor: boolean, ismessage: boolean, file_idList: string[]): Promise<string[]> {
     const batchList = ApiBatchMaker('/file/update', file_idList, (file_id: string) => {
       return { drive_id: drive_id, file_id: file_id, custom_index_key: isfavor ? 'starred_yes' : '', starred: isfavor }
@@ -68,7 +82,7 @@ export default class AliFileCmd {
     return ApiBatchSuccess(ismessage ? (isfavor ? '收藏文件' : '取消收藏') : '', batchList, user_id, '')
   }
 
-  
+
   static async ApiTrashCleanBatch(user_id: string, drive_id: string, ismessage: boolean, file_idList: string[]): Promise<string[]> {
     const batchList = ApiBatchMaker('/file/delete', file_idList, (file_id: string) => {
       return { drive_id: drive_id, file_id: file_id }
@@ -76,7 +90,7 @@ export default class AliFileCmd {
     return ApiBatchSuccess(ismessage ? '从回收站删除' : '', batchList, user_id, '')
   }
 
-  
+
   static async ApiTrashRestoreBatch(user_id: string, drive_id: string, ismessage: boolean, file_idList: string[]): Promise<string[]> {
     const batchList = ApiBatchMaker('/recyclebin/restore', file_idList, (file_id: string) => {
       return { drive_id: drive_id, file_id: file_id }
@@ -84,7 +98,7 @@ export default class AliFileCmd {
     return ApiBatchSuccess(ismessage ? '从回收站还原' : '', batchList, user_id, '')
   }
 
-  
+
   static async ApiFileColorBatch(user_id: string, drive_id: string, color: string, file_idList: string[]): Promise<string[]> {
     const batchList = ApiBatchMaker('/file/update', file_idList, (file_id: string) => {
       return { drive_id: drive_id, file_id: file_id, description: color }
@@ -92,8 +106,14 @@ export default class AliFileCmd {
     return ApiBatchSuccess(color == '' ? '清除文件标记' : color == 'ce74c3c' ? '' : '标记文件', batchList, user_id, '')
   }
 
-  
-  static async ApiRecoverBatch(user_id: string, resumeList: { drive_id: string; file_id: string; content_hash: string; size: number; name: string }[]): Promise<string[]> {
+
+  static async ApiRecoverBatch(user_id: string, resumeList: {
+    drive_id: string;
+    file_id: string;
+    content_hash: string;
+    size: number;
+    name: string
+  }[]): Promise<string[]> {
     const successList: string[] = []
     if (!resumeList || resumeList.length == 0) return Promise.resolve(successList)
 
@@ -107,7 +127,7 @@ export default class AliFileCmd {
         const url2 = 'adrive/v1/file/checkResumeTask'
         const resp2 = await AliHttp.Post(url2, { task_id }, user_id, '')
         if (AliHttp.IsSuccess(resp2.code)) {
-          
+
           if (resp2.body.state == 'running') continue
           if (resp2.body.state == 'done') {
             const results = resp2.body.results as any[]
@@ -117,7 +137,7 @@ export default class AliFileCmd {
                 return true
               })
             }
-            return successList 
+            return successList
           }
         }
       }
@@ -131,7 +151,7 @@ export default class AliFileCmd {
     return successList
   }
 
-  
+
   static async ApiMoveBatch(user_id: string, drive_id: string, file_idList: string[], to_drive_id: string, to_parent_file_id: string): Promise<string[]> {
     if (to_parent_file_id.includes('root')) to_parent_file_id = 'root'
     const batchList = ApiBatchMaker('/file/move', file_idList, (file_id: string) => {
@@ -152,17 +172,28 @@ export default class AliFileCmd {
     return ApiBatchSuccess(file_idList.length <= 1 ? '移动' : '批量移动', batchList, user_id, '')
   }
 
-  
+
   static async ApiCopyBatch(user_id: string, drive_id: string, file_idList: string[], to_drive_id: string, to_parent_file_id: string): Promise<string[]> {
     if (to_parent_file_id.includes('root')) to_parent_file_id = 'root'
     const batchList = ApiBatchMaker('/file/copy', file_idList, (file_id: string) => {
-      if (drive_id == to_drive_id) return { drive_id: drive_id, file_id: file_id, to_parent_file_id: to_parent_file_id, auto_rename: true }
-      else return { drive_id: drive_id, file_id: file_id, to_drive_id: to_drive_id, to_parent_file_id: to_parent_file_id, auto_rename: true }
+      if (drive_id == to_drive_id) return {
+        drive_id: drive_id,
+        file_id: file_id,
+        to_parent_file_id: to_parent_file_id,
+        auto_rename: true
+      }
+      else return {
+        drive_id: drive_id,
+        file_id: file_id,
+        to_drive_id: to_drive_id,
+        to_parent_file_id: to_parent_file_id,
+        auto_rename: true
+      }
     })
     return ApiBatchSuccess(file_idList.length <= 1 ? '复制' : '批量复制', batchList, user_id, '')
   }
 
-  
+
   static async ApiGetFileBatch(user_id: string, drive_id: string, file_idList: string[]): Promise<IAliGetFileModel[]> {
     const batchList = ApiBatchMaker('/file/get', file_idList, (file_id: string) => {
       return {
@@ -179,6 +210,23 @@ export default class AliFileCmd {
     const result = await ApiBatch('', batchList, user_id, '')
     result.reslut.map((t) => {
       if (t.body) successList.push(AliDirFileList.getFileInfo(t.body as IAliFileItem, 'download_url'))
+      return true
+    })
+    return successList
+  }
+
+  static async ApiGetFileDownloadUrlBatch(user_id: string, drive_id: string, file_idList: string[]): Promise<IDownloadUrl[]> {
+    const batchList = ApiBatchMaker('/file/get_download_url', file_idList, (file_id: string) => {
+      return {
+        drive_id: drive_id,
+        file_id: file_id,
+        expire_sec: 14400
+      }
+    })
+    const successList: IDownloadUrl[] = []
+    const result = await ApiBatch('', batchList, user_id, '')
+    result.reslut.map((t) => {
+      if (t.body) successList.push(t.body as IDownloadUrl)
       return true
     })
     return successList
