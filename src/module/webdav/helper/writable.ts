@@ -150,7 +150,14 @@ class StreamWrite extends Duplex {
     let partInfo: any = await AliUpload.UploadCreatFileWithPreHash(
       token.user_id, file.drive_id, file.parent_file_id,
       this.file.name, this.totalCount, prehash, 'overwrite')
-    if (partInfo.errormsg && partInfo.errormsg != 'PreHashMatched') {
+    if (partInfo.errormsg == 'PreHashMatched') {
+      let hashPool = await this.getBuffHashProof(token.access_token)
+      let sha1 = hashPool.sha1
+      partInfo = await AliUpload.UploadCreatFileWithFolders(
+        token.user_id, this.file.drive_id, this.file.parent_file_id,
+        this.file.name, this.totalCount, sha1, hashPool.proof_code, 'overwrite')
+      partInfo.content_hash = sha1
+    } else {
       let hashPool = await this.getBuffHashProof(token.access_token)
       let sha1 = hashPool.sha1
       partInfo = await AliUpload.UploadCreatFileWithFolders(
