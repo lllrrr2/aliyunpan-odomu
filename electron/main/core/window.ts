@@ -359,6 +359,7 @@ function createUpload() {
       createUpload()
     }
   })
+  // AppWindow.uploadWindow.webContents.openDevTools({ mode: 'undocked' })
   AppWindow.uploadWindow.hide()
 }
 

@@ -124,7 +124,7 @@ const handleJumpPath = () => {
   <div class="settingcard">
     <div class="settinghead">
       :缓存路径
-      <span class="opblue" style="margin-left: 12px; padding: 0 12px">( {{ settingStore.debugCacheSize }} )</span>
+      <span class="opblue" style="margin-left: 12px; padding: 0 12px">( {{ settingStore.debugDirSize }} )</span>
     </div>
     <div class="settingrow">
       <a-input tabindex='-1' :model-value='userData' placeholder='C:\Users\用户名\AppData\Roaming\aliyunxby'
@@ -135,14 +135,14 @@ const handleJumpPath = () => {
       <a-button type='outline' size='small' tabindex='-1' style='margin-right: 16px' @click='handleJumpPath'>
         打开位置
       </a-button>
-      <a-popconfirm content="确认要清理数据库？" @ok="AppCache.aClearCache('db')">
+      <a-popconfirm content="确认要清理数据库？" @ok="AppCache.aClearDir('db')">
         <a-button type="outline" size="small" tabindex="-1" status="danger" style="margin-right: 16px">清理数据库</a-button>
       </a-popconfirm>
 
-      <a-popconfirm content="确认要清理缓存？" @ok="AppCache.aClearCache('cache')">
+      <a-popconfirm content="确认要清理缓存？" @ok="AppCache.aClearDir('cache')">
         <a-button type="outline" size="small" tabindex="-1" status="danger" style="margin-right: 16px">清理缓存</a-button>
       </a-popconfirm>
-      <a-popconfirm content="确认要重置？会重启小白羊" @ok="AppCache.aClearCache('all')">
+      <a-popconfirm content="确认要重置？会重启小白羊" @ok="AppCache.aClearDir('all')">
         <a-button type="outline" size="small" tabindex="-1" status="danger" style="margin-right: 16px">删除全部数据(重置)</a-button>
       </a-popconfirm>
     </div>

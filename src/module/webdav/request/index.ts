@@ -14,7 +14,6 @@ import AliDirFileList from '../../../aliapi/dirfilelist'
 import AliHttp from '../../../aliapi/alihttp'
 import AliFileCmd from '../../../aliapi/filecmd'
 import { StructDirectory } from '../resource/ResourceStruct'
-import AliUser from '../../../aliapi/user'
 import AliUpload from '../../../aliapi/upload'
 import AliUploadHashPool from '../../../aliapi/uploadhashpool'
 import UserDAL from '../../../user/userdal'
@@ -32,7 +31,6 @@ class Request {
     try {
       // 如果为根路径，加入备份盘和资源盘
       if (file_id == 'root') {
-        let driveDetails = await AliUser.ApiUserDriveDetails(usePanTreeStore().user_id)
         return [{
           files: [],
           folders: [],
@@ -40,9 +38,9 @@ class Request {
             name: '备份盘',
             drive_id: usePanTreeStore().default_drive_id,
             parent_file_id: '',
-            size: driveDetails.default_drive_used_size,
             file_id: 'backup_root',
-            ext: ''
+            ext: '',
+            rootFolderType: 0
           }
         }, {
           files: [],
@@ -51,9 +49,9 @@ class Request {
             name: '资源盘',
             drive_id: usePanTreeStore().resource_drive_id,
             parent_file_id: '',
-            size: driveDetails.resource_drive_used_size,
             file_id: 'resource_root',
-            ext: ''
+            ext: '',
+            rootFolderType: 0
           }
         }]
       }

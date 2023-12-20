@@ -47,11 +47,11 @@ class WebDavServer {
       const { headers, method } = ctx.request
       const { depth } = headers
       this.handleRequestPaths(ctx)
-      await this.handleRequest(ctx)
-      next()
+      // this.handleOptionsRequest(ctx, next)
+      await this.handleGetRequest(ctx, next)
     })
     server.afterRequest(async (ctx: HTTPRequestContext, next: () => void) => {
-      // console.info('afterRequest.path', ctx.requested.path)
+      console.info('afterRequest.method', ctx.request.method)
       console.info('afterRequest.request', ctx.request)
       console.info('afterRequest.response', ctx.response)
       next()
@@ -70,7 +70,7 @@ class WebDavServer {
     ctx.requested.uri = 'http://' + this.options.hostname + ':' + this.options.port + '/' + paths.join('/')
   }
 
-  private async handleRequest(ctx: HTTPRequestContext) {
+  private async handleGetRequest(ctx: HTTPRequestContext, next: () => void) {
     if (ctx.request.method == 'GET') {
       const path = ctx.requested.path.paths.join('/')
       const user = ctx.user
@@ -91,18 +91,51 @@ class WebDavServer {
             }
           }
           // 302
-          ctx.response.writeHead(302, { 'Location': this.fileInfo.url })
+          ctx.response.writeHead(302, {
+            'Keep-Alive': 'true',
+            'Location': this.fileInfo.url
+          })
+          ctx.setCode(200)
+          ctx.exit()
         } else {
           if (file.mime_type?.includes('video')) {
             ctx.response.writeHead(200, {
+              'Keep-Alive': 'true',
               'Accept-Ranges': 'bytes',
               'Content-Type': file.mime_type,
-              'Content-Disposition': 'attachment; filename=' + file.name,
               'Content-Length': file.size
             })
           }
+          next()
         }
       }
+    } else {
+      next()
+    }
+  }
+
+  private handleOptionsRequest(ctx: HTTPRequestContext, next: () => void) {
+    if (ctx.request.method === 'OPTIONS') {
+      ctx.response.setHeader('DAV', '1,2')
+      ctx.response.setHeader('Access-Control-Allow-Origin', '*')
+      ctx.response.setHeader('Access-Control-Allow-Credentials', 'true')
+      ctx.response.setHeader(
+        'Access-Control-Allow-Headers',
+        'Authorization, Depth, Content-Type'
+      )
+      ctx.response.setHeader(
+        'Access-Control-Allow-Methods',
+        'PROPPATCH,PROPFIND,OPTIONS,DELETE,UNLOCK,COPY,LOCK,MOVE,HEAD,POST,PUT,GET'
+      )
+      ctx.response.setHeader(
+        'Access-Control-Expose-Headers',
+        'DAV, Content-Length, Allow'
+      )
+      ctx.response.setHeader('MS-Author-Via', 'DAV')
+      ctx.setCode(200)
+      ctx.exit()
+    } else {
+      next()
     }
   }
 

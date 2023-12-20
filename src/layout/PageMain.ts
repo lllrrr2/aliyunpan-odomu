@@ -53,6 +53,10 @@ export function PageMain() {
       })
       await Sleep(500)
 
+      await AppCache.aLoadDirSize().catch((err: any) => {
+        DebugLog.mSaveDanger('AppDirDALDB', err)
+      })
+
       await AppCache.aLoadCacheSize().catch((err: any) => {
         DebugLog.mSaveDanger('AppCacheDALDB', err)
       })

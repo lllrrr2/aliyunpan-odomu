@@ -9,10 +9,8 @@ class UserStore {
   setUser(username: string, password: string, path: string, rights: any, isAdmin: boolean = false) {
     return new Promise<IUser>(async (resolve) => {
       const user = new UserModel(username, password, path, rights, isAdmin, false)
-      console.log('set', user)
       const userList = await DB.getValueObject('webdav-server') as IUser[]
       const saveList = userList ? userList.concat(user) : [user]
-      console.log('userList', userList)
       await DB.saveValueObject('webdav-server', saveList)
       resolve(user)
     })

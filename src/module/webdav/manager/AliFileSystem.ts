@@ -14,7 +14,6 @@ import {
   LocalLockManager,
   LocalPropertyManager,
   LockManagerInfo,
-  MimeTypeInfo,
   MoveInfo,
   OpenReadStreamInfo,
   OpenWriteStreamInfo,
@@ -214,14 +213,6 @@ class AliFileSystem extends FileSystem {
     const sPath = path.toString()
     const type = this.manageResource.getType(sPath, ctx)
     callback(Errors.None, type)
-  }
-
-  _mimeType(path: Path, ctx: MimeTypeInfo, callback: ReturnCallback<string>) {
-    fixPath(path)
-    const sPath = path.toString()
-    const mimeType = this.manageResource.getMimeType(sPath, ctx)
-    // console.log('mimeType', mimeType)
-    callback(Errors.None, mimeType)
   }
 
   _lastModifiedDate(path: Path, ctx: LastModifiedDateInfo, callback: ReturnCallback<number>) {

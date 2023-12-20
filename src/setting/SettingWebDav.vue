@@ -4,9 +4,11 @@ import MySwitch from '../layout/MySwitch.vue'
 import WebDavServer from '../module/webdav'
 import { onMounted, reactive, ref } from 'vue'
 import message from '../utils/message'
-import UserModel from '../module/webdav/user/UserModel'
 import { IUser } from 'webdav-server/lib/index.v2'
 import { Sleep } from '../utils/format'
+import AppCache from '../utils/appcache'
+import { getUserData, openExternal } from '../utils/electronhelper'
+import path from 'path'
 
 const cb = (val: any) => {
   if (Object.hasOwn(val, 'webDavPort') && val.webDavPort !== settingStore.webDavPort) {
@@ -138,6 +140,10 @@ const handleBeforeClose = () => {
   if (okLoading.value) okLoading.value = false
   formRef.value.resetFields()
 }
+const handleJumpPath = () => {
+  const userData = getUserData()
+  openExternal(path.join(userData, 'Cache'))
+}
 </script>
 
 <template>
@@ -255,6 +261,22 @@ const handleBeforeClose = () => {
         </a-button>
       </a-popconfirm>
     </div>
+    <template v-if="settingStore.webDavStrategy === 'proxy'">
+      <div class='settingspace'></div>
+      <div class="settinghead">
+        :缓存大小
+        <span class="opblue" style="margin-left: 12px; padding: 0 12px">( {{ settingStore.debugCacheSize }} )</span>
+      </div>
+      <div class="settingrow">
+        <a-button type='outline' size='small' tabindex='-1' style='margin-right: 16px' @click='handleJumpPath'>
+          打开位置
+        </a-button>
+        <a-popconfirm content="确认要清理缓存？" @ok="AppCache.aClearCache()">
+          <a-button type="outline" size="small" tabindex="-1" status="danger" style="margin-right: 16px">清理缓存
+          </a-button>
+        </a-popconfirm>
+      </div>
+    </template>
   </div>
 </template>
 

@@ -138,6 +138,7 @@ export interface SettingState {
 
   downAutoStart: boolean
 
+  debugDirSize: string
   debugCacheSize: string
 
   debugFileListMax: number
@@ -250,6 +251,7 @@ const setting: SettingState = {
   downAutoStart: true,
 
   debugCacheSize: '',
+  debugDirSize: '',
   debugFileListMax: 3000,
   debugFavorListMax: 1000,
   debugDowningListMax: 1000,
@@ -346,6 +348,7 @@ function _loadSetting(val: any) {
   setting.downFinishAudio = defaultBool(val.downFinishAudio, true)
   setting.downAutoStart = defaultBool(val.downAutoStart, true)
 
+  setting.debugDirSize = defaultString(val.debugDirSize, '')
   setting.debugCacheSize = defaultString(val.debugCacheSize, '')
   setting.debugFileListMax = defaultNumberSub(val.debugFileListMax, 3000, 3000, 10000)
   setting.debugFavorListMax = defaultNumberSub(val.debugFavorListMax, 1000, 100, 3000)

@@ -151,7 +151,11 @@ export default class AliUpload {
       postData.content_hash_name = 'sha1'
       postData.proof_version = 'v1'
       postData.proof_code = proof_code
-
+    } else {
+      postData.content_hash = ''
+      postData.content_hash_name = 'none'
+      postData.proof_version = 'v1'
+      postData.proof_code = ''
     }
 
     let partSize = 10485760

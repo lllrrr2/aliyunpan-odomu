@@ -83,7 +83,7 @@ class VirtualFileResources {
   }
 
   async create(ctx: CreateInfo, path: string) {
-    console.log('create', ctx.context.user.username, path)
+    console.error('create.ctx', ctx)
     const user = ctx.context.user
     let { element, parentFolder } = Parser.parsePath(path)
     let current = this.struct_cache.getStruct(parentFolder, user.uid).current
@@ -94,11 +94,20 @@ class VirtualFileResources {
     }
     if (ctx.type.isFile) {
       let fileExt = Parser.parseFileExt(element)
+      let newFile: any = {}
       if (fileExt == 'txt') {
-        let createdObj = await Request.createFile(ctx, current.drive_id, current.file_id, element, '')
-        this.created_now.push(createdObj)
-        this.struct_cache.setFileObject(parentFolder, user.uid, createdObj)
+        newFile = await Request.createFile(ctx, current.drive_id, current.file_id, element, '')
+      } else {
+        newFile = {
+          name: element,
+          drive_id: current.drive_id,
+          file_id: '',
+          parent_file_id: current.file_id,
+          size: 0
+        }
       }
+      this.created_now.push(newFile)
+      this.struct_cache.setFileObject(parentFolder, user.uid, newFile)
     }
   }
 
@@ -134,11 +143,10 @@ class VirtualFileResources {
                        rootFolderType?: number) {
     let path = ''
     let privilageList = []
-    let parentId = parseInt(parent_file_id)
-    if (parentId == -1) {
+    if (parent_file_id.length > 0) {
       path = sPath + title
       privilageList = ['all']
-    } else if (parentId == 0) {
+    } else if (parent_file_id.length == 0) {
       if (rootFolderType == 1 || rootFolderType == 5) {
         path = sPath + '/' + title
         privilageList = ['all']
@@ -273,30 +281,22 @@ class VirtualFileResources {
   }
 
   async writeFile(ctx: OpenWriteStreamInfo, path: string) {
-    console.log('writeFile', ctx.context.user.username, path)
-    const user = ctx.context.user
-    const { element, parentFolder } = Parser.parsePath(path)
-    const struct = this.struct_cache.getStruct(parentFolder, user.uid)
-    const file = this.findFile(struct, element)!!
-    const content: any[] = []
-    const positionId = this.created_now.indexOf(file.file_id)
+    console.error('writeFile.ctx', ctx)
     const token = await UserDAL.GetUserTokenFromDB(usePanTreeStore().user_id)
-    let uploadFileInfo: any
-    if (positionId != -1) {
-      uploadFileInfo = this.created_now[positionId]
-      console.log('uploadFileInfo', uploadFileInfo)
-      this.created_now = this.created_now.splice(positionId + 1, 1)
-    } else {
-      throw Errors.InvalidOperation
-    }
-    if (ctx.estimatedSize > 0) { // 有内容
-      let arrayBuf = []
-      if (ctx.estimatedSize > 10485760) {
-        arrayBuf = new Array(10485760)
+    if (ctx.estimatedSize && ctx.estimatedSize > 0) { // 有内容
+      const user = ctx.context.user
+      const { element, parentFolder } = Parser.parsePath(path)
+      const struct = this.struct_cache.getStruct(parentFolder, user.uid)
+      const file = this.findFile(struct, element)!!
+      const positionId = this.created_now.findIndex(v => v.name === file.name)
+      let uploadFileInfo: any
+      if (positionId !== -1) {
+        uploadFileInfo = this.created_now[positionId]
+        this.created_now = this.created_now.splice(positionId + 1, 1)
       }
-      return new StreamWrite(ctx, token, content, arrayBuf, uploadFileInfo, this.created_now)
+      return new StreamWrite(ctx, token, [], uploadFileInfo, this.created_now)
     } else {
-      return new StreamWrite(ctx, token, [], [], undefined, [])
+      return new StreamWrite(ctx, token, [], undefined, [])
     }
   }
 
@@ -474,7 +474,7 @@ class VirtualFileResources {
     const struct = this.struct_cache.getStruct(parentFolder, user.uid)
     const file = this.findFile(struct, element)
     if (file) {
-      return file.mime_type
+      return file.mime_type || 'application/octet-stream'
     }
     return 'application/octet-stream'
   }
