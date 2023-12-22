@@ -35,14 +35,18 @@ function w(e: string) {
 }
 
 const handleOpen = () => {
-  setTimeout(()=> {
+  setTimeout(() => {
     const webview = document.getElementById('loginiframe') as any
     if (!webview) {
       message.error('严重错误：无法打开登录弹窗，请退出小白羊后重新运行')
       return
     }
     webview.openDevTools({ mode: 'bottom', activate: false })
-    webview.loadURL(Config.loginUrl, { httpReferrer: 'https://www.aliyundrive.com/' })
+    webview.loadURL(Config.loginUrl, { httpReferrer: Config.referer })
+    webview.addEventListener('did-finish-load', () => {
+      loginLoading.value = false
+      loginError.value = false
+    })
     webview.addEventListener('did-fail-load', () => {
       loginLoading.value = false
       loginError.value = false
@@ -51,9 +55,11 @@ const handleOpen = () => {
       const msg = e.message || ''
       loginLoading.value = false
       loginError.value = false
-      if (msg.indexOf('bizExt') > 0) loginbizExt(msg)
+      if (msg.indexOf('bizExt') > 0) {
+        loginbizExt(msg)
+      }
     })
-  },500)
+  }, 1000)
 }
 
 const handleClose = () => {
