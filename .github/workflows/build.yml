@@ -1,0 +1,83 @@
+name: Build Test
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '**'
+      - '!**.md'
+      - '!**/ISSUE_TEMPLATE/**'
+jobs:
+  build:
+    name: Build Test
+    runs-on: windows-latest
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Git repository
+        uses: actions/checkout@v4
+
+      - name: Install Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          registry-url: https://registry.npmjs.org/
+
+      - uses: pnpm/action-setup@v2
+        name: Install pnpm
+        id: pnpm-install
+        with:
+          version: 8
+          run_install: false
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - name: Get LOCALAPPDATA directory
+        id: local-app-data-path
+        run: echo "::set-output name=local_dir::$($env:LOCALAPPDATA)"
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Cache Electron
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.local-app-data-path.outputs.local_dir }}/electron/Cache
+          key: ${{ runner.os }}-electron-cache-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-electron-cache-
+
+      - name: Cache Electron-Builder
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.local-app-data-path.outputs.local_dir }}/electron-builder/Cache
+          key: ${{ runner.os }}-electron-builder-cache-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-electron-builder-cache-
+
+      - name: Build Electron App
+        run: |
+          pnpm install
+          pnpm build:electron
+        env:
+          github_token: ${{ secrets.ASSESS_TOKEN }}
+
+      - name: Upload Asar To Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: app.asar
+          path: |
+            release/win-unpacked/resources/app.asar
+      
