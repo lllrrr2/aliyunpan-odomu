@@ -70,7 +70,7 @@ jobs:
       - name: Build Electron App
         run: |
           pnpm install
-          pnpm build:electron
+          pnpm run build:electron
         env:
           github_token: ${{ secrets.ASSESS_TOKEN }}
 
