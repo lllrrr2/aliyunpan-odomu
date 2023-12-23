@@ -12,7 +12,7 @@ const useUser = useUserStore()
 const loginLoading = ref(true)
 const loginError = ref(true)
 
-function v(e: string) {
+function b64decode(e: string) {
   const t = atob(e)
   let r = t.length
   const n = new Uint8Array(r)
@@ -20,9 +20,9 @@ function v(e: string) {
   return new Blob([n])
 }
 
-function w(e: string) {
+function readData(e: string) {
   return new Promise<string>(function(resolve, reject) {
-    const n = v(e)
+    const n = b64decode(e)
     const i = new FileReader()
     i.onloadend = function(e) {
       resolve((e?.target?.result as string | undefined) || '')
@@ -77,7 +77,7 @@ const loginbizExt = (msg: string) => {
     DebugLog.mSaveDanger('登录失败：' + msg)
     return
   }
-  w(data.bizExt).then((jsonstr: string) => {
+  readData(data.bizExt).then((jsonstr: string) => {
     try {
       const result = JSON.parse(jsonstr).pds_login_result
       const deviceId = getUuid(result.userId.toString(), 5)
@@ -178,8 +178,9 @@ const loginbizExt = (msg: string) => {
             </a-row>
           </div>
           <div id="loginframediv" style="overflow: hidden; position: relative; width: 100%; height: 100%">
-            <Webview id="loginiframe"
-                     v-show='!loginLoading'
+            <Webview id="loginiframe" v-show='!loginLoading'
+                     plugins nodeintegration disablewebsecurity
+                     webpreferences="allowRunningInsecureContent"
                      src="about:blank" style="width: 100%; height: 400px; border: none; overflow: hidden" />
           </div>
         </div>

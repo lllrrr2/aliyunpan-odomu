@@ -1,7 +1,7 @@
 {
   "name": "alixby",
   "description": "阿里云盘小白羊",
-  "version": "3.23.122218",
+  "version": "3.23.122313",
   "main": "dist/electron/main/index.js",
   "author": {
     "name": "Odomu",
@@ -34,7 +34,7 @@
     "@vue/runtime-dom": "^3.3.13",
     "ant-design-vue": "3.2.20",
     "aria2-lib": "1.0.1",
-    "artplayer": "^5.0.9",
+    "artplayer": "^5.1.0",
     "ass-html5": "^0.3.6",
     "axios": "^1.6.2",
     "consola": "^3.2.3",
@@ -69,7 +69,7 @@
     "vite-plugin-electron": "0.15.5",
     "vite-plugin-electron-renderer": "0.14.5",
     "vue": "^3.3.13",
-    "vue-tsc": "^1.8.25",
+    "vue-tsc": "^1.8.26",
     "webdav-server": "^2.6.2"
   },
   "debug": {

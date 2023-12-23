@@ -55,8 +55,6 @@ const handleMaxClick = (_e: any) => {
 }
 
 const handleHelpPage = () => {
-  /*window.WebOpenWindow({ page: 'PageHelp', theme: 'dark' })
-  return*/
   const ourl = B64decode(useServerStore().helpUrl)
   if (ourl) openExternal(ourl)
 }

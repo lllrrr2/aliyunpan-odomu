@@ -128,6 +128,7 @@ const createVideo = async (name: string) => {
   ArtPlayerRef.title = name
   Artplayer.SETTING_WIDTH = 300
   Artplayer.SETTING_ITEM_WIDTH = 300
+  Artplayer.LOG_VERSION = false
   // 获取用户配置
   initStorage(ArtPlayerRef)
   initEvent(ArtPlayerRef)
