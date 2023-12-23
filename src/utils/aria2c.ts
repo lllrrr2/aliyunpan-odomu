@@ -286,7 +286,8 @@ export async function AriaStopList(list: string[]) {
 
 export function AriaShoutDown() {
   if (useSettingStore().AriaIsLocal) {
-    Aria2EngineLocal?.call('aria2.forceShutdown').catch((e: any) => {})
+    Aria2EngineLocal?.call('aria2.forceShutdown').catch((e: any) => {
+    })
   }
 }
 
@@ -322,7 +323,7 @@ export async function AriaAddUrl(file: IStateDownFile): Promise<string> {
         dirID: info.file_id,
         dirName: info.name
       }
-      do{
+      do {
         const isGet = await AliTrash.ApiFileListOnePageAria('name', 'ASC', dirInfo)
         if (!isGet) return '解析子文件列表失败，稍后重试'
         if (file.Down.IsStop) {
@@ -341,7 +342,7 @@ export async function AriaAddUrl(file: IStateDownFile): Promise<string> {
       const fileFull = path.join(dirPath, info.name)
       if (!info.ariaRemote) {
         try {
-          const fileStat = await fs.promises.stat(fileFull);
+          const fileStat = await fs.promises.stat(fileFull)
           if (fileStat && fileStat.size == info.size) return 'downed'
           else return '本地存在重名文件，请手动删除'
         } catch (error: any) {

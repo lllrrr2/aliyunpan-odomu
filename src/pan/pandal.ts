@@ -51,7 +51,7 @@ export default class PanDAL {
     const pantreeStore = usePanTreeStore()
     // 保存DriveId
     pantreeStore.mSaveUser(user_id, backup_drive_id || default_drive_id, resource_drive_id, backup_drive_id)
-    pantreeStore.drive_id = backup_drive_id || default_drive_id
+    pantreeStore.drive_id = resource_drive_id
     if (!user_id || !resource_drive_id) return
     const resourceCache = await DB.getValueObject('AllDir_' + resource_drive_id)
     if (resourceCache) {
@@ -254,7 +254,6 @@ export default class PanDAL {
       AliDirFileList.ApiDirFileList(user_id, drive_id, dirID, '', order, 'folder')
         .then((dir) => {
           if (!dir.next_marker) {
-            dir.dirID = dirID // 修复root
             TreeStore.SaveOneDirFileList(dir, false).then(() => {
               PanDAL.RefreshPanTreeAllNode(drive_id)
               const pantreeStore = usePanTreeStore()

@@ -21,7 +21,7 @@ import { ArrayKeyList } from '../../utils/utils'
 import PanDAL from '../pandal'
 import usePanFileStore from '../panfilestore'
 import usePanTreeStore from '../pantreestore'
-import { useSettingStore } from '../../store'
+import { useDowningStore, useSettingStore } from '../../store'
 import { Sleep } from '../../utils/format'
 import TreeStore from '../../store/treestore'
 import { copyToClipboard } from '../../utils/electronhelper'
@@ -119,6 +119,9 @@ export function menuDownload(istree: boolean, tips: boolean = true) {
   try {
     if (downSavePathDefault || !tips) {
       DownDAL.aAddDownload(files, savePath, savePathFull)
+      if (useDowningStore().ListDataRaw.length > 0) {
+        message.success(`成功创建下载任务`)
+      }
     } else {
       modalDownload(istree)
     }

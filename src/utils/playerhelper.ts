@@ -264,6 +264,7 @@ const PlayerUtils = {
       if (useSettingStore().uiVideoPlayerExit) {
         mpv.on('stopped', async () => {
           message.info('播放完毕，自动退出软件')
+          await AliFile.ApiUpdateVideoTime(user_id, playInfo.drive_id, playInfo.playFileId, currentTime)
           await mpv.quit()
         })
       }

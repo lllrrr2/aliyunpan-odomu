@@ -101,7 +101,7 @@ export default class AliFile {
     }
     const resp = await AliHttp.Post(url, postData, user_id, '', true)
     if (AliHttp.IsSuccess(resp.code)) {
-      data.url = resp.body.url
+      data.url =  resp.body.cdn_url || resp.body.url
       data.size = resp.body.size
       data.expire_time = GetExpiresTime(data.url)
       return data
@@ -169,7 +169,6 @@ export default class AliFile {
       }
       const taskList = resp.body.video_preview_play_info?.live_transcoding_task_list || []
       for (let i = 0, maxi = taskList.length; i < maxi; i++) {
-        if (taskList[i].url.indexOf('pdsapi.aliyundrive.com') > 0) continue // 非OpenApi无法播放
         if (taskList[i].template_id && taskList[i].template_id == 'QHD' && taskList[i].status == 'finished') {
           data.urlQHD = taskList[i].url
         } else if (taskList[i].template_id && taskList[i].template_id == 'FHD' && taskList[i].status == 'finished') {

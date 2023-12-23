@@ -242,7 +242,6 @@ const useDowningStore = defineStore('downing', {
         DBDown.saveDownings(JSON.parse(JSON.stringify(savelist)))
         DowningList.push(...savelist)
         this.mRefreshListDataShow(true)
-        message.success(`成功创建 ${savelist.length} 个下载任务`)
       }
     },
 
