@@ -188,8 +188,7 @@ function timeEvent() {
 
   // 没有下载和上传时触发自动关闭
   if (settingStore.downAutoShutDown == 2) {
-    if (!DownDAL.QueryIsDowning()
-        && !UploadingDAL.QueryIsUploading()) {
+    if (!DownDAL.QueryIsDowning() && !UploadingDAL.QueryIsUploading()) {
       settingStore.downAutoShutDown = 0
       useAppStore().appShutDown = true
     }

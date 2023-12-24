@@ -274,6 +274,7 @@ export default class DownDAL {
           }
           // 移除Aria2已完成的任务
           await AriaDeleteList([Info.GID])
+          i--
         } else if ((addDowningCount + downingStore.ListDataDowningCount) < downFileMax && !shouldSkipDown(Down)) {
           addDowningCount++
           downingStore.mUpdateDownState(DownItem, 'start')
@@ -423,11 +424,6 @@ export default class DownDAL {
 
   static QueryIsDowning() {
     const downingList = useDowningStore().ListDataRaw
-    for (let i = 0, maxi = downingList.length; i < maxi; i++) {
-      if (!downingList[i].Down.IsDowning) {
-        return true
-      }
-    }
-    return false
+    return downingList.some(down => down.Down.IsDowning)
   }
 }

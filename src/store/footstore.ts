@@ -5,7 +5,6 @@ import { humanTimeFM } from '../utils/format'
 import { defineStore } from 'pinia'
 import { ITokenInfo } from '../user/userstore'
 import useAppStore from './appstore'
-import message from '../utils/message'
 
 export interface AsyncModel {
   user_id: string
@@ -139,7 +138,6 @@ const useFootStore = defineStore('foot', {
 
                 if (item.type == '解压' || item.type == '复制' || item.type == '导入分享' || item.type == '回收站还原') {
                   await PanDAL.aReLoadOneDirToShow(item.todrive_id, 'refresh', false)
-                  message.success(`${item.type}完成`)
                 }
               }
             })
