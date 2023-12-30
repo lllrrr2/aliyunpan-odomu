@@ -8,6 +8,7 @@ import { HanToPin, MapValueToArray } from '../utils/utils'
 import AliHttp, { IUrlRespData } from './alihttp'
 import { IAliFileItem, IAliGetFileModel } from './alimodels'
 import getFileIcon from './fileicon'
+import { GetDriveID } from './utils'
 
 export interface IAliFileResp {
   items: IAliGetFileModel[]
@@ -121,7 +122,6 @@ export default class AliDirFileList {
         if (item.play_cursor) {
           add.media_play_cursor = humanTime(item.play_cursor)
         } else if (item.user_meta) {
-          console.log('JSON.parse(item.user_meta)', JSON.parse(item.user_meta))
           add.media_play_cursor = humanTime(JSON.parse(item.user_meta).play_cursor)
         }
         add.media_duration = humanTime(item.video_preview_metadata.duration)
@@ -355,7 +355,9 @@ export default class AliDirFileList {
     const url = 'adrive/v1/file/listDeleted'
     const postData = {
       drive_id: dir.m_drive_id,
-      album_drive_id: dir.m_drive_id,
+      limit: 100,
+      order_by: '',
+      order_direction: 'DESC',
       marker: dir.next_marker
     }
     const resp = await AliHttp.Post(url, postData, dir.m_user_id, '')
@@ -367,14 +369,13 @@ export default class AliDirFileList {
     if (useSettingStore().uiShowPanMedia == false) url += '?jsonmask=next_marker%2Cpunished_file_count%2Ctotal_count%2Citems(' + AliDirFileList.ItemJsonmask + ')'
     else url += '?jsonmask=next_marker%2Cpunished_file_count%2Ctotal_count%2Citems(' + AliDirFileList.ItemJsonmask + '%2Cvideo_media_metadata(duration%2Cwidth%2Cheight%2Ctime)%2Cvideo_preview_metadata%2Fduration%2Cimage_media_metadata)'
 
-
     let query = ''
+    let drive_id_list = []
     if (dir.dirID.startsWith('color')) {
       const color = dir.dirID.substring('color'.length).split(' ')[0].replace('#', 'c')
       query = 'description="' + color + '"'
     } else if (dir.dirID.startsWith('search')) {
       const search = dir.dirID.substring('search'.length).split(' ')
-
       let word = ''
       for (let i = 0; i < search.length; i++) {
         const itemstr = search[i]
@@ -382,11 +383,15 @@ export default class AliDirFileList {
           word += itemstr + ' '
           continue
         }
-
         const kv = search[i].split(':')
         const k = kv[0]
         const v = kv[1]
-        if (k == 'type') {
+        if (k == 'range') {
+          const arr = v.split(',')
+          for (let j = 0; j < arr.length; j++) {
+            drive_id_list.push(GetDriveID(dir.m_user_id, arr[j]))
+          }
+        } else if (k == 'type') {
           const arr = v.split(',')
           let type = ''
           for (let j = 0; j < arr.length; j++) {
@@ -399,6 +404,8 @@ export default class AliDirFileList {
         } else if (k == 'size') {
           const size = parseInt(v)
           if (size > 0) query += 'size = ' + v + ' and '
+        } else if (k == 'description') {
+          query += 'description = ' + v + ' and '
         } else if (k == 'max') {
           const max = parseInt(v)
           if (max > 0) query += 'size <= ' + v + ' and '
@@ -426,14 +433,15 @@ export default class AliDirFileList {
       if (query.length > 0) query = query.substring(0, query.length - 5)
       if (query.startsWith('(') && query.endsWith(')')) query = query.substring(1, query.length - 1)
     }
-    const postData = {
-      drive_id: dir.m_drive_id,
+    const postData: any = {
       marker: dir.next_marker,
       limit: 100,
       fields: '*',
       query: query,
       order_by: orderby + ' ' + order
     }
+    if (drive_id_list.length > 0) postData.drive_id_list = drive_id_list
+    else postData.drive_id = dir.m_drive_id
     const resp = await AliHttp.Post(url, postData, dir.m_user_id, '')
     return AliDirFileList._FileListOnePage(orderby, order, dir, resp, pageIndex)
   }
@@ -443,6 +451,7 @@ export default class AliDirFileList {
 
 
     let query = ''
+    let drive_id_list = []
     if (dir.dirID.startsWith('color')) {
       const color = dir.dirID.substring('color'.length).split(' ')[0].replace('#', 'c')
       query = 'description="' + color + '"'
@@ -460,7 +469,12 @@ export default class AliDirFileList {
         const kv = search[i].split(':')
         const k = kv[0]
         const v = kv[1]
-        if (k == 'type') {
+        if (k == 'range') {
+          const arr = v.split(',')
+          for (let j = 0; j < arr.length; j++) {
+            drive_id_list.push(GetDriveID(dir.m_user_id, arr[j]))
+          }
+        } else if (k == 'type') {
           const arr = v.split(',')
           let type = ''
           for (let j = 0; j < arr.length; j++) {
@@ -500,14 +514,15 @@ export default class AliDirFileList {
       if (query.length > 0) query = query.substring(0, query.length - 5)
       if (query.startsWith('(') && query.endsWith(')')) query = query.substring(1, query.length - 1)
     }
-    const postData = {
-      drive_id: dir.m_drive_id,
+    const postData: any = {
       marker: dir.next_marker,
       limit: 1,
       fields: '*',
       query: query,
       return_total_count: true
     }
+    if (drive_id_list.length > 0) postData.drive_id_list = drive_id_list
+    else postData.drive_id = dir.m_drive_id
     const resp = await AliHttp.Post(url, postData, dir.m_user_id, '')
     try {
       if (AliHttp.IsSuccess(resp.code)) {

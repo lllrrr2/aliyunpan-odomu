@@ -632,21 +632,27 @@ export async function topRecoverSelectedFile() {
       oneTimeList.push(resumeList[i])
       if (oneTimeList.length > 99) {
         const data = await AliFileCmd.ApiRecoverBatch(selectedData.user_id, oneTimeList)
-        successList = successList.concat(data)
+        if (Array.isArray(data)) {
+          successList = successList.concat(data)
+        }
         oneTimeList.length = 0
         message.loading('文件恢复执行中...(' + i.toString() + ')', 60, loadingKey)
       }
     }
     if (oneTimeList.length > 0) {
       const data = await AliFileCmd.ApiRecoverBatch(selectedData.user_id, oneTimeList)
-      successList = successList.concat(data)
+      if (Array.isArray(data)) {
+        successList = successList.concat(data)
+      } else {
+        message.error(data, 3, loadingKey)
+      }
       oneTimeList.length = 0
     }
-    message.success('文件恢复(' + successList.length + ') 成功!', 3, loadingKey)
-
-    PanDAL.aReLoadOneDirToRefreshTree(selectedData.user_id, selectedData.drive_id, 'root')
-
-    usePanFileStore().mDeleteFiles('recover', successList, false)
+    if (successList.length > 0) {
+      message.success('文件恢复(' + successList.length + ') 成功!', 3, loadingKey)
+      await PanDAL.aReLoadOneDirToRefreshTree(selectedData.user_id, selectedData.drive_id, 'root')
+      usePanFileStore().mDeleteFiles('recover', successList, false)
+    }
   } catch (err: any) {
     message.error(err.message, 3, loadingKey)
     DebugLog.mSaveDanger('topRecoverSelectedFile', err)
@@ -655,19 +661,25 @@ export async function topRecoverSelectedFile() {
 }
 
 
-export async function topSearchAll(word: string, inputsearchType: string) {
+export async function topSearchAll(word: string, inputsearchType: string[]) {
+  if (!word) return
   if (word == 'topSearchAll高级搜索') {
     modalSearchPan(inputsearchType)
     return
   }
   const pantreeStore = usePanTreeStore()
   if (!pantreeStore.user_id || !inputsearchType || !pantreeStore.selectDir.file_id) {
-    message.error('搜索文件操作失败 父文件夹错误')
+    message.error('搜索失败 父文件夹错误')
+    return
+  }
+  if (inputsearchType.length > 0) {
+    word += ' range:' + inputsearchType.join(',') + ' '
+  } else {
+    message.error('搜索失败 搜索范围不能为空')
     return
   }
   const searchid = 'search' + word
-  const drive_id = inputsearchType.includes('backup') ? pantreeStore.default_drive_id : pantreeStore.resource_drive_id
-  PanDAL.aReLoadOneDirToShow(drive_id, searchid, false)
+  await PanDAL.aReLoadOneDirToShow('', searchid, false)
 }
 
 

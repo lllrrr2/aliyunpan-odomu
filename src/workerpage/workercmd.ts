@@ -74,7 +74,7 @@ function LoadAllDirList(user_id: string, drive_id: string, drive_root: string): 
       console.timeEnd('AllDirList')
       AllDirLock.delete(drive_id)
       if (!data.next_marker) {
-        TreeStore.ConvertToOneDriver(drive_id, data.items, true, false).then((one) => {
+        TreeStore.ConvertToOneDriver(user_id, drive_id, data.items, true, false).then((one) => {
           window.WinMsgToMain({ cmd: 'MainSaveAllDir', OneDriver: one, ErrorMessage: '' })
         })
       } else {

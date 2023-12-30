@@ -143,7 +143,7 @@ const usePanFileStore = defineStore('panfile', {
       if (file_id == 'recover') return 'recover'
       if (file_id == 'trash') return 'trash'
       if (file_id == 'favorite') return 'favorite'
-      if (file_id.includes('pic')) return 'pic'
+      if (file_id.startsWith('pic')) return 'pic'
       if (state.AlbumID) return 'mypic'
       if (file_id.startsWith('search')) return 'search'
       if (file_id.startsWith('color')) return 'color'
