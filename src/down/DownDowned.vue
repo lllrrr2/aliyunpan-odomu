@@ -209,7 +209,9 @@ const handleRightClick = (e: { event: MouseEvent; node: any }) => {
         size="small"
         title="Ctrl+F / F3 / Space"
         placeholder="快速筛选"
-        :model-value="downedStore.ListSearchKey"
+        allow-clear
+        v-model="downedStore.ListSearchKey"
+        @clear='(e:any)=>handleSearchInput("")'
         @input="(val:any)=>handleSearchInput(val as string)"
         @press-enter="handleSearchEnter"
         @keydown.esc="($event.target as any).blur()"

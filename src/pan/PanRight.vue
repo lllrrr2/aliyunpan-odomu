@@ -50,14 +50,15 @@ import { menuOpenFile } from '../utils/openfile'
 import { throttle } from '../utils/debounce'
 import { TestButton } from '../utils/mosehelper'
 import usePanTreeStore from './pantreestore'
-import { GetDriveID, GetDriveType } from '../aliapi/utils'
+import { GetDriveID } from '../aliapi/utils'
 import { xorWith } from 'lodash'
 
 const viewlist = ref()
 const inputsearch = ref()
 const isresourcedrive = ref(false)
 const inputpicType = ref('pic_root')
-const inputsearchType = ref('backup')
+const inputselectType = ref('backup')
+const inputsearchType = ref(['backup', 'resource', 'pic'])
 const videoSelectType = ref('recent')
 
 const appStore = useAppStore()
@@ -75,8 +76,7 @@ panfileStore.$subscribe((_m: any, state: PanFileState) => {
   }
   if (state.DriveID != DriveID) {
     DriveID = state.DriveID
-    isresourcedrive.value = inputsearchType.value.includes('resource')
-    inputsearchType.value = GetDriveType(panTreeStore.user_id, DriveID).name
+    isresourcedrive.value = inputselectType.value.includes('resource')
   }
   const isTrash = panfileStore.SelectDirType == 'trash' || panfileStore.SelectDirType == 'recover'
   const selectItem = panfileStore.GetSelectedFirst()
@@ -571,14 +571,28 @@ const onPanDragEnd = (ev: any) => {
         <a-option value='mypic'>我的相册</a-option>
       </a-select>
     </div>
-    <div v-show="!['pan', 'pic', 'mypic', 'video', 'recover'].includes(panfileStore.SelectDirType)" class='toppanbtn'>
-      <a-select v-model:model-value='inputsearchType' size='small' tabindex='-1'
+    <div v-show="['trash', 'recover', 'favorite'].includes(panfileStore.SelectDirType)"
+         class='toppanbtn'>
+      <a-select v-model:model-value='inputselectType'
+                size='small' tabindex='-1'
                 @update:model-value='handleChangeDrive'
                 style='width: 100px; flex-shrink: 0; margin: 0 -8px' :disabled='panfileStore.ListLoading'>
         <a-option value='backup'>备份盘</a-option>
         <a-option value='resource'>资源盘</a-option>
-        <a-option v-show="['trash', 'favorite'].includes(panfileStore.SelectDirType)" value='pic'>相册</a-option>
+        <a-option value='pic'>相册</a-option>
       </a-select>
+    </div>
+    <div v-if="panfileStore.SelectDirType === 'search'" class='toppanbtn'>
+      <a-dropdown style='width: 100px;'>
+        <a-button :disabled='panfileStore.ListLoading'>搜索范围</a-button>
+        <template #content>
+          <a-checkbox-group v-model="inputsearchType" direction="vertical">
+            <a-checkbox value="backup">备份盘</a-checkbox>
+            <a-checkbox value="resource">资源盘</a-checkbox>
+            <a-checkbox value="pic">相册</a-checkbox>
+          </a-checkbox-group>
+        </template>
+      </a-dropdown>
     </div>
     <div v-if="panfileStore.SelectDirType == 'video'" class='toppanbtn' tabindex='-1'>
       <a-space direction='horizontal'>
@@ -602,9 +616,10 @@ const onPanDragEnd = (ev: any) => {
         class='searchpan'
         style='width: 240px'
         :loading='panfileStore.ListLoading'
-        placeholder='输入关键字，搜索整个网盘'
+        placeholder='输入关键字进行搜索'
         button-text='搜索'
         search-button
+        allow-clear
         :input-attrs="{ id: 'searchpanInput' }"
         @search='(val:string)=>topSearchAll(val, inputsearchType)'
         @press-enter='($event:any)=>topSearchAll($event.srcElement.value as string, inputsearchType)'
@@ -620,7 +635,7 @@ const onPanDragEnd = (ev: any) => {
     <FileTopbtn :dirtype='panfileStore.SelectDirType'
                 :isselected='panfileStore.IsListSelected'
                 :isvideo='menuShowVideo'
-                :inputsearchType='inputsearchType'
+                :inputselectType='inputselectType'
                 :inputpicType='inputpicType'
                 :isselectedmulti='panfileStore.IsListSelectedMulti'
                 :isallfavored='panfileStore.IsListSelectedFavAll'
@@ -631,13 +646,15 @@ const onPanDragEnd = (ev: any) => {
     <div class='toppanbtn'>
       <a-input-search
         ref='inputsearch'
-        :model-value='panfileStore.ListSearchKey'
+        v-model='panfileStore.ListSearchKey'
         :input-attrs="{ tabindex: '-1' }"
         size='small'
         title='Ctrl+F / F3 / Space'
         placeholder='快速筛选'
         draggable='false'
+        allow-clear
         @dragenter.stop='() => false'
+        @clear='(e:any)=>handleSearchInput("")'
         @input='(val:any)=>handleSearchInput(val as string)'
         @press-enter='handleSearchEnter'
         @keydown.esc=';($event.target as any).blur()' />
@@ -869,7 +886,8 @@ const onPanDragEnd = (ev: any) => {
             <div class='filetime'>{{ item.timeStr }}</div>
             <div class='filesize' v-show="item.media_duration">
               <span>{{ '总时长：' + item.media_duration }}</span>
-              <span style='font-weight: bold' v-show='item.media_play_cursor'>{{ '已看：' + item.media_play_cursor }}</span>
+              <span style='font-weight: bold' v-show='item.media_play_cursor'>{{ '已看：' + item.media_play_cursor
+                }}</span>
               <span>{{ item.media_width > 0 ? item.media_width + 'x' + item.media_height : '' }}</span>
             </div>
           </div>
@@ -1130,7 +1148,7 @@ const onPanDragEnd = (ev: any) => {
                    :isvideo='menuShowVideo'
                    :isselected='panfileStore.IsListSelected'
                    :isselectedmulti='panfileStore.IsListSelectedMulti'
-                   :inputsearchType='inputsearchType'
+                   :inputselectType='inputselectType'
                    :inputpicType='inputpicType'
                    :isallfavored='panfileStore.IsListSelectedFavAll' />
     <TrashRightMenu :dirtype='panfileStore.SelectDirType' />

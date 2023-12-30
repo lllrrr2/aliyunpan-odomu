@@ -41,7 +41,7 @@ const props = defineProps({
     type: Boolean,
     required: true
   },
-  inputsearchType: {
+  inputselectType: {
     type: String,
     required: true
   },
@@ -64,7 +64,7 @@ const isShowBtn = computed(() => {
         <template #icon><i class='iconfont icondownload' /></template>
         <template #default>下载</template>
       </a-doption>
-      <a-doption v-show='inputsearchType.includes("resource")'
+      <a-doption v-show='inputselectType.includes("resource")'
                  @click="() => menuCreatShare(istree, 'pan', 'resource_root')">
         <template #icon><i class='iconfont iconfenxiang' /></template>
         <template #default>分享</template>
@@ -139,7 +139,7 @@ const isShowBtn = computed(() => {
         <template #default>重命名</template>
       </a-doption>
 
-      <a-doption @click='() => modalShuXing(istree, inputsearchType, dirtype.includes("pic"))'>
+      <a-doption @click='() => modalShuXing(istree, inputselectType, dirtype.includes("pic"))'>
         <template #icon><i class='iconfont iconshuxing' /></template>
         <template #default>属性</template>
       </a-doption>
@@ -152,7 +152,7 @@ const isShowBtn = computed(() => {
         <template #content>
           <a-doption
             v-show="isselected && !isselectedmulti && (dirtype == 'favorite' || dirtype == 'search' || dirtype == 'color' || dirtype == 'video')"
-            @click='() => menuJumpToDir(inputsearchType)'>
+            @click='() => menuJumpToDir(inputselectType)'>
             <template #icon><i class='iconfont icondakaiwenjianjia1' /></template>
             <template #default>打开位置</template>
           </a-doption>

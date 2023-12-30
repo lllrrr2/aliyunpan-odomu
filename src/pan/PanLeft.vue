@@ -16,7 +16,7 @@ import { modalUpload } from '../utils/modal'
 import { GetDriveType } from '../aliapi/utils'
 
 const treeref = ref()
-const inputsearchType = ref('backup')
+const inputselectType = ref('backup')
 const winStore = useWinStore()
 const treeHeight = computed(() => winStore.height - 42 - 56 - 24 - 4)
 const quickHeight = computed(() => winStore.height - 42 - 56 - 24 - 4 - 280 - 28)
@@ -47,7 +47,7 @@ let DriveID = pantreeStore.drive_id
 pantreeStore.$subscribe((_m: any, state: PanTreeState) => {
   if (state.drive_id != DriveID) {
     DriveID = state.drive_id
-    inputsearchType.value = GetDriveType(state.user_id, state.drive_id).name
+    inputselectType.value = GetDriveType(state.user_id, state.drive_id).name
   }
 })
 
@@ -249,7 +249,7 @@ const handleQuickSelect = (index: number) => {
             :auto-expand-parent='false'
             show-icon
             :height='quickHeight'
-            :style="{ height: quickHeight + 'px', marginLeft: '-18px' }"
+            :style="{ height: quickHeight + 'px', marginLeft: '-10px' }"
             :item-height='30'
             :show-line='false'
             :open-animation='{}'
@@ -261,7 +261,7 @@ const handleQuickSelect = (index: number) => {
             </template>
             <template #title='{ dataRef }'>
               <span class='quicktitle' :title='dataRef.namesearch'>
-                {{ dataRef.drive_name }} · {{ dataRef.title }}
+                {{ dataRef.title }}
               </span>
               <span class='quickbtn'>
                 <a-button type='text' size='mini' @click.stop='handleQuickDelete(dataRef.key)'>
@@ -273,7 +273,7 @@ const handleQuickSelect = (index: number) => {
         </a-tab-pane>
       </a-tabs>
     </div>
-    <DirLeftMenu :inputsearchType='inputsearchType' />
+    <DirLeftMenu :inputselectType='inputselectType' />
   </div>
 </template>
 

@@ -60,11 +60,11 @@ export function modalSelectPanDir(selecttype: string, selectid: string,
   useModalStore().showModal('selectpandir', { selecttype, selectid, category, extFilter, callback })
 }
 
-export function modalShuXing(istree: boolean, inputsearchType: string, ispic: boolean = false) {
-  useModalStore().showModal('shuxing', { istree, inputsearchType, ispic })
+export function modalShuXing(istree: boolean, inputselectType: string, ispic: boolean = false) {
+  useModalStore().showModal('shuxing', { istree, inputselectType, ispic })
 }
 
-export function modalSearchPan(inputsearchType: string) {
+export function modalSearchPan(inputsearchType: string[]) {
   useModalStore().showModal('searchpan', { inputsearchType })
 }
 

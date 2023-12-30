@@ -44,7 +44,7 @@ export default defineComponent({
       type: Boolean,
       required: true
     },
-    inputsearchType: {
+    inputselectType: {
       type: String,
       required: true
     },
@@ -92,7 +92,7 @@ export default defineComponent({
               @click='() => menuDownload(istree)'>
       <i class='iconfont icondownload' />下载
     </a-button>
-    <a-button v-show="dirtype == 'pan' && inputsearchType.includes('resource')" type='text' size='small' tabindex='-1'
+    <a-button v-show="dirtype == 'pan' && inputselectType.includes('resource')" type='text' size='small' tabindex='-1'
               title='Ctrl+S'
               @click="() => menuCreatShare(istree, 'pan', 'resource_root')">
       <i class='iconfont iconfenxiang' />分享
@@ -159,13 +159,13 @@ export default defineComponent({
           <template #icon><i class='iconfont iconcopy' /></template>
           <template #default>复制到...</template>
         </a-doption>
-        <a-doption title='Ctrl+P' @click='() => modalShuXing(istree, inputsearchType, dirtype.includes("pic"))'>
+        <a-doption title='Ctrl+P' @click='() => modalShuXing(istree, inputselectType, dirtype.includes("pic"))'>
           <template #icon><i class='iconfont iconshuxing' /></template>
           <template #default>属性</template>
         </a-doption>
         <a-doption
           v-show="isselected && !isselectedmulti && (dirtype == 'favorite' || dirtype == 'search' || dirtype == 'color' || dirtype == 'video')"
-          @click='() => menuJumpToDir(inputsearchType)'>
+          @click='() => menuJumpToDir(inputselectType)'>
           <template #icon><i class='iconfont icondakaiwenjianjia1' /></template>
           <template #default>打开位置</template>
         </a-doption>

@@ -8,7 +8,7 @@ import TreeStore from '../../store/treestore'
 const istree = true
 
 const props = defineProps({
-  inputsearchType: {
+  inputselectType: {
     type: String,
     required: true
   }
@@ -53,7 +53,7 @@ const handleExpandAll = (isExpand: boolean) => {
         <template #icon> <i class="iconfont icondownload" /> </template>
         <template #default>下载</template>
       </a-doption>
-      <a-doption v-show="inputsearchType.includes('resource')"
+      <a-doption v-show="inputselectType.includes('resource')"
                  @click="() => menuCreatShare(istree, 'pan', 'resource_root')">
         <template #icon><i class='iconfont iconfenxiang' /></template>
         <template #default>分享</template>
@@ -90,7 +90,7 @@ const handleExpandAll = (isExpand: boolean) => {
         <template #default>重命名</template>
       </a-doption>
 
-      <a-doption @click='() => modalShuXing(istree, inputsearchType)'>
+      <a-doption @click='() => modalShuXing(istree, inputselectType)'>
         <template #icon><i class='iconfont iconshuxing' /></template>
         <template #default>属性</template>
       </a-doption>

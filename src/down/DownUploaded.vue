@@ -266,7 +266,9 @@ const onSelectFile = (item: IStateUploadTask | undefined, cmd: string) => {
           size="small"
           title="Ctrl+F / F3 / Space"
           placeholder="快速筛选"
-          :model-value="uploadedStore.ListSearchKey"
+          allow-clear
+          v-model="uploadedStore.ListSearchKey"
+          @clear='(e:any)=>handleSearchInput("")'
           @input="(val:any)=>handleSearchInput(val as string)"
           @press-enter="handleSearchEnter"
           @keydown.esc="($event.target as any).blur()"
