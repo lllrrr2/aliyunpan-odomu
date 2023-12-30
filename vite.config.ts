@@ -13,6 +13,10 @@ export default defineConfig(({ command }) => {
   const isServe = command === 'serve'
   const isBuild = command === 'build'
   return {
+    define: {
+      // enable hydration mismatch details in production build
+      __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: 'true'
+    },
     build: {
       rollupOptions: {
         output: {

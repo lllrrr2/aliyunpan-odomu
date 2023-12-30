@@ -42,8 +42,6 @@ export function GetDriveType(user_id: string, drive_id: string): any {
         return { title: '全部相册', name: 'pic', key: 'pic_root' }
       case token.default_sbox_drive_id:
         return { title: '安全盘', name: 'safe', key: 'safe_root' }
-      default:
-        return { title: '备份盘', name: 'backup', key: 'backup_root' }
     }
   }
   return { title: '', key: '' }

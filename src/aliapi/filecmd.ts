@@ -1,5 +1,4 @@
 import DebugLog from '../utils/debuglog'
-import message from '../utils/message'
 import AliHttp from './alihttp'
 import { IAliFileItem, IAliGetFileModel } from './alimodels'
 import AliDirFileList from './dirfilelist'
@@ -113,7 +112,7 @@ export default class AliFileCmd {
     content_hash: string;
     size: number;
     name: string
-  }[]): Promise<string[]> {
+  }[]): Promise<string[] | string> {
     const successList: string[] = []
     if (!resumeList || resumeList.length == 0) return Promise.resolve(successList)
 
@@ -142,11 +141,11 @@ export default class AliFileCmd {
         }
       }
     } else if (resp.code && resp.code == 403) {
-      if (resp.body?.code == 'UserNotVip') message.error('文件恢复功能需要开通阿里云盘会员')
-      else message.error(resp.body?.code || '拒绝访问')
+      if (resp.body?.code == 'UserNotVip') return '文件恢复功能需要开通阿里云盘会员'
+      else return resp.body?.code || '拒绝访问'
     } else if (!AliHttp.HttpCodeBreak(resp.code)) {
       DebugLog.mSaveWarning('ApiRecoverBatch err=' + (resp.code || ''), resp.body)
-      message.error('操作失败')
+      return '操作失败'
     }
     return successList
   }

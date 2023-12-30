@@ -53,7 +53,6 @@ export default class UserDAL {
       const token = tokenList[i]
       try {
         const expire_time = new Date(token.expire_time).getTime()
-        const open_api_expire_time = new Date(token.open_api_expires_in).getTime()
         // 自动刷新Token(过期3分钟)
         if (expire_time - dateNow < 1000 * 60 * 3) {
           await AliUser.ApiTokenRefreshAccount(token, false)

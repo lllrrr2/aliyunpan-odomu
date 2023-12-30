@@ -12,31 +12,31 @@ export interface IAliDirResp {
   items: IAliGetDirModel[]
   next_marker: string
 
-  m_user_id: string 
-  m_drive_id: string 
-  dirID: string 
-  dirName: string 
+  m_user_id: string
+  m_drive_id: string
+  dirID: string
+  dirName: string
 }
 
 export interface IDirDataResp {
   items: DirData[]
   next_marker: string
 
-  m_user_id: string 
-  m_drive_id: string 
-  dirID: string 
-  dirName: string 
+  m_user_id: string
+  m_drive_id: string
+  dirID: string
+  dirName: string
 }
 
 export interface IAliDirBatchResp {
   items: IAliGetFileModel[]
   itemsKey: Set<string>
   next_marker: string
-  dirID: string 
+  dirID: string
 }
 
 export default class AliDirList {
-  
+
   static async ApiFastAllDirList(user_id: string, drive_id: string): Promise<IAliDirResp> {
     const result: IAliDirResp = {
       items: [],
@@ -87,7 +87,7 @@ export default class AliDirList {
                   namesearch: '',
                   size: item.size || 0,
                   time: new Date(item.updated_at).getTime(),
-                  
+
                   description: item.description || ''
                 }
                 allMap.set(add.file_id, add)
@@ -108,17 +108,17 @@ export default class AliDirList {
                   namesearch: '',
                   size: item.size || 0,
                   time: new Date(item.updated_at).getTime(),
-                  
+
                   description: item.description || ''
                 }
                 allMap.set(add.file_id, add)
                 lockSet.add(item.file_id)
               }
             }
-            if (isFind) break 
-            if (resp1.body.next_marker == '' && resp2.body.next_marker == '') break 
+            if (isFind) break
+            if (resp1.body.next_marker == '' && resp2.body.next_marker == '') break
           } else {
-            
+
             errorMessage += 'err1' + (resp1.status || '')
             errorMessage += 'err2' + (resp2.status || '')
             break
@@ -131,7 +131,7 @@ export default class AliDirList {
           DebugLog.mSaveWarning('ApiFastAllDirList err=' + (resp.code || ''), resp.body)
         }
       } catch (err: any) {
-        
+
         errorMessage += 'err' + (err.message || '')
         DebugLog.mSaveWarning('ApiFastAllDirList', err)
         break
@@ -146,7 +146,7 @@ export default class AliDirList {
     return result
   }
 
-  
+
   static async ApiBatchDirFileList(user_id: string, drive_id: string, dirList: IAliDirBatchResp[], limit: number, listTypeOrQuery: string): Promise<boolean> {
     if (!user_id || !drive_id) return false
 
@@ -215,7 +215,7 @@ export default class AliDirList {
     return false
   }
 
-  
+
   static async ApiFastAllDirListByTime(user_id: string, drive_id: string, created_at: Date): Promise<IAliDirResp> {
     const result: IAliDirResp = {
       items: [],
@@ -227,7 +227,7 @@ export default class AliDirList {
     }
     if (!user_id || !drive_id) return result
 
-    
+
     const allMap = new Map<string, IAliGetDirModel>()
 
     let dirList: IAliDirBatchResp[] = []
@@ -252,11 +252,11 @@ export default class AliDirList {
         if (i > 0) postData = postData + ','
         const query = 'type="folder" and ' + dirList[i].dirID
         let id = dirList[i].dirID
-            .replaceAll('"', '')
-            .replaceAll(' ', '')
-            .replaceAll('-', '')
-            .replaceAll(':', '')
-            .replaceAll(',', '')
+          .replaceAll('"', '')
+          .replaceAll(' ', '')
+          .replaceAll('-', '')
+          .replaceAll(':', '')
+          .replaceAll(',', '')
         if (id.includes('root')) id = 'root'
         const data2 = {
           body: {
@@ -288,7 +288,14 @@ export default class AliDirList {
               const respi = responses[j]
               const id = respi.id || ''
               for (let i = 0, maxi = dirList.length; i < maxi; i++) {
-                if (dirList[i].dirID.replaceAll('"', '').replaceAll(' ', '').replaceAll('-', '').replaceAll(':', '').replaceAll(',', '') == id) {
+                let pid = dirList[i].dirID
+                  .replaceAll('"', '')
+                  .replaceAll(' ', '')
+                  .replaceAll('-', '')
+                  .replaceAll(':', '')
+                  .replaceAll(',', '')
+                if (pid.includes('root')) pid = 'root'
+                if (pid == id) {
                   const dir = dirList[i]
                   const items = respi.body.items
                   dir.next_marker = respi.body.next_marker
@@ -305,7 +312,7 @@ export default class AliDirList {
                       namesearch: '',
                       size: item.size || 0,
                       time: new Date(item.updated_at).getTime(),
-                      
+
                       description: item.description || ''
                     }
                     allMap.set(add.file_id, add)
@@ -363,7 +370,7 @@ export default class AliDirList {
     return { created_at: new Date(), total_count: 0 }
   }
 
-  
+
   static async ApiFastAllDirListByPID(user_id: string, drive_id: string, drive_root: string): Promise<IDirDataResp> {
     const result: IDirDataResp = {
       items: [],
@@ -378,7 +385,7 @@ export default class AliDirList {
     const allMap = new Map<string, DirData>()
     const dirCount = await AliUser.ApiUserDriveFileCount(user_id, '', 'folder')
     const PIDList: string[] = []
-    
+
     const root = await AliTrash.ApiDirFileListNoLock(user_id, drive_id, 'root', '', 'name ASC', 'folder', 0)
     for (let i = 0, maxi = root.items.length; i < maxi; i++) {
       const item = root.items[i]
@@ -396,7 +403,7 @@ export default class AliDirList {
       PIDList.push(add.file_id)
     }
 
-    
+
     let dirList: IAliDirBatchResp[] = []
     let errorMessage = ''
     let index = 0
@@ -457,7 +464,13 @@ export default class AliDirList {
               const respi = responses[j]
               const id = respi.id || ''
               for (let i = 0, maxi = dirList.length; i < maxi; i++) {
-                if (dirList[i].dirID.replaceAll('"', '').replaceAll(' ', '').replaceAll(',', '').substring(0, 54) == id) {
+                let pid = dirList[i].dirID
+                  .replaceAll('"', '')
+                  .replaceAll(' ', '')
+                  .replaceAll(',', '')
+                  .substring(0, 54)
+                if (pid.includes('root')) pid = 'root'
+                if (pid == id) {
                   const dir = dirList[i]
                   const items = respi.body.items
                   dir.next_marker = respi.body.next_marker
@@ -465,6 +478,7 @@ export default class AliDirList {
                   for (let i = 0, maxi = items.length; i < maxi; i++) {
                     const item = items[i]
                     if (allMap.has(item.file_id)) continue
+                    if (item.parent_file_id === 'root') item.parent_file_id = drive_root
                     const add: DirData = {
                       file_id: item.file_id,
                       parent_file_id: item.parent_file_id,

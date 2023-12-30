@@ -302,7 +302,7 @@ export default class AliUser {
     const postData = ''
     const resp = await AliHttp.Post(url, postData, token.user_id, '')
     if (AliHttp.IsSuccess(resp.code)) {
-      token.default_drive_id = resp.body.backup_drive_id || resp.body.default_drive_id
+      token.default_drive_id = resp.body.default_drive_id
       token.backup_drive_id = resp.body.backup_drive_id
       token.resource_drive_id = resp.body.resource_drive_id
       token.sbox_drive_id = resp.body.sbox_drive_id

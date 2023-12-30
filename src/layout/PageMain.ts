@@ -139,8 +139,8 @@ function timeEvent() {
       })
   } else chkBackupDirSizeTime++
 
-  if (settingStore.uiFolderSize && !lockResourceDirSizeTime && nowTime - runTime > 60
-    && chkResourceDirSizeTime >= 15) {
+  if (settingStore.uiFolderSize && !lockResourceDirSizeTime && nowTime - runTime > 55
+    && chkResourceDirSizeTime >= 10) {
     lockResourceDirSizeTime = true
 
     PanDAL.aUpdateDirFileSize(usePanTreeStore().resource_drive_id)
