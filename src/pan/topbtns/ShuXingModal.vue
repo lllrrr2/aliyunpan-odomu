@@ -20,7 +20,7 @@ export default defineComponent({
       type: Boolean,
       required: true
     },
-    inputsearchType: {
+    inputselectType: {
       type: String,
       required: true
     },
@@ -37,7 +37,7 @@ export default defineComponent({
     const handleOpen = async () => {
       const pantreeStore = usePanTreeStore()
       let file_id = ''
-      let drive_id = GetDriveID(pantreeStore.user_id, props.ispic ? 'pic' : props.inputsearchType)
+      let drive_id = GetDriveID(pantreeStore.user_id, props.ispic ? 'pic' : props.inputselectType)
       if (props.istree) {
         file_id = pantreeStore.selectDir.file_id
       } else {

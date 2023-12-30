@@ -416,13 +416,15 @@ async function getNodeAllFiles(share_id: string, share_token: string, file_id: s
         <div class='toppanbtn' style='margin-right: 35px'>
           <a-input-search
             ref='inputsearch'
-            :model-value='filterKeyword'
+            v-model='filterKeyword'
             :input-attrs="{ tabindex: '-1' }"
             size='small'
             title='Ctrl+F / F3 / Space'
             placeholder='快速筛选'
             draggable='false'
+            allow-clear
             @dragenter.stop='() => false'
+            @clear='(e:any)=>handleFilterChange("")'
             @input='(val:any)=>handleFilterChange(val as string)'
             @keydown.esc=';($event.target as any).blur()' />
         </div>

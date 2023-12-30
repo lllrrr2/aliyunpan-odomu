@@ -163,8 +163,6 @@ const handleRightClick = (e: { event: MouseEvent; node: any }) => {
 </script>
 
 <template>
-  <div style="height: 7px"></div>
-  <div class="toppanbtns" style="height: 26px"></div>
   <div style="height: 14px"></div>
   <div class="toppanbtns" style="height: 26px">
     <div class="toppanbtn">
@@ -172,8 +170,8 @@ const handleRightClick = (e: { event: MouseEvent; node: any }) => {
         <template #icon>
           <i class="iconfont iconreload-1-icon" />
         </template>
-        刷新</a-button
-      >
+        刷新
+      </a-button>
     </div>
     <div class="toppanbtn">
       <a-button type="text" size="small" tabindex="-1" title="Ctrl+N" @click="handleDaoRuLink"><i class="iconfont iconlink2" />导入</a-button>
@@ -188,7 +186,15 @@ const handleRightClick = (e: { event: MouseEvent; node: any }) => {
 
     <div style="flex-grow: 1"></div>
     <div class="toppanbtn">
-      <a-input-search ref="inputsearch" tabindex="-1" size="small" title="Ctrl+F / F3 / Space" placeholder="快速筛选" :model-value="othershareStore.ListSearchKey" @input="(val:any)=>handleSearchInput(val as string)" @press-enter="handleSearchEnter" @keydown.esc=";($event.target as any).blur()" />
+      <a-input-search ref="inputsearch" tabindex="-1" size="small"
+                      title="Ctrl+F / F3 / Space"
+                      placeholder="快速筛选"
+                      allow-clear
+                      v-model="othershareStore.ListSearchKey"
+                      @clear='(e:any)=>handleSearchInput("")'
+                      @input="(val:any)=>handleSearchInput(val as string)"
+                      @press-enter="handleSearchEnter"
+                      @keydown.esc=";($event.target as any).blur()" />
     </div>
     <div></div>
   </div>

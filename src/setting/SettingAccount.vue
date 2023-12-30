@@ -17,9 +17,6 @@ const qrCodeStatusType = ref()
 const qrCodeStatusTips = ref()
 
 const cb = (val: any) => {
-  // 自动调整最佳线程数
-  val.downThreadMax = val.uiEnableOpenApi ? 16 : 4
-  val.downFileMax = val.uiEnableOpenApi ? 3 : 5
   settingStore.updateStore(val)
 }
 
@@ -237,6 +234,7 @@ const closeQrCode = () => {
                      @update:model-value='cb({ uiOpenApiAccessToken: $event })'
                      @keydown='(e:any) => e.stopPropagation()'
                      tabindex='-1'
+                     :style="{ width: '430px' }"
                      placeholder='没有不填，有效期3个小时'
                      :disabled="settingStore.uiOpenApiRefreshToken !== ''"
                      :allow-clear="settingStore.uiOpenApiRefreshToken !== ''" />
@@ -257,6 +255,7 @@ const closeQrCode = () => {
                      @update:model-value='cb({ uiOpenApiRefreshToken: $event })'
                      @keydown='(e:any) => e.stopPropagation()'
                      tabindex='-1'
+                     :style="{ width: '430px' }"
                      placeholder='用于刷新AccessToken'
                      allow-clear />
           </div>

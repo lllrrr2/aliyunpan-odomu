@@ -133,24 +133,37 @@ const handleSearchEnter = (event: any) => {
 </script>
 
 <template>
-  <div style="height: 47px"></div>
+  <div style="height: 20px"></div>
   <div class="toppanbtns" style="height: 26px">
     <div class="toppanbtn">
-      <a-button type="text" size="small" tabindex="-1" :loading="myfollowingStore.ListLoading" title="F5" @click="handleRefresh"
-        ><template #icon> <i class="iconfont iconreload-1-icon" /> </template
-      ></a-button>
+      <a-button type="text" size="small" tabindex="-1" :loading="myfollowingStore.ListLoading" title="F5"
+                @click="handleRefresh">
+        <template #icon><i class="iconfont iconreload-1-icon" /></template>
+        刷新
+      </a-button>
     </div>
     <div class="toppanbtn">
-      <a-button type="text" size="small" tabindex="-1" title="Ctrl+N" @click="handleDaoRuLink"><i class="iconfont iconlink2" />导入订阅</a-button>
+      <a-button type="text" size="small" tabindex="-1" title="Ctrl+N" @click="handleDaoRuLink"><i
+        class="iconfont iconlink2" />导入订阅
+      </a-button>
     </div>
     <div v-show="myfollowingStore.IsListSelected" class="toppanbtn">
-      <a-button type="text" size="small" tabindex="-1" title="Ctrl+C" @click="handleCopySelectedLink"><i class="iconfont iconcopy" />复制链接</a-button>
-      <a-button type="text" size="small" tabindex="-1" title="Ctrl+B" @click="handleBrowserLink"><i class="iconfont iconchrome" />浏览器</a-button>
-      <a-button type="text" size="small" tabindex="-1" title="Ctrl+Delete" @click="handleDeleteSelectedLink"><i class="iconfont icondelete" />取消订阅</a-button>
+      <a-button type="text" size="small" tabindex="-1" title="Ctrl+C" @click="handleCopySelectedLink"><i
+        class="iconfont iconcopy" />复制链接
+      </a-button>
+      <a-button type="text" size="small" tabindex="-1" title="Ctrl+B" @click="handleBrowserLink"><i
+        class="iconfont iconchrome" />浏览器
+      </a-button>
+      <a-button type="text" size="small" tabindex="-1" title="Ctrl+Delete" @click="handleDeleteSelectedLink"><i
+        class="iconfont icondelete" />取消订阅
+      </a-button>
     </div>
     <div style="flex-grow: 1"></div>
     <div class="toppanbtn">
-      <a-input-search ref="inputsearch" tabindex="-1" size="small" title="Ctrl+F / F3 / Space" placeholder="快速筛选" :model-value="myfollowingStore.ListSearchKey" @input="(val :any)=>handleSearchInput(val as string)" @press-enter="handleSearchEnter" @keydown.esc=";($event.target as any).blur()" />
+      <a-input-search ref="inputsearch" tabindex="-1" size="small" title="Ctrl+F / F3 / Space" placeholder="快速筛选"
+                      allow-clear v-model="myfollowingStore.ListSearchKey" @clear='(e:any)=>handleSearchInput("")'
+                      @input="(val :any)=>handleSearchInput(val as string)" @press-enter="handleSearchEnter"
+                      @keydown.esc=";($event.target as any).blur()" />
     </div>
     <div></div>
   </div>
@@ -185,13 +198,19 @@ const handleSearchEnter = (event: any) => {
       :data="myfollowingStore.ListDataShow"
       :loading="myfollowingStore.ListLoading"
       tabindex="-1">
-      <template #empty><a-empty description="没有订阅任何公众号" /></template>
+      <template #empty>
+        <a-empty description="没有订阅任何公众号" />
+      </template>
       <template #item="{ item }">
         <div :key="item.user_id" class="listitemdiv">
-          <div :class="'following' + (myfollowingStore.ListSelected.has(item.user_id) ? ' selected' : '') + (myfollowingStore.ListFocusKey == item.user_id ? ' focus' : '')" @click="handleSelect(item.user_id, $event)">
+          <div
+            :class="'following' + (myfollowingStore.ListSelected.has(item.user_id) ? ' selected' : '') + (myfollowingStore.ListFocusKey == item.user_id ? ' focus' : '')"
+            @click="handleSelect(item.user_id, $event)">
             <a-avatar :size='30' :image-url='item.avatar' />
             <div class="followingmessages">
-              <div class="followingname" @click="handleOpenLink(item.user_id)">{{ item.nick_name }} <a-badge v-if="item.has_unread_message" status="processing"></a-badge></div>
+              <div class="followingname" @click="handleOpenLink(item.user_id)">{{ item.nick_name }}
+                <a-badge v-if="item.has_unread_message" status="processing"></a-badge>
+              </div>
               <div v-for='msg in item.latest_messages'
                    :key='msg.sequence_id'
                    class='followingmessage'
@@ -208,15 +227,18 @@ const handleSearchEnter = (event: any) => {
     </a-list>
   </div>
   <a-modal v-model:visible="daoruModel" :footer="false" :unmount-on-close="true" :mask-closable="false">
-    <template #title> 批量导入订阅 </template>
+    <template #title> 批量导入订阅</template>
     <div style="width: 500px">
       <div style="margin-bottom: 32px">
         <div class="arco-textarea-wrapper arco-textarea-scroll">
-          <textarea v-model="daoruModelText" class="arco-textarea daoruinput" placeholder="请粘贴，每行一条订阅链接，例如：https://www.aliyundrive.com/u/ec11691148db442aa7aa374ca707543c"></textarea>
+          <textarea v-model="daoruModelText" class="arco-textarea daoruinput"
+                    placeholder="请粘贴，每行一条订阅链接，例如：https://www.aliyundrive.com/u/ec11691148db442aa7aa374ca707543c"></textarea>
         </div>
       </div>
       <div class="flex" style="justify-content: center; align-items: center; margin-bottom: 0px">
-        <a-button id="MFRDaoRuLink" type="primary" size="small" tabindex="-1" :loading="daoruModelLoading" @click="handleSaveDaoRuLink">批量订阅</a-button>
+        <a-button id="MFRDaoRuLink" type="primary" size="small" tabindex="-1" :loading="daoruModelLoading"
+                  @click="handleSaveDaoRuLink">批量订阅
+        </a-button>
       </div>
     </div>
   </a-modal>
@@ -226,6 +248,7 @@ const handleSearchEnter = (event: any) => {
 .arco-list-wrapper:focus {
   outline: none;
 }
+
 .following {
   display: flex;
   flex-grow: 0;
@@ -236,9 +259,11 @@ const handleSearchEnter = (event: any) => {
   border: transparent solid 1px;
   margin-right: 2px;
 }
+
 .following:hover {
   background-color: var(--listhoverbg);
 }
+
 .following.focus {
   border: rgba(var(--primary-6), 0.6) dotted 1px;
 }
@@ -252,6 +277,7 @@ const handleSearchEnter = (event: any) => {
   flex-shrink: 0;
   cursor: default;
 }
+
 .following .followingmessages {
   flex-grow: 1;
   flex-shrink: 1;
@@ -267,6 +293,7 @@ const handleSearchEnter = (event: any) => {
   display: inline-flex;
   cursor: pointer;
 }
+
 .followingname:hover,
 .followingname:active {
   color: rgb(var(--primary-6));
@@ -277,6 +304,7 @@ const handleSearchEnter = (event: any) => {
   width: 6px;
   height: 6px;
 }
+
 .followingmessage {
   font-size: 12px;
   color: var(--color-text-3);
@@ -289,6 +317,7 @@ const handleSearchEnter = (event: any) => {
   cursor: pointer;
   margin-top: 1px;
 }
+
 .followingmessage:hover,
 .followingmessage:active {
   color: rgb(var(--primary-6));

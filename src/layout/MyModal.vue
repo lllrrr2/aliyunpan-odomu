@@ -86,10 +86,10 @@ export default defineComponent({
   <RenameMultiModal :visible="modalStore.modalName == 'renamemulti'" :istree='modalStore.modalData.istree || false' />
   <ShuXingModal :visible="modalStore.modalName == 'shuxing'"
                 :istree='modalStore.modalData.istree || false'
-                :inputsearchType="modalStore.modalData.inputsearchType || ''"
+                :inputselectType="modalStore.modalData.inputselectType || ''"
                 :ispic='modalStore.modalData.ispic || false' />
   <SearchPanModal :visible="modalStore.modalName == 'searchpan'"
-                  :inputsearchType="modalStore.modalData.inputsearchType || ''" />
+                  :inputsearchType="modalStore.modalData.inputsearchType || []" />
 
   <DLNAPlayerModal :visible="modalStore.modalName == 'dlna'" />
   <M3U8DownloadModal :visible="modalStore.modalName == 'm3u8download'" />

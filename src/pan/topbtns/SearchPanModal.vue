@@ -1,110 +1,108 @@
-<script lang='ts'>
+<script setup lang='ts'>
 import { usePanTreeStore } from '../../store'
 import message from '../../utils/message'
 import { modalCloseAll } from '../../utils/modal'
-import { defineComponent, nextTick, reactive, ref } from 'vue'
+import { nextTick, PropType, reactive, ref } from 'vue'
 import PanDAL from '../pandal'
 import dayjs from 'dayjs'
-import { GetDriveID } from '../../aliapi/utils'
 
-export default defineComponent({
-  props: {
-    visible: {
-      type: Boolean,
-      required: true
-    },
-    inputsearchType: {
-      type: String,
-      required: true
-    }
+const props = defineProps({
+  visible: {
+    type: Boolean,
+    required: true
   },
-  setup(props) {
-    const okLoading = ref(false)
-    const formRef = ref()
-
-    const form = reactive({
-      name: '',
-      type: [],
-      min: 0,
-      max: 0,
-      begin: '',
-      end: '',
-      ext: '',
-      fav: false
-    })
-
-    const handleOpen = async () => {
-      await nextTick()
-      formRef.value.resetFields()
-    }
-
-    const handleClose = () => {
-      if (okLoading.value) okLoading.value = false
-      formRef.value.resetFields()
-    }
-
-    const rules = [
-      {
-        validator: (value: number, cb: any) => {
-          if (value != 0 && form.max < value) cb('必须是0 或者小于 ' + form.max)
-        }
-      }
-    ]
-
-    return { okLoading, form, formRef, handleOpen, handleClose, rules, dayjs }
-  },
-  methods: {
-    handleHide() {
-      modalCloseAll()
-    },
-    handleOK() {
-      this.formRef.validate((data: any) => {
-        if (data) return
-        if (this.form.min > 0 && this.form.max > 0 && this.form.min > this.form.max) {
-          message.error('最小体积(' + this.form.min + ')不能大于最大体积(' + this.form.max + ')')
-          return
-        }
-        const pantreeStore = usePanTreeStore()
-        if (!pantreeStore.user_id || !this.inputsearchType || !pantreeStore.selectDir.file_id) {
-          message.error('搜索失败 父文件夹错误')
-          return
-        }
-        let searchid = ''
-        let drive_id = ''
-        if (this.form.min == this.form.max && this.form.min > 0) searchid += 'size:' + this.form.min * 1024 * 1024 + ' '
-        else {
-          if (this.form.min) searchid += 'min:' + this.form.min * 1024 * 1024 + ' '
-          if (this.form.max && this.form.max > this.form.min) searchid += 'max:' + this.form.max * 1024 * 1024 + ' '
-        }
-
-        if (this.form.begin) searchid += 'begin:' + this.form.begin + ' '
-        if (this.form.end) searchid += 'end:' + this.form.end + ' '
-
-        if (this.form.type && this.form.type.length > 0) {
-          const type = this.form.type.filter((t) => t)
-          if (type.length > 0) searchid += 'type:' + type.join(',') + ' '
-        }
-
-        if (this.form.name) searchid += this.form.name.trim() + ' '
-
-        if (this.form.ext) {
-          const ext = this.form.ext.replaceAll('，', ',').replaceAll(' ', '').replaceAll('.', '')
-          if (ext != this.form.ext) this.form.ext = ext
-          searchid += 'ext:' + ext + ' '
-        }
-
-        searchid = searchid.trim()
-        drive_id = GetDriveID(pantreeStore.user_id, this.inputsearchType)
-        if (searchid) {
-          PanDAL.aReLoadOneDirToShow(drive_id, 'search' + searchid, false)
-          modalCloseAll()
-        } else {
-          message.error('没有填写任何搜索条件')
-        }
-      })
-    }
+  inputsearchType: {
+    type: Array as PropType<string[]>,
+    required: true
   }
 })
+const okLoading = ref(false)
+const formRef = ref()
+
+const form = reactive({
+  name: '',
+  range: ['backup', 'resource'],
+  type: [],
+  min: 0,
+  max: 0,
+  begin: '',
+  end: '',
+  ext: '',
+  fav: false
+})
+
+const handleOpen = async () => {
+  await nextTick(() => {
+    formRef.value.resetFields()
+    if (props.inputsearchType.length > 0) {
+      form.range = [...props.inputsearchType]
+    } else form.range = []
+  })
+}
+
+const handleClose = () => {
+  if (okLoading.value) okLoading.value = false
+  formRef.value.resetFields()
+}
+
+const rules = [{
+  validator: (value: number, cb: any) => {
+    if (value != 0 && form.max < value) {
+      cb('必须是0 或者小于 ' + form.max)
+    }
+  }
+}]
+const handleHide = () => {
+  modalCloseAll()
+}
+const handleOK = () => {
+  formRef.value.validate((data: any) => {
+    if (data) return
+    if (form.min > 0 && form.max > 0 && form.min > form.max) {
+      message.error('最小体积(' + form.min + ')不能大于最大体积(' + form.max + ')')
+      return
+    }
+    const pantreeStore = usePanTreeStore()
+    if (!pantreeStore.user_id || !props.inputsearchType || !pantreeStore.selectDir.file_id) {
+      message.error('搜索失败 父文件夹错误')
+      return
+    }
+    let searchid = ''
+    if (form.min == form.max && form.min > 0) {
+      searchid += 'size:' + form.min * 1024 * 1024 + ' '
+    } else {
+      if (form.min) searchid += 'min:' + form.min * 1024 * 1024 + ' '
+      if (form.max && form.max > form.min) searchid += 'max:' + form.max * 1024 * 1024 + ' '
+    }
+    if (form.begin) searchid += 'begin:' + form.begin + ' '
+    if (form.end) searchid += 'end:' + form.end + ' '
+    if (form.range && form.range.length > 0) {
+      const range = form.range.filter((t) => t)
+      if (range.length > 0) {
+        searchid += 'range:' + range.join(',') + ' '
+      }
+    }
+    if (form.type && form.type.length > 0) {
+      const type = form.type.filter((t) => t)
+      if (type.length > 0) {
+        searchid += 'type:' + type.join(',') + ' '
+      }
+    }
+    if (form.name) searchid += form.name.trim() + ' '
+    if (form.ext) {
+      const ext = form.ext.replaceAll('，', ',').replaceAll(' ', '').replaceAll('.', '')
+      if (ext != form.ext) form.ext = ext
+      searchid += 'ext:' + ext + ' '
+    }
+    searchid = searchid.trim()
+    if (!form.name || !searchid) {
+      message.error('搜索失败 搜索条件错误')
+    } else {
+      PanDAL.aReLoadOneDirToShow('', 'search' + searchid, false)
+      modalCloseAll()
+    }
+  })
+}
 </script>
 
 <template>
@@ -114,7 +112,7 @@ export default defineComponent({
     <template #title>
       <span class='modaltitle'>在整个网盘内 高级搜索</span>
     </template>
-    <div class='modalbody' style='width: 440px'>
+    <div class='modalbody' style='width: 550px'>
       <a-form ref='formRef' :model='form' layout='horizontal' auto-label-width>
         <a-form-item field='name'>
           <template #label>文件名：</template>
@@ -124,6 +122,14 @@ export default defineComponent({
           </template>
         </a-form-item>
 
+        <a-form-item field='range'>
+          <template #label>范围：</template>
+          <a-checkbox-group v-model='form.range'>
+            <a-checkbox value='backup'>备份盘</a-checkbox>
+            <a-checkbox value='resource'>资源盘</a-checkbox>
+            <a-checkbox value='pic'>相册</a-checkbox>
+          </a-checkbox-group>
+        </a-form-item>
         <a-form-item field='type'>
           <template #label>分类：</template>
 
@@ -141,12 +147,11 @@ export default defineComponent({
           </template>
         </a-form-item>
 
-        <a-form-item field='min'>
+        <a-form-item field='min' :rules="rules">
           <template #label>体积：</template>
           <a-input-number v-model='form.min' tabindex='-1' style='width: 170px' :min='0' :max='102400'>
             <template #prefix> 最小</template>
           </a-input-number>
-          <div style='flex: auto'></div>
           <a-input-number v-model='form.max' tabindex='-1' style='width: 170px' :min='form.min' :max='102400'>
             <template #prefix> 最大</template>
           </a-input-number>

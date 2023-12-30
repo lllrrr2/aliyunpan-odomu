@@ -151,7 +151,7 @@ const handleRightClick = (e: { event: MouseEvent; node: any }) => {
 
 <template>
   <div style="height: 7px"></div>
-  <div class="toppanbtns" style="height: 26px">
+  <div class="toppanbtns" style="height: 26px" v-if="false">
     <div class="flex flexauto"></div>
     <div class="flex flexnoauto cellcount" title="2天内过期">
       <a-badge color="#637dff" :text="'临期 ' + myshareStore.ListStats.expir2day" />
@@ -179,20 +179,34 @@ const handleRightClick = (e: { event: MouseEvent; node: any }) => {
   <div style="height: 14px"></div>
   <div class="toppanbtns" style="height: 26px">
     <div class="toppanbtn">
-      <a-button type="text" size="small" tabindex="-1" :loading="myshareStore.ListLoading" title="F5" @click="handleRefresh"
-        ><template #icon> <i class="iconfont iconreload-1-icon" /> </template
-      ></a-button>
+      <a-button type="text" size="small" tabindex="-1" :loading="myshareStore.ListLoading" title="F5"
+                @click="handleRefresh">
+        <template #icon><i class="iconfont iconreload-1-icon" />
+        </template>
+        刷新
+      </a-button>
     </div>
     <div v-show="myshareStore.IsListSelected" class="toppanbtn">
-      <a-button type="text" size="small" tabindex="-1" title="F2 / Ctrl+E" @click="handleEdit"><i class="iconfont iconedit-square" />修改</a-button>
-      <a-button type="text" size="small" tabindex="-1" title="Ctrl+O" @click="handleOpenLink"><i class="iconfont iconchakan" />查看</a-button>
-      <a-button type="text" size="small" tabindex="-1" title="Ctrl+C" @click="handleCopySelectedLink"><i class="iconfont iconcopy" />复制链接</a-button>
-      <a-button type="text" size="small" tabindex="-1" title="Ctrl+B" @click="handleBrowserLink"><i class="iconfont iconchrome" />浏览器</a-button>
-      <a-button type="text" size="small" tabindex="-1" class="danger" title="Ctrl+Delete" @click="handleDeleteSelectedLink('selected')"><i class="iconfont icondelete" />取消分享</a-button>
+      <a-button type="text" size="small" tabindex="-1" title="F2 / Ctrl+E" @click="handleEdit"><i
+        class="iconfont iconedit-square" />修改
+      </a-button>
+      <a-button type="text" size="small" tabindex="-1" title="Ctrl+O" @click="handleOpenLink"><i
+        class="iconfont iconchakan" />查看
+      </a-button>
+      <a-button type="text" size="small" tabindex="-1" title="Ctrl+C" @click="handleCopySelectedLink"><i
+        class="iconfont iconcopy" />复制链接
+      </a-button>
+      <a-button type="text" size="small" tabindex="-1" title="Ctrl+B" @click="handleBrowserLink"><i
+        class="iconfont iconchrome" />浏览器
+      </a-button>
+      <a-button type="text" size="small" tabindex="-1" class="danger" title="Ctrl+Delete"
+                @click="handleDeleteSelectedLink('selected')"><i class="iconfont icondelete" />取消分享
+      </a-button>
     </div>
     <div v-show="!myshareStore.IsListSelected" class="toppanbtn">
       <a-dropdown trigger="hover" position="bl" @select="handleDeleteSelectedLink">
-        <a-button type="text" size="small" tabindex="-1"><i class="iconfont iconrest" />清理全部 <i class="iconfont icondown" /></a-button>
+        <a-button type="text" size="small" tabindex="-1"><i class="iconfont iconrest" />清理全部 <i
+          class="iconfont icondown" /></a-button>
 
         <template #content>
           <a-doption :value="'expired'" class="danger">删除全部 过期已失效</a-doption>
@@ -202,7 +216,14 @@ const handleRightClick = (e: { event: MouseEvent; node: any }) => {
     </div>
     <div style="flex-grow: 1"></div>
     <div class="toppanbtn">
-      <a-input-search ref="inputsearch" tabindex="-1" size="small" title="Ctrl+F / F3 / Space" placeholder="快速筛选" :model-value="myshareStore.ListSearchKey" @input="(val:any)=>handleSearchInput(val as string)" @press-enter="handleSearchEnter" @keydown.esc=";($event.target as any).blur()" />
+      <a-input-search ref="inputsearch" tabindex="-1"
+                      size="small" title="Ctrl+F / F3 / Space"
+                      placeholder="快速筛选"
+                      allow-clear @clear='(e:any)=>handleSearchInput("")'
+                      v-model="myshareStore.ListSearchKey"
+                      @input="(val:any)=>handleSearchInput(val as string)"
+                      @press-enter="handleSearchEnter"
+                      @keydown.esc=";($event.target as any).blur()" />
     </div>
     <div></div>
   </div>
@@ -219,23 +240,28 @@ const handleRightClick = (e: { event: MouseEvent; node: any }) => {
 
     <div style="flex-grow: 1"></div>
     <div class="cell tiquma">提取码</div>
-    <div :class="'cell sharestate order ' + (myshareStore.ListOrderKey == 'state' ? 'active' : '')" @click="handleOrder('state')">
+    <div :class="'cell sharestate order ' + (myshareStore.ListOrderKey == 'state' ? 'active' : '')"
+         @click="handleOrder('state')">
       有效期
       <i class="iconfont iconxia" />
     </div>
-    <div :class="'cell count order ' + (myshareStore.ListOrderKey == 'preview' ? 'active' : '')" @click="handleOrder('preview')">
+    <div :class="'cell count order ' + (myshareStore.ListOrderKey == 'preview' ? 'active' : '')"
+         @click="handleOrder('preview')">
       浏览数
       <i class="iconfont iconxia" />
     </div>
-    <div :class="'cell count order ' + (myshareStore.ListOrderKey == 'download' ? 'active' : '')" @click="handleOrder('download')">
+    <div :class="'cell count order ' + (myshareStore.ListOrderKey == 'download' ? 'active' : '')"
+         @click="handleOrder('download')">
       下载数
       <i class="iconfont iconxia" />
     </div>
-    <div :class="'cell count order ' + (myshareStore.ListOrderKey == 'save' ? 'active' : '')" @click="handleOrder('save')">
+    <div :class="'cell count order ' + (myshareStore.ListOrderKey == 'save' ? 'active' : '')"
+         @click="handleOrder('save')">
       转存数
       <i class="iconfont iconxia" />
     </div>
-    <div :class="'cell sharetime order ' + (myshareStore.ListOrderKey == 'time' ? 'active' : '')" @click="handleOrder('time')">
+    <div :class="'cell sharetime order ' + (myshareStore.ListOrderKey == 'time' ? 'active' : '')"
+         @click="handleOrder('time')">
       创建时间
       <i class="iconfont iconxia" />
     </div>
@@ -259,14 +285,21 @@ const handleRightClick = (e: { event: MouseEvent; node: any }) => {
       :loading="myshareStore.ListLoading"
       tabindex="-1"
       @scroll="onHideRightMenuScroll">
-      <template #empty><a-empty description="没创建过任何分享链接" /></template>
+      <template #empty>
+        <a-empty description="没创建过任何分享链接" />
+      </template>
 
       <template #item="{ item, index }">
         <div :key="item.share_id" class="listitemdiv">
-          <div :class="'fileitem' + (myshareStore.ListSelected.has(item.share_id) ? ' selected' : '') + (myshareStore.ListFocusKey == item.share_id ? ' focus' : '')" @click="handleSelect(item.share_id, $event)" @contextmenu="(event:MouseEvent)=>handleRightClick({event,node:{key:item.share_id}} )">
+          <div
+            :class="'fileitem' + (myshareStore.ListSelected.has(item.share_id) ? ' selected' : '') + (myshareStore.ListFocusKey == item.share_id ? ' focus' : '')"
+            @click="handleSelect(item.share_id, $event)"
+            @contextmenu="(event:MouseEvent)=>handleRightClick({event,node:{key:item.share_id}} )">
             <div style="margin: 2px">
-              <a-button shape="circle" type="text" tabindex="-1" class="select" :title="index" @click.prevent.stop="handleSelect(item.share_id, $event, true)">
-                <i :class="myshareStore.ListSelected.has(item.share_id) ? 'iconfont iconrsuccess' : 'iconfont iconpic2'" />
+              <a-button shape="circle" type="text" tabindex="-1" class="select" :title="index"
+                        @click.prevent.stop="handleSelect(item.share_id, $event, true)">
+                <i
+                  :class="myshareStore.ListSelected.has(item.share_id) ? 'iconfont iconrsuccess' : 'iconfont iconpic2'" />
               </a-button>
             </div>
             <div class="fileicon">
@@ -291,28 +324,29 @@ const handleRightClick = (e: { event: MouseEvent; node: any }) => {
         </div>
       </template>
     </a-list>
-    <a-dropdown id="rightmysharemenu" class="rightmenu" :popup-visible="true" style="z-index: -1; left: -200px; opacity: 0">
+    <a-dropdown id="rightmysharemenu" class="rightmenu" :popup-visible="true"
+                style="z-index: -1; left: -200px; opacity: 0">
       <template #content>
         <a-doption @click="handleEdit">
-          <template #icon> <i class="iconfont iconedit-square" /> </template>
+          <template #icon><i class="iconfont iconedit-square" /></template>
           <template #default>修改</template>
         </a-doption>
         <a-doption @click="handleOpenLink">
-          <template #icon> <i class="iconfont iconchakan" /> </template>
+          <template #icon><i class="iconfont iconchakan" /></template>
           <template #default>查看</template>
         </a-doption>
 
         <a-doption @click="handleCopySelectedLink">
-          <template #icon> <i class="iconfont iconcopy" /> </template>
+          <template #icon><i class="iconfont iconcopy" /></template>
           <template #default>复制链接</template>
         </a-doption>
         <a-doption @click="handleBrowserLink">
-          <template #icon> <i class="iconfont iconchrome" /> </template>
+          <template #icon><i class="iconfont iconchrome" /></template>
           <template #default>浏览器</template>
         </a-doption>
 
         <a-doption class="danger" @click="handleDeleteSelectedLink('selected')">
-          <template #icon> <i class="iconfont icondelete" /> </template>
+          <template #icon><i class="iconfont icondelete" /></template>
           <template #default>取消分享</template>
         </a-doption>
       </template>
@@ -325,11 +359,13 @@ const handleRightClick = (e: { event: MouseEvent; node: any }) => {
   align-items: center;
   margin-right: 16px;
 }
+
 .cellcount .arco-badge .arco-badge-status-text {
   margin-left: 4px;
   color: var(--color-text-3);
   line-height: 26px;
 }
+
 body[arco-theme='dark'] .toppanarea .cell {
   color: rgba(211, 216, 241, 0.45);
 }
@@ -351,6 +387,7 @@ body[arco-theme='dark'] .toppanarea .cell {
   width: 60px;
   font-size: 12px;
 }
+
 .cell.count {
   width: 70px;
   font-size: 12px;
@@ -359,6 +396,7 @@ body[arco-theme='dark'] .toppanarea .cell {
   word-wrap: break-word;
   word-break: keep-all;
 }
+
 .cell.sharetime {
   width: 80px;
   font-size: 12px;
@@ -367,25 +405,32 @@ body[arco-theme='dark'] .toppanarea .cell {
   word-wrap: break-word;
   word-break: keep-all;
 }
+
 .cell.sharetime.active {
   color: rgb(217, 48, 37);
 }
+
 .cell.sharestate {
   width: 70px;
   font-size: 12px;
 }
+
 .cell.sharestate.active {
   color: rgb(var(--primary-6));
 }
+
 .cell.sharestate.forbidden {
   color: rgb(217, 48, 37);
 }
+
 .cell.sharestate.deleted {
   text-decoration: line-through;
 }
+
 .cell.p5 {
   width: 5px;
 }
+
 .cell.pr {
   width: 12px;
 }
@@ -393,6 +438,7 @@ body[arco-theme='dark'] .toppanarea .cell {
 .toppanarea .cell.order {
   cursor: pointer;
 }
+
 .toppanarea .cell.order:hover {
   color: rgb(var(--primary-6));
 }

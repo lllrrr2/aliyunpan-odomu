@@ -94,8 +94,8 @@ const handleOpen = async () => {
   treeExpandedKeys.value = expandedKeys
   // 网盘数据
   const flag = props.selecttype === 'select'
-  const backupPan = PanDAL.GetPanTreeAllNode(pantreeStore.default_drive_id, treeExpandedKeys.value, !flag, flag)
-  const resourcePan = PanDAL.GetPanTreeAllNode(pantreeStore.resource_drive_id, treeExpandedKeys.value, !flag, flag)
+  const backupPan = PanDAL.GetPanTreeAllNode(user_id.value, pantreeStore.default_drive_id, treeExpandedKeys.value, !flag, flag)
+  const resourcePan = PanDAL.GetPanTreeAllNode(user_id.value, pantreeStore.resource_drive_id, treeExpandedKeys.value, !flag, flag)
   treeData.value = [...backupPan, ...resourcePan]
   okLoading.value = false
 }
@@ -248,8 +248,8 @@ const handleTreeExpand = (keys: any[], info: {
   } else {
     treeExpandedKeys.value = arr.concat([key])
     if (props.selecttype !== 'select') { // 仅显示文件夹
-      const backupPan = PanDAL.GetPanTreeAllNode(pantreeStore.default_drive_id, treeExpandedKeys.value)
-      const resourcePan = PanDAL.GetPanTreeAllNode(pantreeStore.resource_drive_id, treeExpandedKeys.value)
+      const backupPan = PanDAL.GetPanTreeAllNode(user_id.value, pantreeStore.default_drive_id, treeExpandedKeys.value)
+      const resourcePan = PanDAL.GetPanTreeAllNode(user_id.value, pantreeStore.resource_drive_id, treeExpandedKeys.value)
       treeData.value = [...backupPan, ...resourcePan]
     }
   }
@@ -323,8 +323,8 @@ const handleOKNewDir = () => {
         await Sleep(200)
         selectDir.value = { dirID: newdirid, dirName: newName, isLeaf: false }
         treeExpandedKeys.value = treeExpandedKeys.value.concat([selectDir.value.dirID, newdirid])
-        const backupPan = PanDAL.GetPanTreeAllNode(pantreeStore.default_drive_id, treeExpandedKeys.value)
-        const resourcePan = PanDAL.GetPanTreeAllNode(pantreeStore.resource_drive_id, treeExpandedKeys.value)
+        const backupPan = PanDAL.GetPanTreeAllNode(user_id.value, pantreeStore.default_drive_id, treeExpandedKeys.value)
+        const resourcePan = PanDAL.GetPanTreeAllNode(user_id.value, pantreeStore.resource_drive_id, treeExpandedKeys.value)
         treeData.value = [...backupPan, ...resourcePan]
         treeSelectedKeys.value = [newdirid]
         okLoading.value = false
