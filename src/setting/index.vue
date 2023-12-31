@@ -54,14 +54,15 @@ onUnmounted(() => {
   <a-layout style="height: 100%">
     <a-layout-sider hide-trigger :width="158" class="xbyleft" tabindex="-1" @keydown.tab.prevent="() => true">
       <div class='headdesc'>软件 设置项</div>
-      <a-menu :selected-keys="[appStore.GetAppTabMenu]" :style="{ width: '100%' }" class="xbyleftmenu" @update:selected-keys="appStore.toggleTabMenu('setting', $event[0])">
+      <a-menu :selected-keys="[appStore.GetAppTabMenu]" :style="{ width: '100%' }" class="xbyleftmenu"
+              @update:selected-keys="appStore.toggleTabMenu('setting', $event[0])">
         <a-menu-item key="SettingUI">
           <template #icon><i class="iconfont iconui" /></template>
           应用设置
         </a-menu-item>
         <a-menu-item key="SettingAccount">
-            <template #icon><i class="iconfont iconrobot" /></template>
-            账户设置
+          <template #icon><i class="iconfont iconrobot" /></template>
+          账户设置
         </a-menu-item>
         <a-menu-item key="SettingDown">
           <template #icon><i class="iconfont icondownload" /></template>
@@ -87,7 +88,7 @@ onUnmounted(() => {
           <template #icon><i class="iconfont iconlogoff" /></template>
           高级选项
         </a-menu-item>
-	      <a-menu-item key="SettingProxy">
+        <a-menu-item key="SettingProxy">
           <template #icon><i class="iconfont iconyuanduanfuzhi" /></template>
           网络代理
         </a-menu-item>
@@ -105,68 +106,68 @@ onUnmounted(() => {
       <div id="SettingDiv" style="position: relative">
         <div id="SettingUI">
           <div>
-            <a-divider orientation="center" class="settinghr">应用设置</a-divider>
+            <a-divider :size="2" orientation="center" class="settinghr">应用设置</a-divider>
           </div>
           <SettingUI />
         </div>
         <div id="SettingAccount">
-            <div>
-                <a-divider orientation="center" class="settinghr">账户设置</a-divider>
-            </div>
-            <SettingAccount />
+          <div>
+            <a-divider :size="2" orientation="center" class="settinghr">账户设置</a-divider>
+          </div>
+          <SettingAccount />
         </div>
         <div id="SettingDown">
           <div>
-            <a-divider orientation="center" class="settinghr">下载文件</a-divider>
+            <a-divider :size="2" orientation="center" class="settinghr">下载文件</a-divider>
           </div>
           <SettingDown />
         </div>
 
         <div id="SettingUpload">
           <div>
-            <a-divider orientation="center" class="settinghr">上传文件</a-divider>
+            <a-divider :size="2" orientation="center" class="settinghr">上传文件</a-divider>
           </div>
           <SettingUpload />
         </div>
         <div id="SettingPlay">
           <div>
-            <a-divider orientation="center" class="settinghr">在线预览</a-divider>
+            <a-divider :size="2" orientation="center" class="settinghr">在线预览</a-divider>
           </div>
           <SettingPlay />
         </div>
         <div id="SettingPan">
           <div>
-            <a-divider orientation="center" class="settinghr">网盘设置</a-divider>
+            <a-divider :size="2" orientation="center" class="settinghr">网盘设置</a-divider>
           </div>
           <SettingPan />
         </div>
         <div id='SettingWebDav'>
           <div>
-            <a-divider orientation='center' class='settinghr'>WebDav</a-divider>
+            <a-divider :size="2" orientation='center' class='settinghr'>WebDav</a-divider>
           </div>
           <SettingWebDav />
         </div>
         <div id="SettingDebug">
           <div>
-            <a-divider orientation="center" class="settinghr">高级选项</a-divider>
+            <a-divider :size="2" orientation="center" class="settinghr">高级选项</a-divider>
           </div>
           <SettingDebug />
         </div>
         <div id="SettingProxy">
           <div>
-            <a-divider orientation="center" class="settinghr">网络代理</a-divider>
+            <a-divider :size="2" orientation="center" class="settinghr">网络代理</a-divider>
           </div>
           <SettingProxy />
         </div>
         <div id="SettingAria">
           <div>
-            <a-divider orientation="center" class="settinghr">远程Aria</a-divider>
+            <a-divider :size="2" orientation="center" class="settinghr">远程Aria</a-divider>
           </div>
           <SettingAria />
         </div>
         <div id="SettingLog">
           <div>
-            <a-divider orientation="center" class="settinghr">运行日志</a-divider>
+            <a-divider :size="2" orientation="center" class="settinghr">运行日志</a-divider>
           </div>
           <div v-if="hideSetting" style="min-height: 602px"></div>
           <SettingLog v-else />
@@ -182,20 +183,22 @@ onUnmounted(() => {
   background: var(--rightbg2);
   padding: 0 20px !important;
 }
+
 .settinghr {
   margin: 40px 0 !important;
   user-select: none;
 }
 
 .settingcard {
-  margin-bottom: 12px;
   padding: 24px;
   margin: 20px 0;
   border-radius: 6px;
   background-color: var(--color-bg-1);
   user-select: none;
   -webkit-user-drag: none;
+  box-shadow: 3px 3px 6px rgba(0, 0, 0, 0.1);
 }
+
 .settingcard .iconbulb,
 .settingrow .iconbulb {
   display: inline-block;
@@ -206,6 +209,7 @@ onUnmounted(() => {
   line-height: 22px;
   cursor: help;
 }
+
 .settinghead {
   display: inline-block;
   margin-bottom: 4px;
@@ -214,6 +218,7 @@ onUnmounted(() => {
   line-height: 20px;
   user-select: none;
 }
+
 .settinghead::after {
   display: block;
   width: 100%;
@@ -222,15 +227,18 @@ onUnmounted(() => {
   opacity: 0.75;
   content: '';
 }
+
 .settingrow {
   padding-top: 4px;
   max-width: 450px;
   margin-right: auto;
 }
+
 .settingspace {
   height: 16px;
   user-select: none;
 }
+
 .hrspace {
   padding-top: 8px;
 }

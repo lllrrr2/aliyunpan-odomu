@@ -134,16 +134,26 @@ const handleRightClick = (e: { event: MouseEvent; node: any }) => {
 
 <template>
   <div style="height: 7px"></div>
-  <div class="toppanbtns" style="height: 26px" v-if="false">
-    <div class="flex flexauto"></div>
-    <div class="flex flexnoauto cellcount" title="2天内过期">
-      <a-badge color="#637dff" :text="'临期 ' + myTransferShare.ListStats.expir2day" />
+  <div class='toppanbtns' style='height: 26px'>
+    <div style="min-height: 26px; max-width: 100%; flex-shrink: 0; flex-grow: 0">
+      <div class="toppannav">
+        <div class="toppannavitem" title="我的快传">
+          <span> 我的快传 </span>
+        </div>
+      </div>
     </div>
-    <div class="flex flexnoauto cellcount" title="总过期">
-      <a-badge color="#637dff" :text="'过期 ' + myTransferShare.ListStats.expired" />
-    </div>
-    <div class="flex flexnoauto cellcount" title="总违规">
-      <a-badge color="#637dff" :text="'违规 ' + myTransferShare.ListStats.forbidden" />
+    <div class='flex flexauto'></div>
+    <div class="toppanbtns" style="height: 26px">
+      <div class="flex flexauto"></div>
+      <div class="flex flexnoauto cellcount" title="2天内过期">
+        <a-badge color="#637dff" :text="'临期 ' + myTransferShare.ListStats.expir2day" />
+      </div>
+      <div class="flex flexnoauto cellcount" title="总过期">
+        <a-badge color="#637dff" :text="'过期 ' + myTransferShare.ListStats.expired" />
+      </div>
+      <div class="flex flexnoauto cellcount" title="总违规">
+        <a-badge color="#637dff" :text="'违规 ' + myTransferShare.ListStats.forbidden" />
+      </div>
     </div>
   </div>
   <div style="height: 14px"></div>

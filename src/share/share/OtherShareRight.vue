@@ -163,10 +163,22 @@ const handleRightClick = (e: { event: MouseEvent; node: any }) => {
 </script>
 
 <template>
+  <div style="height: 7px"></div>
+  <div class='toppanbtns' style='height: 26px'>
+    <div style="min-height: 26px; max-width: 100%; flex-shrink: 0; flex-grow: 0">
+      <div class="toppannav">
+        <div class="toppannavitem" title="我的导入">
+          <span> 我的导入 </span>
+        </div>
+      </div>
+    </div>
+    <div class='flex flexauto'></div>
+  </div>
   <div style="height: 14px"></div>
   <div class="toppanbtns" style="height: 26px">
     <div class="toppanbtn">
-      <a-button type="text" size="small" tabindex="-1" :loading="othershareStore.ListLoading" title="F5" @click="handleRefresh">
+      <a-button type="text" size="small" tabindex="-1" :loading="othershareStore.ListLoading" title="F5"
+                @click="handleRefresh">
         <template #icon>
           <i class="iconfont iconreload-1-icon" />
         </template>
@@ -174,14 +186,26 @@ const handleRightClick = (e: { event: MouseEvent; node: any }) => {
       </a-button>
     </div>
     <div class="toppanbtn">
-      <a-button type="text" size="small" tabindex="-1" title="Ctrl+N" @click="handleDaoRuLink"><i class="iconfont iconlink2" />导入</a-button>
-      <a-button type="text" size="small" tabindex="-1" title="Ctrl+U" @click="handleRefreshStats"><i class="iconfont iconyibu" />更新</a-button>
+      <a-button type="text" size="small" tabindex="-1" title="Ctrl+N" @click="handleDaoRuLink"><i
+        class="iconfont iconlink2" />导入
+      </a-button>
+      <a-button type="text" size="small" tabindex="-1" title="Ctrl+U" @click="handleRefreshStats"><i
+        class="iconfont iconyibu" />更新
+      </a-button>
     </div>
     <div v-show="othershareStore.IsListSelected" class="toppanbtn">
-      <a-button type="text" size="small" tabindex="-1" title="Ctrl+O" @click="handleOpenLink"><i class="iconfont iconchakan" />查看</a-button>
-      <a-button type="text" size="small" tabindex="-1" title="Ctrl+C" @click="handleCopySelectedLink"><i class="iconfont iconcopy" />复制链接</a-button>
-      <a-button type="text" size="small" tabindex="-1" title="Ctrl+B" @click="handleBrowserLink"><i class="iconfont iconchrome" />浏览器</a-button>
-      <a-button type="text" size="small" tabindex="-1" class="danger" title="Ctrl+Delete" @click="handleDeleteSelectedLink('selected')"><i class="iconfont icondelete" />删除</a-button>
+      <a-button type="text" size="small" tabindex="-1" title="Ctrl+O" @click="handleOpenLink"><i
+        class="iconfont iconchakan" />查看
+      </a-button>
+      <a-button type="text" size="small" tabindex="-1" title="Ctrl+C" @click="handleCopySelectedLink"><i
+        class="iconfont iconcopy" />复制链接
+      </a-button>
+      <a-button type="text" size="small" tabindex="-1" title="Ctrl+B" @click="handleBrowserLink"><i
+        class="iconfont iconchrome" />浏览器
+      </a-button>
+      <a-button type="text" size="small" tabindex="-1" class="danger" title="Ctrl+Delete"
+                @click="handleDeleteSelectedLink('selected')"><i class="iconfont icondelete" />删除
+      </a-button>
     </div>
 
     <div style="flex-grow: 1"></div>
@@ -211,11 +235,13 @@ const handleRightClick = (e: { event: MouseEvent; node: any }) => {
 
     <div style="flex-grow: 1"></div>
     <div class="cell tiquma">提取码</div>
-    <div :class="'cell sharestate order ' + (othershareStore.ListOrderKey == 'state' ? 'active' : '')" @click="handleOrder('state')">
+    <div :class="'cell sharestate order ' + (othershareStore.ListOrderKey == 'state' ? 'active' : '')"
+         @click="handleOrder('state')">
       状态
       <i class="iconfont iconxia" />
     </div>
-    <div :class="'cell sharetime order ' + (othershareStore.ListOrderKey == 'time' ? 'active' : '')" @click="handleOrder('time')">
+    <div :class="'cell sharetime order ' + (othershareStore.ListOrderKey == 'time' ? 'active' : '')"
+         @click="handleOrder('time')">
       导入时间
       <i class="iconfont iconxia" />
     </div>
@@ -238,7 +264,9 @@ const handleRightClick = (e: { event: MouseEvent; node: any }) => {
       :data="othershareStore.ListDataShow"
       tabindex="-1"
       @scroll="onHideRightMenuScroll">
-      <template #empty><a-empty description="没导入过任何分享链接" /></template>
+      <template #empty>
+        <a-empty description="没导入过任何分享链接" />
+      </template>
       <template #item="{ item, index }">
         <div :key="item.share_id" class="listitemdiv">
           <div
@@ -246,8 +274,10 @@ const handleRightClick = (e: { event: MouseEvent; node: any }) => {
             @click="handleSelect(item.share_id, $event)"
             @contextmenu="(event:MouseEvent)=>handleRightClick({event,node:{key:item.share_id}} )">
             <div style="margin: 2px">
-              <a-button shape="circle" type="text" tabindex="-1" class="select" :title="index" @click.prevent.stop="handleSelect(item.share_id, $event, true)">
-                <i :class="othershareStore.ListSelected.has(item.share_id) ? 'iconfont iconrsuccess' : 'iconfont iconpic2'" />
+              <a-button shape="circle" type="text" tabindex="-1" class="select" :title="index"
+                        @click.prevent.stop="handleSelect(item.share_id, $event, true)">
+                <i
+                  :class="othershareStore.ListSelected.has(item.share_id) ? 'iconfont iconrsuccess' : 'iconfont iconpic2'" />
               </a-button>
             </div>
             <div class="fileicon">
@@ -269,24 +299,25 @@ const handleRightClick = (e: { event: MouseEvent; node: any }) => {
       </template>
     </a-list>
 
-    <a-dropdown id="rightothersharemenu" class="rightmenu" :popup-visible="true" style="z-index: -1; left: -200px; opacity: 0">
+    <a-dropdown id="rightothersharemenu" class="rightmenu" :popup-visible="true"
+                style="z-index: -1; left: -200px; opacity: 0">
       <template #content>
         <a-doption @click="handleOpenLink">
-          <template #icon> <i class="iconfont iconchakan" /> </template>
+          <template #icon><i class="iconfont iconchakan" /></template>
           <template #default>查看</template>
         </a-doption>
 
         <a-doption @click="handleCopySelectedLink">
-          <template #icon> <i class="iconfont iconcopy" /> </template>
+          <template #icon><i class="iconfont iconcopy" /></template>
           <template #default>复制链接</template>
         </a-doption>
         <a-doption @click="handleBrowserLink">
-          <template #icon> <i class="iconfont iconchrome" /> </template>
+          <template #icon><i class="iconfont iconchrome" /></template>
           <template #default>浏览器</template>
         </a-doption>
 
         <a-doption class="danger" @click="handleDeleteSelectedLink('selected')">
-          <template #icon> <i class="iconfont icondelete" /> </template>
+          <template #icon><i class="iconfont icondelete" /></template>
           <template #default>删除记录</template>
         </a-doption>
       </template>
@@ -294,18 +325,21 @@ const handleRightClick = (e: { event: MouseEvent; node: any }) => {
   </div>
 
   <a-modal v-model:visible="daoruModel" :footer="false" :unmount-on-close="true" :mask-closable="false">
-    <template #title> 批量导入分享链接记录 </template>
+    <template #title> 批量导入分享链接记录</template>
     <div style="width: 500px">
       <div style="margin-bottom: 32px">
         <div class="arco-textarea-wrapper arco-textarea-scroll">
-          <textarea v-model="daoruModelText" class="arco-textarea daoruinput" placeholder="请粘贴，每行一条分享链接，例如：https://www.aliyundrive.com/s/9inQ0eeZ8w8 提取码: CNp7"></textarea>
+          <textarea v-model="daoruModelText" class="arco-textarea daoruinput"
+                    placeholder="请粘贴，每行一条分享链接，例如：https://www.aliyundrive.com/s/9inQ0eeZ8w8 提取码: CNp7"></textarea>
         </div>
         <div>
           <span class="oporg">注：仅导入记录，不会导入分享的文件</span>
         </div>
       </div>
       <div class="flex" style="justify-content: center; align-items: center; margin-bottom: 0px">
-        <a-button id="OSRDaoRuLink" type="primary" size="small" tabindex="-1" :loading="daoruModelLoading" @click="handleSaveDaoRuLink">批量导入</a-button>
+        <a-button id="OSRDaoRuLink" type="primary" size="small" tabindex="-1" :loading="daoruModelLoading"
+                  @click="handleSaveDaoRuLink">批量导入
+        </a-button>
       </div>
     </div>
   </a-modal>

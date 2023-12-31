@@ -185,8 +185,15 @@ const handleRightClick = (e: { event: MouseEvent; node: any }) => {
 </script>
 
 <template>
-  <div style='height: 7px'></div>
+  <div style="height: 7px"></div>
   <div class='toppanbtns' style='height: 26px'>
+    <div style="min-height: 26px; max-width: 100%; flex-shrink: 0; flex-grow: 0">
+      <div class="toppannav">
+        <div class="toppannavitem" title="下载中">
+          <span> 下载中 </span>
+        </div>
+      </div>
+    </div>
     <div class='flex flexauto'></div>
     <div class='flex flexnoauto cellcount' title='总共文件数量'>
       <a-badge color='#637dff' :text="'总数 ' + downingStore.ListStats.count" />
@@ -367,6 +374,7 @@ const handleRightClick = (e: { event: MouseEvent; node: any }) => {
 }
 
 .cellcount .arco-badge .arco-badge-status-text {
+  font-size: 13px;
   margin-left: 4px;
   color: var(--color-text-3);
   line-height: 26px;

@@ -133,7 +133,18 @@ const handleSearchEnter = (event: any) => {
 </script>
 
 <template>
-  <div style="height: 20px"></div>
+  <div style="height: 7px"></div>
+  <div class='toppanbtns' style='height: 26px'>
+    <div style="min-height: 26px; max-width: 100%; flex-shrink: 0; flex-grow: 0">
+      <div class="toppannav">
+        <div class="toppannavitem" title="我的订阅">
+          <span> 我的订阅 </span>
+        </div>
+      </div>
+    </div>
+    <div class='flex flexauto'></div>
+  </div>
+  <div style="height: 14px"></div>
   <div class="toppanbtns" style="height: 26px">
     <div class="toppanbtn">
       <a-button type="text" size="small" tabindex="-1" :loading="myfollowingStore.ListLoading" title="F5"

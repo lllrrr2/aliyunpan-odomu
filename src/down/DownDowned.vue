@@ -182,8 +182,15 @@ const handleRightClick = (e: { event: MouseEvent; node: any }) => {
 
 <template>
   <div style="height: 7px"></div>
-  <div class="toppanbtns" style="height: 26px">
-    <div class="flex flexauto"></div>
+  <div class='toppanbtns' style='height: 26px'>
+    <div style="min-height: 26px; max-width: 100%; flex-shrink: 0; flex-grow: 0">
+      <div class="toppannav">
+        <div class="toppannavitem" title="已下载">
+          <span> 已下载 </span>
+        </div>
+      </div>
+    </div>
+    <div class='flex flexauto'></div>
     <div class="flex flexnoauto cellcount" title="总共已下载完记录数">
       <a-badge color="#637dff" :text="'总记录数 ' + downedStore.ListStats.count" />
     </div>

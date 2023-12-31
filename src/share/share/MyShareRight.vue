@@ -151,29 +151,38 @@ const handleRightClick = (e: { event: MouseEvent; node: any }) => {
 
 <template>
   <div style="height: 7px"></div>
-  <div class="toppanbtns" style="height: 26px" v-if="false">
-    <div class="flex flexauto"></div>
-    <div class="flex flexnoauto cellcount" title="2天内过期">
-      <a-badge color="#637dff" :text="'临期 ' + myshareStore.ListStats.expir2day" />
+  <div class='toppanbtns' style='height: 26px'>
+    <div style="min-height: 26px; max-width: 100%; flex-shrink: 0; flex-grow: 0">
+      <div class="toppannav">
+        <div class="toppannavitem" title="我的分享">
+          <span> 我的分享 </span>
+        </div>
+      </div>
     </div>
-    <div class="flex flexnoauto cellcount" title="总过期">
-      <a-badge color="#637dff" :text="'过期 ' + myshareStore.ListStats.expired" />
-    </div>
-    <div class="flex flexnoauto cellcount" title="总违规">
-      <a-badge color="#637dff" :text="'违规 ' + myshareStore.ListStats.forbidden" />
-    </div>
-
-    <div class="flex flexnoauto cellcount" title="总浏览">
-      <a-badge color="#637dff" :text="'浏览 ' + myshareStore.ListStats.preview" />
-    </div>
-    <div class="flex flexnoauto cellcount" title="总下载">
-      <a-badge color="#637dff" :text="'下载 ' + myshareStore.ListStats.download" />
-    </div>
-    <div class="flex flexnoauto cellcount" title="总转存">
-      <a-badge color="#637dff" :text="'转存 ' + myshareStore.ListStats.save" />
-    </div>
-    <div class="flex flexnoauto cellcount" title="最大的浏览数">
-      <a-badge color="#637dff" :text="'Max ' + myshareStore.ListStats.previewMax" />
+    <div class='flex flexauto'></div>
+    <div class="toppanbtns" style="height: 26px">
+      <div class="flex flexauto"></div>
+      <div class="flex flexnoauto cellcount" title="2天内过期">
+        <a-badge color="#637dff" :text="'临期 ' + myshareStore.ListStats.expir2day" />
+      </div>
+      <div class="flex flexnoauto cellcount" title="总过期">
+        <a-badge color="#637dff" :text="'过期 ' + myshareStore.ListStats.expired" />
+      </div>
+      <div class="flex flexnoauto cellcount" title="总违规">
+        <a-badge color="#637dff" :text="'违规 ' + myshareStore.ListStats.forbidden" />
+      </div>
+      <div class="flex flexnoauto cellcount" title="总浏览">
+        <a-badge color="#637dff" :text="'浏览 ' + myshareStore.ListStats.preview" />
+      </div>
+      <div class="flex flexnoauto cellcount" title="总下载">
+        <a-badge color="#637dff" :text="'下载 ' + myshareStore.ListStats.download" />
+      </div>
+      <div class="flex flexnoauto cellcount" title="总转存">
+        <a-badge color="#637dff" :text="'转存 ' + myshareStore.ListStats.save" />
+      </div>
+      <div class="flex flexnoauto cellcount" title="最大的浏览数">
+        <a-badge color="#637dff" :text="'浏览 ' + myshareStore.ListStats.previewMax" />
+      </div>
     </div>
   </div>
   <div style="height: 14px"></div>

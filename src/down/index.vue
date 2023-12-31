@@ -13,7 +13,7 @@ const appStore = useAppStore()
 <template>
   <a-layout style="height: 100%">
     <a-layout-sider hide-trigger :width="158" class="xbyleft">
-      <div class="headdesc">上传下载文件</div>
+      <div class="headdesc">传输文件</div>
       <a-menu :style="{ width: '100%' }" class="xbyleftmenu" :selected-keys="[appStore.GetAppTabMenu]" @update:selected-keys="appStore.toggleTabMenu('down', $event[0])">
         <a-menu-item key="DowningRight">
           <template #icon><i class="iconfont icondownload" /></template>
@@ -21,7 +21,7 @@ const appStore = useAppStore()
         </a-menu-item>
         <a-menu-item key="DownedRight">
           <template #icon><i class="iconfont icondesktop" /></template>
-          已下载完
+          已下载
         </a-menu-item>
         <a-menu-item key="UploadingRight">
           <template #icon><i class="iconfont iconcloud-upload" /></template>
@@ -29,7 +29,7 @@ const appStore = useAppStore()
         </a-menu-item>
         <a-menu-item key="UploadedRight">
           <template #icon><i class="iconfont iconcloud_success" /></template>
-          已上传完
+          已上传
         </a-menu-item>
 <!--        <a-menu-item key="SyncRight">-->
 <!--          <template #icon><i class="iconfont iconcloud-sync" /></template>-->

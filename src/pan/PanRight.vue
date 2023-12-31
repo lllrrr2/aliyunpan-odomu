@@ -530,19 +530,19 @@ const onPanDragEnd = (ev: any) => {
     <DirTopPath />
     <div style='flex-grow: 1'></div>
     <div v-if="panfileStore.SelectDirType == 'trash'" class='toppantip'>
-      回收站有效期 免费=10天 会员=30天 超级会员=60天
+      <span style='color: crimson'> 免费=10天 会员=30天 超级会员=60天</span>
     </div>
     <div v-if="panfileStore.SelectDirType == 'recover'" class='toppantip'>
       <span style='color: crimson'>仅会员可用 恢复60天内彻底删除的文件(不保留文件夹路径)</span>
     </div>
     <div v-if="panfileStore.SelectDirType == 'favorite'" class='toppantip'>
-      列出已收藏的文件和文件夹 右键可定位到文件夹
+       <span style='color: crimson'>列出已收藏的文件和文件夹 右键可定位到文件夹</span>
     </div>
     <div v-if="panfileStore.SelectDirType == 'color'" class='toppantip'>
-      列出已标记的文件和文件夹 右键可定位到文件夹
+       <span style='color: crimson'>列出已标记的文件和文件夹 右键可定位到文件夹</span>
     </div>
     <div v-if="panfileStore.SelectDirType == 'video'" class='toppantip'>
-      同步手机APP的放映室 设置为内置网页播放器时可继续播放
+       <span style='color: crimson'>同步手机APP的放映室 设置为内置网页播放器时可继续播放</span>
     </div>
   </div>
   <div style='height: 14px'></div>
@@ -1336,7 +1336,7 @@ const onPanDragEnd = (ev: any) => {
 
 .toppantip {
   color: var(--color-text-3);
-  font-size: 12px;
+  font-size: 13px;
   flex-grow: 0;
   flex-shrink: 0;
   height: 26px;

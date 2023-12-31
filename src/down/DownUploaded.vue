@@ -237,7 +237,15 @@ const onSelectFile = (item: IStateUploadTask | undefined, cmd: string) => {
 
 <template>
   <div style="height: 7px"></div>
-  <div class="toppanbtns" style="height: 26px">
+  <div class='toppanbtns' style='height: 26px'>
+    <div style="min-height: 26px; max-width: 100%; flex-shrink: 0; flex-grow: 0">
+      <div class="toppannav">
+        <div class="toppannavitem" title="已上传">
+          <span> 已上传 </span>
+        </div>
+      </div>
+    </div>
+    <div class='flex flexauto'></div>
     <div style="flex-grow: 1"></div>
   </div>
   <div style="height: 14px"></div>
