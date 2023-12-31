@@ -50,7 +50,7 @@ import { menuOpenFile } from '../utils/openfile'
 import { throttle } from '../utils/debounce'
 import { TestButton } from '../utils/mosehelper'
 import usePanTreeStore from './pantreestore'
-import { GetDriveID } from '../aliapi/utils'
+import { GetDriveID, GetDriveType } from '../aliapi/utils'
 import { xorWith } from 'lodash'
 
 const viewlist = ref()
@@ -77,6 +77,7 @@ panfileStore.$subscribe((_m: any, state: PanFileState) => {
   if (state.DriveID != DriveID) {
     DriveID = state.DriveID
     isresourcedrive.value = inputselectType.value.includes('resource')
+    inputselectType.value = GetDriveType(panTreeStore.user_id, DriveID).name
   }
   const isTrash = panfileStore.SelectDirType == 'trash' || panfileStore.SelectDirType == 'recover'
   const selectItem = panfileStore.GetSelectedFirst()
@@ -528,17 +529,20 @@ const onPanDragEnd = (ev: any) => {
   <div class='toppanbtns' style='height: 26px'>
     <DirTopPath />
     <div style='flex-grow: 1'></div>
-    <div v-if="panfileStore.SelectDirType == 'trash'" class='toppantip'>回收站有效期 免费=10天 会员=30天 超级会员=60天
+    <div v-if="panfileStore.SelectDirType == 'trash'" class='toppantip'>
+      回收站有效期 免费=10天 会员=30天 超级会员=60天
     </div>
-    <div v-if="panfileStore.SelectDirType == 'recover'" class='toppantip'>仅会员可用
-      恢复60天内彻底删除的文件(不保留文件夹路径)
+    <div v-if="panfileStore.SelectDirType == 'recover'" class='toppantip'>
+      <span style='color: crimson'>仅会员可用 恢复60天内彻底删除的文件(不保留文件夹路径)</span>
     </div>
-    <div v-if="panfileStore.SelectDirType == 'favorite'" class='toppantip'>列出已收藏的文件和文件夹 右键可定位到文件夹
+    <div v-if="panfileStore.SelectDirType == 'favorite'" class='toppantip'>
+      列出已收藏的文件和文件夹 右键可定位到文件夹
     </div>
-    <div v-if="panfileStore.SelectDirType == 'color'" class='toppantip'>列出已标记的文件和文件夹 右键可定位到文件夹
+    <div v-if="panfileStore.SelectDirType == 'color'" class='toppantip'>
+      列出已标记的文件和文件夹 右键可定位到文件夹
     </div>
-    <div v-if="panfileStore.SelectDirType == 'video'" class='toppantip'>同步手机APP的放映室
-      设置为内置网页播放器时可继续播放
+    <div v-if="panfileStore.SelectDirType == 'video'" class='toppantip'>
+      同步手机APP的放映室 设置为内置网页播放器时可继续播放
     </div>
   </div>
   <div style='height: 14px'></div>
@@ -576,13 +580,14 @@ const onPanDragEnd = (ev: any) => {
       <a-select v-model:model-value='inputselectType'
                 size='small' tabindex='-1'
                 @update:model-value='handleChangeDrive'
-                style='width: 100px; flex-shrink: 0; margin: 0 -8px' :disabled='panfileStore.ListLoading'>
+                style='width: 100px; flex-shrink: 0; margin: 0 -8px'
+                :disabled='panfileStore.ListLoading'>
         <a-option value='backup'>备份盘</a-option>
         <a-option value='resource'>资源盘</a-option>
         <a-option value='pic'>相册</a-option>
       </a-select>
     </div>
-    <div v-if="panfileStore.SelectDirType === 'search'" class='toppanbtn'>
+    <div v-show="panfileStore.SelectDirType === 'search'" class='toppanbtn'>
       <a-dropdown style='width: 100px;'>
         <a-button :disabled='panfileStore.ListLoading'>搜索范围</a-button>
         <template #content>
