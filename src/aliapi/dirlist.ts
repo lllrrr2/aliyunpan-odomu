@@ -294,7 +294,6 @@ export default class AliDirList {
                   .replaceAll('-', '')
                   .replaceAll(':', '')
                   .replaceAll(',', '')
-                if (pid.includes('root')) pid = 'root'
                 if (pid == id) {
                   const dir = dirList[i]
                   const items = respi.body.items
@@ -386,7 +385,7 @@ export default class AliDirList {
     const dirCount = await AliUser.ApiUserDriveFileCount(user_id, '', 'folder')
     const PIDList: string[] = []
 
-    const root = await AliTrash.ApiDirFileListNoLock(user_id, drive_id, 'root', '', 'name ASC', 'folder', 0)
+    const root = await AliTrash.ApiDirFileListNoLock(user_id, drive_id, drive_root, '', 'name ASC', 'folder', 0)
     for (let i = 0, maxi = root.items.length; i < maxi; i++) {
       const item = root.items[i]
       if (item.parent_file_id === 'root') {
@@ -431,7 +430,8 @@ export default class AliDirList {
         let id = dirList[i].dirID
           .replaceAll('"', '')
           .replaceAll(' ', '')
-          .replaceAll(',', '').substring(0, 54)
+          .replaceAll(',', '')
+          .substring(0, 54)
         if (id.includes('root')) id = 'root'
         const data2 = {
           body: {
@@ -469,7 +469,6 @@ export default class AliDirList {
                   .replaceAll(' ', '')
                   .replaceAll(',', '')
                   .substring(0, 54)
-                if (pid.includes('root')) pid = 'root'
                 if (pid == id) {
                   const dir = dirList[i]
                   const items = respi.body.items

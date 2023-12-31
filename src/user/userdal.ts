@@ -14,7 +14,6 @@ import {
 } from '../store'
 import PanDAL from '../pan/pandal'
 import DebugLog from '../utils/debuglog'
-import { Sleep } from '../utils/format'
 
 export const UserTokenMap = new Map<string, ITokenInfo>()
 
@@ -163,20 +162,15 @@ export default class UserDAL {
       AliUser.ApiUserPic(token),
       AliUser.ApiUserVip(token)
     ])
+    // 保存登录信息
+    await DB.saveValueString('uiDefaultUser', token.user_id)
     useUserStore().userLogin(token.user_id)
-    await Promise.all([
-      // 保存登录信息
-      await DB.saveValueString('uiDefaultUser', token.user_id),
-      // 登陆后自动签到
-      this.UserAutoSign(token),
-      // 刷新Session
-      AliUser.ApiSessionRefreshAccount(token, false),
-      // 刷新OpenApiToken
-      AliUser.OpenApiTokenRefreshAccount(token, false),
-      // 刷新网盘数据
-      PanDAL.aReLoadBackupDrive(token),
-      PanDAL.aReLoadResourceDrive(token)
-    ])
+    // 登陆后自动签到
+    await UserDAL.UserAutoSign(token)
+    // 刷新Session
+    await AliUser.ApiSessionRefreshAccount(token, false)
+    // 刷新OpenApiToken
+    await AliUser.OpenApiTokenRefreshAccount(token, false)
     window.WebUserToken({
       user_id: token.user_id,
       name: token.user_name,
@@ -184,9 +178,12 @@ export default class UserDAL {
       open_api_access_token: token.open_api_access_token,
       login: true
     })
-    await Sleep(1000)
+    // 刷新网盘数据
+    await PanDAL.aReLoadBackupDrive(token)
+    await PanDAL.aReLoadResourceDrive(token)
+    // 展开文件夹
     await PanDAL.aReLoadOneDirToShow(token.resource_drive_id, 'resource_root', true)
-    await PanDAL.aReLoadOneDirToShow(token.backup_drive_id || token.default_drive_id, 'backup_root', true)
+    await PanDAL.aReLoadOneDirToShow(token.default_drive_id, 'backup_root', true)
     PanDAL.aReLoadQuickFile(token.user_id)
     // 刷新所有状态
     useAppStore().resetTab()

@@ -113,7 +113,7 @@ const usePanTreeStore = defineStore('pantree', {
       { __v_skip: true, title: '备份盘', namesearch: '', key: 'backup_root', children: [] },
       { __v_skip: true, title: '资源盘', namesearch: '', key: 'resource_root', children: [] }
     ],
-    treeExpandedKeys: ['backup_root', 'resource_root'],
+    treeExpandedKeys: [],
     treeSelectedKeys: [],
     quickData: [],
     scrollToDir: ''

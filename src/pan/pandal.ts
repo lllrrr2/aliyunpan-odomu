@@ -27,7 +27,7 @@ export default class PanDAL {
 
   static async aReLoadBackupDrive(token: ITokenInfo): Promise<void> {
     const { user_id, default_drive_id, resource_drive_id, backup_drive_id } = token
-    const drive_id = default_drive_id || backup_drive_id
+    const drive_id = backup_drive_id || default_drive_id
     const pantreeStore = usePanTreeStore()
     // 保存DriveId
     pantreeStore.mSaveUser(user_id, default_drive_id, resource_drive_id, backup_drive_id)
@@ -36,7 +36,7 @@ export default class PanDAL {
     const backupCache = await DB.getValueObject('AllDir_' + drive_id)
     if (backupCache) {
       console.log('aReLoadDrive backupCache')
-      await TreeStore.ConvertToOneDriver(token.user_id, drive_id, backupCache as IAliGetDirModel[], false, true)
+      await TreeStore.ConvertToOneDriver(user_id, drive_id, backupCache as IAliGetDirModel[], false, true)
     }
     if (backupCache) {
       const dt = await DB.getValueNumber('AllDir_' + drive_id)
@@ -44,6 +44,7 @@ export default class PanDAL {
         return
       }
     }
+    useFootStore().mSaveLoading('加载全部文件夹...')
     window.WinMsgToUpload({ cmd: 'AllDirList', user_id, drive_id: drive_id, drive_root: 'backup_root' })
   }
 
@@ -51,13 +52,12 @@ export default class PanDAL {
     const { user_id, default_drive_id, resource_drive_id, backup_drive_id } = token
     const pantreeStore = usePanTreeStore()
     // 保存DriveId
-    pantreeStore.mSaveUser(user_id, default_drive_id, resource_drive_id, backup_drive_id)
-    pantreeStore.drive_id = resource_drive_id
+    pantreeStore.mSaveUser(user_id, backup_drive_id || default_drive_id, resource_drive_id, backup_drive_id)
     if (!user_id || !resource_drive_id) return
     const resourceCache = await DB.getValueObject('AllDir_' + resource_drive_id)
     if (resourceCache) {
       console.log('aReLoadDrive resourceCache')
-      await TreeStore.ConvertToOneDriver(token.user_id, resource_drive_id, resourceCache as IAliGetDirModel[], false, true)
+      await TreeStore.ConvertToOneDriver(user_id, resource_drive_id, resourceCache as IAliGetDirModel[], false, true)
     }
     if (resourceCache) {
       const dt = await DB.getValueNumber('AllDir_' + resource_drive_id)
@@ -65,6 +65,7 @@ export default class PanDAL {
         return
       }
     }
+    useFootStore().mSaveLoading('加载全部文件夹...')
     window.WinMsgToUpload({ cmd: 'AllDirList', user_id, drive_id: resource_drive_id, drive_root: 'resource_root' })
   }
 
@@ -83,9 +84,9 @@ export default class PanDAL {
   static RefreshPanTreeAllNode(drive_id: string) {
     const OneDriver = TreeStore.GetDriver(drive_id)
     if (!OneDriver) return
-    console.log('RefreshPanTreeAllNode')
     const pantreeStore = usePanTreeStore()
     const expandedKeys = new Set(pantreeStore.treeExpandedKeys)
+    console.warn('RefreshPanTreeAllNode', expandedKeys)
     const driveType = GetDriveType(pantreeStore.user_id, drive_id)
     const dir: TreeNodeData = {
       __v_skip: true,
@@ -103,8 +104,8 @@ export default class PanDAL {
   static GetPanTreeAllNode(user_id: string, drive_id: string, treeExpandedKeys: string[], getChildren: boolean = true, isLeafForce: boolean = false): TreeNodeData[] {
     const OneDriver = TreeStore.GetDriver(drive_id)
     if (!OneDriver) return []
-    console.log('GetPanTreeAllNode')
     const expandedKeys = new Set(treeExpandedKeys)
+    console.warn('GetPanTreeAllNode', expandedKeys)
     const driveType = GetDriveType(user_id, drive_id)
     const dir: TreeNodeData = {
       __v_skip: true,
@@ -254,6 +255,7 @@ export default class PanDAL {
       AliDirFileList.ApiDirFileList(user_id, drive_id, dirID, '', order, 'folder')
         .then((dir) => {
           if (!dir.next_marker) {
+            dir.dirID = dirID
             TreeStore.SaveOneDirFileList(dir, false).then(() => {
               PanDAL.RefreshPanTreeAllNode(drive_id)
               const pantreeStore = usePanTreeStore()

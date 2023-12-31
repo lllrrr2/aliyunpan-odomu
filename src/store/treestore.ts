@@ -215,7 +215,6 @@ export default class TreeStore {
         DB.saveValueObject('DirFileOrder_' + drive_id, driverData.FileOrderMap)
       }
     } else {
-
       settingStore.updateStore({ uiFileListOrder: order })
     }
   }
@@ -244,8 +243,9 @@ export default class TreeStore {
     for (let i = 0, maxi = childDirList.length; i < maxi; i++) {
       const item = childDirList[i]
       const itemNode: TreeNodeData = { __v_skip: true, key: item.file_id, title: item.name, children: [] }
-      if (expandedKeys.has(itemNode.key)) TreeStore.GetTreeDataToShow(driverData, itemNode, expandedKeys, map, true, order, isLeafForce)
-      else if (getChildren) TreeStore.GetTreeDataToShow(driverData, itemNode, expandedKeys, map, false, order, isLeafForce)
+      if (expandedKeys.has(itemNode.key) || getChildren) {
+        TreeStore.GetTreeDataToShow(driverData, itemNode, expandedKeys, map, getChildren, order, isLeafForce);
+      }
       children.push(itemNode)
       map.set(itemNode.key, itemNode)
     }
@@ -370,7 +370,7 @@ export default class TreeStore {
     }
     if (file_id.startsWith('video')) {
       let videoType = file_id.substring('video'.length)
-      console.log('videoType', videoType)
+      // console.log('videoType', videoType)
       if (videoType == '.compilation') {
         videoType = '全部专辑'
       } else if (videoType == '.recentplay') {
