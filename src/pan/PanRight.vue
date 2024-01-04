@@ -536,13 +536,13 @@ const onPanDragEnd = (ev: any) => {
       <span style='color: crimson'>仅会员可用 恢复60天内彻底删除的文件(不保留文件夹路径)</span>
     </div>
     <div v-if="panfileStore.SelectDirType == 'favorite'" class='toppantip'>
-       <span style='color: crimson'>列出已收藏的文件和文件夹 右键可定位到文件夹</span>
+      <span style='color: crimson'>列出已收藏的文件和文件夹 右键可定位到文件夹</span>
     </div>
     <div v-if="panfileStore.SelectDirType == 'color'" class='toppantip'>
-       <span style='color: crimson'>列出已标记的文件和文件夹 右键可定位到文件夹</span>
+      <span style='color: crimson'>列出已标记的文件和文件夹 右键可定位到文件夹</span>
     </div>
     <div v-if="panfileStore.SelectDirType == 'video'" class='toppantip'>
-       <span style='color: crimson'>同步手机APP的放映室 设置为内置网页播放器时可继续播放</span>
+      <span style='color: crimson'>同步手机APP的放映室 设置为内置网页播放器时可继续播放</span>
     </div>
   </div>
   <div style='height: 14px'></div>
@@ -861,7 +861,7 @@ const onPanDragEnd = (ev: any) => {
                   :class="panfileStore.ListSelected.has(item.file_id) ? (item.starred ? 'iconfont iconcrown3' : 'iconfont iconrsuccess') : item.starred ? 'iconfont iconcrown' : 'iconfont iconpic2'" />
               </a-button>
             </div>
-            <div class='fileicon'>
+            <div class='fileicon' :title="item.icon == 'iconweifa' ? '违规': item.icon == 'iconweixiang' ? '禁止分享': ''">
               <i :class="'iconfont ' + item.icon" aria-hidden='true'></i>
             </div>
             <div class='filename' droppable='false'>
