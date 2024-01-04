@@ -23,6 +23,7 @@ export interface GridItem {
 }
 
 export interface PanFileState {
+  UserID: string
   DriveID: string
   DirID: string
   AlbumID: string
@@ -59,6 +60,7 @@ const KEY = 'file_id'
 
 const usePanFileStore = defineStore('panfile', {
   state: (): State => ({
+    UserID: '',
     DriveID: '',
     DirID: '',
     AlbumID: '',
@@ -122,7 +124,7 @@ const usePanFileStore = defineStore('panfile', {
       return isAllFav
     },
 
-    IsListSelectedColorAll(state: State): boolean  {
+    IsListSelectedColorAll(state: State): boolean {
       const list = state.ListDataShow
       const len = list.length
       let isAllColor = true
@@ -175,10 +177,11 @@ const usePanFileStore = defineStore('panfile', {
 
   actions: {
 
-    mSaveDirFileLoading(drive_id: string, dirID: string, dirName: string, albumID: string = '') {
+    mSaveDirFileLoading(user_id: string, drive_id: string, dirID: string, dirName: string, albumID: string = '') {
       const order = TreeStore.GetDirOrder(drive_id, dirID)
       if (this.DirID != dirID || this.DriveID != drive_id || this.AlbumID != albumID) {
         this.$patch({
+          UserID: user_id,
           DriveID: drive_id,
           DirID: dirID,
           AlbumID: albumID,
@@ -196,6 +199,7 @@ const usePanFileStore = defineStore('panfile', {
         })
       } else {
         this.$patch({
+          UserID: user_id,
           DriveID: drive_id,
           DirID: dirID,
           AlbumID: albumID,
@@ -398,10 +402,8 @@ const usePanFileStore = defineStore('panfile', {
         }
       }
       if (needDelDir) {
-
         TreeStore.DeleteDirs(this.DriveID, file_idList)
-
-        PanDAL.RefreshPanTreeAllNode(this.DriveID)
+        PanDAL.RefreshPanTreeAllNode(this.UserID, this.DriveID)
       }
     },
     mFavorFiles(isfavor: boolean, file_idList: string[]) {

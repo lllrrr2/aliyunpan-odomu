@@ -165,7 +165,7 @@ export default class DownDAL {
         if (cPath != '' && cPid == file.parent_file_id) fullPath = cPath
         else {
           let cPath2 = savePath
-          const plist = TreeStore.GetDirPath(file.drive_id, file.parent_file_id)
+          const plist = TreeStore.GetDirPath(userID, file.drive_id, file.parent_file_id)
           for (let p = 0; p < plist.length; p++) {
             const pName = ClearFileName(plist[p].name)
             if (plist[p].file_id.includes('root')) continue

@@ -69,15 +69,17 @@ export function PageMain() {
     })
 }
 
-export const WinMsg = function (arg: any) {
+export const WinMsg = async (arg: any) => {
   if (arg.cmd == 'MainUploadEvent') {
-    if (arg.ReportList.length > 0 && arg.ReportList.length != arg.RunningKeys.length) console.log('RunningKeys', arg)
+    if (arg.ReportList.length > 0 && arg.ReportList.length != arg.RunningKeys.length) {
+      console.log('RunningKeys', arg)
+    }
     if (arg.StopKeys.length > 0) console.log('StopKeys', arg)
     UploadingDAL.aUploadingEvent(arg.ReportList, arg.ErrorList, arg.SuccessList, arg.RunningKeys, arg.StopKeys, arg.LoadingKeys, arg.SpeedTotal)
   } else if (arg.cmd == 'MainUploadAppendFiles') {
-    UploadingDAL.aUploadingAppendFiles(arg.TaskID, arg.UploadID, arg.CreatedDirID, arg.AppendList)
+    await UploadingDAL.aUploadingAppendFiles(arg.TaskID, arg.UploadID, arg.CreatedDirID, arg.AppendList)
   } else if (arg.cmd == 'MainSaveAllDir') {
-    PanDAL.aReLoadDriveSave(arg.OneDriver, arg.ErrorMessage)
+    await PanDAL.aReLoadDriveSave(arg.OneDriver, arg.ErrorMessage)
   } else if (arg.cmd == 'MainShowAllDirProgress') {
     useFootStore().mSaveLoading('加载全部文件夹(' + Math.floor((arg.index * 100) / (arg.total + 1)) + '%)')
   }
@@ -126,7 +128,7 @@ function timeEvent() {
   // 自动刷新文件夹大小
   if (settingStore.uiFolderSize
     && !lockBackupDirSizeTime
-      && nowTime - runTime > 50
+    && nowTime - runTime > 50
     && chkBackupDirSizeTime >= 10) {
     lockBackupDirSizeTime = true
     PanDAL.aUpdateDirFileSize(usePanTreeStore().backup_drive_id)

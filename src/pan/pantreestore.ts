@@ -121,11 +121,10 @@ const usePanTreeStore = defineStore('pantree', {
   getters: {
     PanHistoryCount(state: State): number {
       return state.History.length
-    },
+    }
   },
   actions: {
     mTreeSelected(e: any, kuaijie: boolean = false) {
-      console.log('mTreeSelected', e)
       let { key, drive_id = undefined } = e.node
       let is_refresh_drive_id = !['favorite', 'trash', 'recover'].includes(key) || !/color.*/g.test(key)
       if (!kuaijie) {
@@ -135,6 +134,7 @@ const usePanTreeStore = defineStore('pantree', {
         const parentNode = getParentNode(e.node)
         drive_id = GetDriveID(this.user_id, parentNode.key || key)
       }
+      console.log('mTreeSelected', e, drive_id)
       if (is_refresh_drive_id && drive_id) {
         this.drive_id = drive_id
       }
@@ -142,17 +142,17 @@ const usePanTreeStore = defineStore('pantree', {
       PanDAL.aReLoadOneDirToShow('', key, true)
     },
     mTreeExpand(key: string) {
-      console.log('mTreeExpand', key)
       const arr = this.treeExpandedKeys
       if (arr.includes(key)) {
-        const dirPath = TreeStore.GetDirPath(this.drive_id, this.selectDir.file_id)
+        const dirPath = TreeStore.GetDirPath(this.user_id, this.drive_id, this.selectDir.file_id)
         const needSelectNew = dirPath.filter((t) => t.parent_file_id == key).length > 0
         this.treeExpandedKeys = arr.filter((t) => t != key)
         if (needSelectNew) PanDAL.aReLoadOneDirToShow('', key, false)
       } else {
         this.treeExpandedKeys = arr.concat([key])
-        PanDAL.RefreshPanTreeAllNode(this.drive_id)
+        PanDAL.RefreshPanTreeAllNode(this.user_id, this.drive_id)
       }
+      console.log('mTreeExpand.treeExpandedKeys', this.treeExpandedKeys)
     },
 
     mTreeExpandAll(keyList: string[], isExpaned: boolean) {
@@ -167,7 +167,7 @@ const usePanTreeStore = defineStore('pantree', {
         }
       }
       this.treeExpandedKeys = Array.from(arr)
-      if (isExpaned) PanDAL.RefreshPanTreeAllNode(this.drive_id)
+      if (isExpaned) PanDAL.RefreshPanTreeAllNode(this.user_id, this.drive_id)
     },
 
     mSaveUser(user_id: string, default_drive_id: string, resource_drive_id: string, backup_drive_id: string) {
@@ -186,15 +186,12 @@ const usePanTreeStore = defineStore('pantree', {
 
     mSaveTreeAllNode(drive_id: string, root: TreeNodeData, rootMap: Map<string, TreeNodeData>) {
       if (this.drive_id !== drive_id) return
-
-      const list: TreeNodeData[] = []
       for (let i = 0, maxi = this.treeData.length; i < maxi; i++) {
         if (this.treeData[i].key == root.key) {
-          list.push(root)
-        } else list.push(this.treeData[i])
+          this.treeData[i] = { ...root }
+          break
+        }
       }
-
-      this.treeData = list
       treeDataMap = rootMap
     },
 

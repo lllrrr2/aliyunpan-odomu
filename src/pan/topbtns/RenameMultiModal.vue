@@ -364,7 +364,7 @@ const handleOK = (type: string) => {
         if (!multiOpt.value) {
           usePanTreeStore().mRenameFiles(success)
           usePanFileStore().mRenameFiles(success)
-          PanDAL.RefreshPanTreeAllNode(pantreeStore.drive_id)
+          PanDAL.RefreshPanTreeAllNode(pantreeStore.user_id, pantreeStore.drive_id)
           modalCloseAll()
         } else {
           let fileMap: Map<string, string> = new Map<string, string>()
@@ -973,7 +973,8 @@ const handleSelectRow = (visible: boolean, treeNodeKey: string) => {
                         style='margin: 0'
                         @click="handleContextMenu('all', '')">
                 <i
-                  :class="treeCheckedKeys.checked.length === allLen ? 'iconfont iconrsuccess' : 'iconfont iconpic2'" />全选
+                  :class="treeCheckedKeys.checked.length === allLen ? 'iconfont iconrsuccess' : 'iconfont iconpic2'" />
+                {{ treeCheckedKeys.checked.length === allLen ? '取消全选' : '全选'}}
               </a-button>
               <a-button type='text' size='small' tabindex='-1' style='margin: 0' @click='handleMultiOpt'>
                 <i :class="multiOpt ? 'iconfont iconrsuccess' : 'iconfont iconpic2'" />多次操作

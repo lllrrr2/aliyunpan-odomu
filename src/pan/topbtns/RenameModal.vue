@@ -153,7 +153,7 @@ export default defineComponent({
               if (data.length == 1) {
                 usePanTreeStore().mRenameFiles(data)
                 if (!this.istree) usePanFileStore().mRenameFiles(data)
-                PanDAL.RefreshPanTreeAllNode(pantreeStore.drive_id)
+                PanDAL.RefreshPanTreeAllNode(pantreeStore.user_id, pantreeStore.drive_id)
                 message.success('重命名 成功')
               } else {
                 message.error('重命名 失败')

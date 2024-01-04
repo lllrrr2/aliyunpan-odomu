@@ -68,8 +68,8 @@ const handleOpen = async () => {
   const expandedKeys: string[] = ['backup_root', 'resource_root']
   const selectid = props.selectid || localStorage.getItem('selectpandir-' + drive_id.value) || ''
   if (selectid) {
-    const backup_data = TreeStore.GetDirPath(pantreeStore.default_drive_id, selectid)
-    const resource_data = TreeStore.GetDirPath(pantreeStore.resource_drive_id, selectid)
+    const backup_data = TreeStore.GetDirPath(user_id.value, pantreeStore.default_drive_id, selectid)
+    const resource_data = TreeStore.GetDirPath(user_id.value, pantreeStore.resource_drive_id, selectid)
     const data = [...backup_data, ...resource_data]
     if (data && data.length > 0) {
       for (let i = 0, maxi = data.length; i < maxi; i++) {
@@ -279,7 +279,7 @@ const handleHide = () => {
   modalCloseAll()
   if (props.selecttype === 'select') {
     if (props.callback) {
-      props.callback('', '', '', '', '')
+      props.callback(user_id.value, drive_id.value, to_drive_id.value, '', '')
     }
   }
 }
@@ -355,7 +355,7 @@ const handleOK = () => {
            @before-open='handleOpen'
            @close='handleClose'>
     <template #title>
-      <span class='modaltitle'>{{ title }}选择一个位置</span>
+      <span class='modaltitle'>{{ title }} {{ selecttype !== 'select' ? '选择一个位置' : '' }}</span>
     </template>
     <div class='pandirmodalbody'>
       <AntdTree

@@ -1,13 +1,14 @@
 import dayjs from 'dayjs'
 import { execSync } from 'node:child_process'
 import fs from 'node:fs'
+import semver from 'semver'
 
 process.env.TZ = 'Asia/Shanghai'
 const packageJsonStr = fs.readFileSync('./package.json').toString()
 try {
-  const tmp = `3.${dayjs().format('YY.MMDDHH')}`
+  const tmp = `3.${dayjs().format('YY.MDDHH')}`
   const packageJson = JSON.parse(packageJsonStr)
-  if (packageJson.version < tmp) {
+  if (semver.gt(tmp, packageJson.version)) {
     packageJson.version = tmp
     console.info('版本升级为' + packageJson.version)
     fs.writeFileSync('./package.json', JSON.stringify(packageJson, null, 2))

@@ -14,15 +14,13 @@ export function GetDriveID(user_id: string, drive: string): string {
   const token = UserDAL.GetUserToken(user_id)
   if (token) {
     if (drive.includes('backup')) {
-      return token.default_drive_id
+      return token.default_drive_id || token.backup_drive_id
     } else if (drive.includes('resource')) {
       return token.resource_drive_id
     } else if (drive.includes('pic')) {
       return token.pic_drive_id
     } else if (drive.includes('safe')) {
       return token.default_sbox_drive_id
-    } else {
-      return ''
     }
   }
   return ''
