@@ -15,8 +15,7 @@ import ErrorHandler from '../error'
 import util from '../util'
 import ipcRequest from './ipcRequest'
 import _ from 'lodash'
-
-const net = require('net')
+import net from 'node:net'
 
 class ipcInterface extends EventEmitter {
   constructor(options) {

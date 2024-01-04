@@ -12,7 +12,6 @@ import AliFileCmd from '../aliapi/filecmd'
 import levenshtein from 'fast-levenshtein'
 import AliDirFileList from '../aliapi/dirfilelist'
 import { usePanFileStore, useSettingStore } from '../store'
-import { Sleep } from './format'
 import { GetExpiresTime } from './utils'
 import { IAliGetFileModel } from '../aliapi/alimodels'
 
@@ -197,31 +196,28 @@ const PlayerUtils = {
     server.listen(port)
     return server
   },
-  async mpvPlayer(user_id: string,
-                  socketPath: string,
-                  fileList: any,
-                  playInfo: any) {
+  async mpvPlayer(binary: string, playArgs: any, otherArgs: any, options: SpawnOptions, exitCallBack: any) {
+    let { user_id, socketPath, fileList, playInfo } = otherArgs
     let currentTime = 0
     let currentFileId = playInfo.file_id
     let mpv: mpvAPI = new mpvAPI({
       debug: false,
       verbose: false,
-      socket: socketPath
-    })
+      binary: binary,
+      socket: socketPath,
+      spawnOptions: options
+    }, playArgs)
     try {
-      await mpv.start().catch()
+      await mpv.start()
       if (useSettingStore().uiVideoEnablePlayerList) {
         await mpv.loadPlaylist(playInfo.playFileListPath)
         await mpv.play()
-        mpv.on('status', (status: {
-          property: string,
-          value: any
-        }) => {
+        mpv.on('status', async (status: { property: string, value: any }) => {
           // console.log('status', status)
           if (status.property === 'playlist-pos' && status.value != -1) {
             // 保存历史
             const item = playInfo.playList[status.value]
-            AliFile.ApiUpdateVideoTime(user_id, playInfo.drive_id, currentFileId, currentTime)
+            await AliFile.ApiUpdateVideoTime(user_id, playInfo.drive_id, currentFileId, currentTime)
             currentFileId = item && item.file_id || undefined
             if (currentFileId && useSettingStore().uiAutoColorVideo && !item.description) {
               AliFileCmd.ApiFileColorBatch(user_id, item.drive_id, 'ce74c3c', [currentFileId])
@@ -257,63 +253,63 @@ const PlayerUtils = {
         // console.log('timeposition', currentTime)
         currentTime = timeposition
       })
-      mpv.on('crashed', async () => {
+      mpv.on('quit', async () => {
         await AliFile.ApiUpdateVideoTime(user_id, playInfo.drive_id, playInfo.playFileId, currentTime)
-        await mpv.quit()
+        exitCallBack()
       })
       if (useSettingStore().uiVideoPlayerExit) {
         mpv.on('stopped', async () => {
-          message.info('播放完毕，自动退出软件')
+          message.info('播放完毕，自动退出软件', 8)
           await AliFile.ApiUpdateVideoTime(user_id, playInfo.drive_id, playInfo.playFileId, currentTime)
           await mpv.quit()
         })
       }
-    } catch (error) {
-      message.error('未知错误，请重新关闭播放器重新打开')
-      await mpv.quit()
+    } catch (error: any) {
+      console.error(error)
+      if (error.errcode == 6) {
+        message.error('播放失败，重复运行MPV播放器', 8)
+      } else {
+        message.error(`播放失败，${error.verbose}`)
+      }
+      exitCallBack()
     }
   },
+
+  commandSpawn(commandStr: string, playArgs: any, options: SpawnOptions, exitCallBack: any) {
+    const childProcess: any = spawn(commandStr, playArgs, {
+      shell: true,
+      windowsVerbatimArguments: true,
+      ...options
+    })
+    childProcess.unref()
+    if (exitCallBack) {
+      childProcess.once('exit', async () => {
+        exitCallBack()
+      })
+    }
+  },
+
   async startPlayer(command: string,
                     playArgs: any,
                     otherArgs: any,
                     options: SpawnOptions,
                     exitCallBack: any) {
-    const argsToStr = (args: string) => is.windows() ? `"${args}"` : `'${args}'`
     if ((is.windows() || is.macOS()) && !existsSync(command)) {
       message.error(`启动失败，找不到文件, ${command}`)
+      return
+    }
+    const argsToStr = (args: string) => is.windows() ? `"${args}"` : `'${args}'`
+    const isMPV = command.toLowerCase().includes('mpv')
+    let commandStr
+    if (is.macOS()) {
+      commandStr = `open -a ${argsToStr(command)} ${command.includes('mpv.app') ? '--args ' : ''}`
     } else {
-      let commandStr
-      if (is.macOS()) {
-        commandStr = `open -a ${argsToStr(command)} ${command.includes('mpv.app') ? '--args ' : ''}`
-      } else {
-        commandStr = `${argsToStr(command)}`
-      }
-      const childProcess: any = spawn(commandStr, playArgs, {
-        shell: true,
-        windowsVerbatimArguments: true,
-        ...options
-      })
-      childProcess.unref()
-      // childProcess.stdout.on('data', (data: any)=> {
-      //   console.log('stdout', data.toString())
-      // })
-      // childProcess.stderr.on('data', (data: any)=> {
-      //   console.log('stderr', data.toString())
-      // })
-      if (exitCallBack) {
-        childProcess.once('exit', async () => {
-          exitCallBack()
-        })
-      }
-      // 如果不开启播放列表和记录历史则不需要启动Server
-      if (!useSettingStore().uiVideoEnablePlayerList
-        && !useSettingStore().uiVideoPlayerHistory) {
-        return
-      }
-      if (command.toLowerCase().includes('mpv')) {
-        await Sleep(1000)
-        await this.mpvPlayer(otherArgs.user_id, otherArgs.socketPath, otherArgs.fileList, otherArgs.playInfo)
-      }
+      commandStr = `${argsToStr(command)}`
+    }
+    if (useSettingStore().uiVideoEnablePlayerList || useSettingStore().uiVideoPlayerHistory) {
+      isMPV ? await this.mpvPlayer(commandStr, playArgs, otherArgs, options, exitCallBack) : this.commandSpawn(commandStr, playArgs, options, exitCallBack)
+    } else {
+      this.commandSpawn(commandStr, playArgs, options, exitCallBack)
     }
   }
 }

@@ -18,15 +18,15 @@ class ErrorHandler {
   // creates the error code table
   constructor() {
     this.messageDict = {
-      0: 'Unable to load file or stream',
-      1: 'Invalid argument',
-      2: 'Binary not found',
-      3: 'ipcCommand invalid',
-      4: 'Unable to bind IPC socket',
-      5: 'Timeout',
-      6: 'MPV is already running',
-      7: 'Could not send IPC message',
-      8: 'MPV is not running'
+      0: '无法加载文件或流',
+      1: '无效的参数',
+      2: '找不到二进制文件',
+      3: 'ipcCommand 无效',
+      4: '无法绑定 IPC 套接字',
+      5: '超时',
+      6: 'MPV 已经运行',
+      7: '无法发送 IPC 消息',
+      8: 'MPV 未运行'
     }
   }
 

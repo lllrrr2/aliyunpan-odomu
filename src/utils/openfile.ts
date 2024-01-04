@@ -240,8 +240,6 @@ async function Video(token: ITokenInfo, drive_id: string, file_id: string, paren
     playerArgs = {
       playUrl: playInfo.playUrl,
       otherArgs: [
-        '--idle',
-        '--msg-level=all=no,ipc=v',
         '--force-window=immediate',
         '--hwdec=auto',
         '--geometry=80%',
@@ -251,7 +249,7 @@ async function Video(token: ITokenInfo, drive_id: string, file_id: string, paren
         '--keep-open-pause=no',
         '--alang=[en,eng,zh,chi,chs,sc,zho]',
         '--slang=[zh,chi,chs,sc,zho,en,eng]',
-        `--input-ipc-server=mpvserver`,
+        // `--input-ipc-server=mpvserver`,
         `--force-media-title=${argsToStr(playInfo.playTitle)}`,
         `--referrer=${argsToStr(playInfo.playReferer)}`,
         `--title=${argsToStr(playInfo.playTitle)}`
@@ -287,8 +285,9 @@ async function Video(token: ITokenInfo, drive_id: string, file_id: string, paren
     playArgs.shift()
     if (isMpv) {
       playArgs.push(`--playlist-start=${playIndex}`)
+    } else {
+      playArgs.unshift(playInfo.playFileListPath)
     }
-    playArgs.unshift(playInfo.playFileListPath)
   }
   const otherArgs = { user_id: token.user_id, socketPath, fileList, playInfo }
   await PlayerUtils.startPlayer(playInfo.playCommand, playArgs, otherArgs, options, async () => {

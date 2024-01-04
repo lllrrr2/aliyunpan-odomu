@@ -25,6 +25,9 @@ class NodeMpv extends EventEmitter {
     // merge the user input options with the default options
     this.options = util.mergeDefaultOptions(options)
 
+    // get the arguments to start mpv with
+    this.mpv_arguments = util.mpvArguments(this.options, mpv_args)
+
     // saves the IDs of observedProperties with their propertyname
     // key:   property
     // value: id

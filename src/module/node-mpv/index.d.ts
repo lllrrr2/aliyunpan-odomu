@@ -3,6 +3,7 @@
 // Definitions by: leonekmi <me@leonekmi.fr>
 
 import EventEmitter = NodeJS.EventEmitter
+import { SpawnOptions } from 'node:child_process'
 
 interface NodeMpvOptions {
   // Print debug lines
@@ -17,6 +18,10 @@ interface NodeMpvOptions {
   auto_restart?: boolean;
   // Time update for timeposition event
   time_update?: number;
+  // Path to mpv binary
+  binary?: string;
+  // spawnOptions
+  spawnOptions?: SpawnOptions;
 }
 
 /*interface NodeMpvError {
