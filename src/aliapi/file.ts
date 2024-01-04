@@ -10,11 +10,12 @@ import { GetDriveType } from './utils'
 
 export default class AliFile {
 
-  static async ApiFileInfo(user_id: string, drive_id: string, file_id: string): Promise<any | undefined> {
+  static async ApiFileInfo(user_id: string, drive_id: string, file_id: string, ispic: boolean = false): Promise<any | undefined> {
     if (!user_id || !drive_id || !file_id) return undefined
     let url = ''
     let postData = {}
-    if (useSettingStore().uiEnableOpenApi) {
+    let need_open_api = useSettingStore().uiEnableOpenApi && !ispic
+    if (need_open_api) {
       url = 'adrive/v1.0/openFile/get'
       postData = {
         drive_id: drive_id,
@@ -35,7 +36,7 @@ export default class AliFile {
         video_thumbnail_process: 'video/snapshot,t_106000,f_jpg,ar_auto,m_fast,w_400'
       }
     }
-    const resp = await AliHttp.Post(url, postData, user_id, '', true)
+    const resp = await AliHttp.Post(url, postData, user_id, '', need_open_api)
 
     if (AliHttp.IsSuccess(resp.code)) {
       let fileInfo = resp.body as IAliFileItem
@@ -101,7 +102,7 @@ export default class AliFile {
     }
     const resp = await AliHttp.Post(url, postData, user_id, '', true)
     if (AliHttp.IsSuccess(resp.code)) {
-      data.url =  resp.body.cdn_url || resp.body.url
+      data.url = resp.body.cdn_url || resp.body.url
       data.size = resp.body.size
       data.expire_time = GetExpiresTime(data.url)
       return data

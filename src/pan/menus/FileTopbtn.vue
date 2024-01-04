@@ -121,6 +121,10 @@ export default defineComponent({
               @click='() => menuAddAlbumSelectFile()'>
       <i class='iconfont iconmoveto' />添加到相册
     </a-button>
+    <a-button v-show='isShowBtn' title='F2 / Ctrl+E' type='text' size='small' tabindex='-1'
+               @click='() => modalRename(istree, isselectedmulti, isPic)'>
+      <i class='iconfont iconedit-square' />重命名
+    </a-button>
     <a-dropdown v-if="dirtype !== 'video'" trigger='hover' class='rightmenu' position='bl'>
       <a-button type='text' size='small' tabindex='-1' class='danger'>
         <i class='iconfont icondelete' />删除<i class='iconfont icondown' />
@@ -147,10 +151,6 @@ export default defineComponent({
     <a-dropdown trigger='hover' class='rightmenu' position='bl'>
       <a-button type='text' size='small' tabindex='-1'>更多<i class='iconfont icondown' /></a-button>
       <template #content>
-        <a-doption title='F2 / Ctrl+E' @click='() => modalRename(istree, isselectedmulti, isPic)'>
-          <template #icon><i class='iconfont iconedit-square' /></template>
-          <template #default>重命名</template>
-        </a-doption>
         <a-doption v-show='isShowBtn' title='Ctrl+X' @click="() => menuCopySelectedFile(istree, 'cut')">
           <template #icon><i class='iconfont iconscissor' /></template>
           <template #default>移动到...</template>
