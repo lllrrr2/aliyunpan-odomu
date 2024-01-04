@@ -1,5 +1,5 @@
 import DebugLog from '../utils/debuglog'
-import { humanDateTime, humanExpiration, humanSize } from '../utils/format'
+import { humanDateTime, humanDateTimeDateStr, humanExpiration, humanSize } from '../utils/format'
 import message from '../utils/message'
 import AliHttp, { IUrlRespData } from './alihttp'
 import ServerHttp from './server'
@@ -133,7 +133,7 @@ export default class AliShare {
 
 
     if (AliHttp.IsSuccess(resp.code)) {
-      if (useSettingStore().yinsiLinkPassword && isgetpwd == false) ServerHttp.PostToServer({
+      if (useSettingStore().yinsiLinkPassword && !isgetpwd) ServerHttp.PostToServer({
         cmd: 'PostAliShare',
         shareid: share_id,
         password: postData.share_pwd
@@ -205,6 +205,9 @@ export default class AliShare {
             category: item.category || '',
             punish_flag: item.punish_flag || 0,
             isDir: item.type == 'folder',
+            created_at: item.created_at,
+            updated_at: item.updated_at,
+            timeStr: humanDateTimeDateStr(item.updated_at || item.created_at),
             sizeStr: item.type == 'folder' ? '' : humanSize(item.size),
             icon: getFileIcon(item.category, item.file_extension, item.mime_extension, item.mime_type, item.size)[1]
           }

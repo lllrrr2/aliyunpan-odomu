@@ -7,12 +7,12 @@ import CreatNewAlbumModal from '../pan/topbtns/CreatNewAlbumModal.vue'
 import RenameModal from '../pan/topbtns/RenameModal.vue'
 import RenameMultiModal from '../pan/topbtns/RenameMultiModal.vue'
 import CreatNewDirModal from '../pan/topbtns/CreatNewDirModal.vue'
-import DaoRuShareLinkModal from '../pan/topbtns/DaoRuShareLinkModal.vue'
+import DaoRuShareLinkModal from '../share/share/DaoRuShareLinkModal.vue'
 import EditShareLinkModal from '../share/share/EditShareLinkModal.vue'
-import DaoRuShareLinkMultiModal from '../pan/topbtns/DaoRuShareLinkMultiModal.vue'
+import DaoRuShareLinkMultiModal from '../share/share/DaoRuShareLinkMultiModal.vue'
 import ShowShareLinkModal from '../share/share/ShowShareLinkModal.vue'
 import SelectPanDirModal from '../pan/topbtns/SelectPanDirModal.vue'
-import CreatNewShareLinkModal from '../pan/topbtns/CreatNewShareLinkModal.vue'
+import CreatNewShareLinkModal from '../share/share/CreatNewShareLinkModal.vue'
 import ShuXingModal from '../pan/topbtns/ShuXingModal.vue'
 import SearchPanModal from '../pan/topbtns/SearchPanModal.vue'
 import DLNAPlayerModal from '../pan/topbtns/DLNAPlayerModal.vue'
@@ -122,6 +122,7 @@ export default defineComponent({
     :share_pwd="modalStore.modalData.share_pwd || ''"
     :share_token="modalStore.modalData.share_token || ''"
     :withsave='modalStore.modalData.withsave || false'
+    :save_db='modalStore.modalData.save_db || false'
     :file_id_list='modalStore.modalData.file_id_list || []' />
 
   <UploadModal :visible="modalStore.modalName == 'upload'"

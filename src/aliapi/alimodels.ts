@@ -238,8 +238,8 @@ export interface IAliShareFileItem {
   file_id: string
   name: string
   type: string
-  // created_at: string
-  // updated_at: string
+  created_at: string
+  updated_at: string
   // hidden: boolean
   // starred: boolean
   // status: string
@@ -259,6 +259,7 @@ export interface IAliShareFileItem {
 
   isDir: boolean
   sizeStr: string
+  timeStr: string
   icon: string
 }
 

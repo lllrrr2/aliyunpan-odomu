@@ -41,7 +41,7 @@ export default defineComponent({
         linkTxt = 'alipan.com/s/' + text.substr(text.indexOf('alipan.com/s/') + 'alipan.com/s/'.length, 11)
       }
 
-      if (!linkTxt && enmpty == false) linkTxt = text
+      if (!linkTxt && !enmpty) linkTxt = text
       return { linkTxt, linkPwd }
     }
     

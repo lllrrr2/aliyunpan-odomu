@@ -48,19 +48,8 @@ export default class AliDirFileList {
   static getFileInfo(item: IAliFileItem, downUrl: string): IAliGetFileModel {
     const size = item.size ? item.size : 0
     const file_count = item.file_count || item.image_count || item.video_count || 0
-    const date = new Date(item.updated_at || item.created_at || item.gmt_deleted || item.last_played_at || '')
-    const y = date.getFullYear().toString()
-    let m: number | string = date.getMonth() + 1
-    m = m < 10 ? '0' + m.toString() : m.toString()
-    let d: number | string = date.getDate()
-    d = d < 10 ? '0' + d.toString() : d.toString()
-    let h: number | string = date.getHours()
-    h = h < 10 ? '0' + h.toString() : h.toString()
-    let minute: number | string = date.getMinutes()
-    minute = minute < 10 ? '0' + minute.toString() : minute.toString()
-    let second: number | string = date.getSeconds()
-    second = second < 10 ? '0' + second.toString() : second.toString()
-
+    const time = new Date(item.updated_at || item.created_at || item.gmt_deleted || item.last_played_at || '')
+    const timeStr = humanDateTimeDateStr(item.updated_at || item.created_at || item.gmt_deleted || item.last_played_at || '')
     const isDir = item.type == 'folder'
 
     const add: IAliGetFileModel = {
@@ -74,11 +63,11 @@ export default class AliDirFileList {
       mime_type: item.mime_type || '',
       category: item.category || '',
       starred: item.starred || false,
-      time: date.getTime(),
+      time: time.getTime(),
       file_count: file_count,
       size: size,
       sizeStr: humanSize(size),
-      timeStr: y + '-' + m + '-' + d + ' ' + h + ':' + minute + ':' + second,
+      timeStr: timeStr,
       icon: 'iconfile-folder',
       isDir: isDir,
       thumbnail: '',

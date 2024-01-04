@@ -22,6 +22,7 @@ interface TreeNodeData {
   children: TreeNodeData[]
   icon: any
   isDir: boolean
+  timeStr: string,
   sizeStr: string
 }
 
@@ -39,6 +40,10 @@ const props = defineProps({
     required: true
   },
   withsave: {
+    type: Boolean,
+    required: true
+  },
+  save_db: {
     type: Boolean,
     required: true
   },
@@ -105,10 +110,10 @@ const handleOpen = () => {
 }
 
 const handleClose = () => {
-
   if (okLoading.value) okLoading.value = false
   share.value = undefined
   share_token.value = ''
+  filterKeyword.value = ''
   fileList.clear()
   dirList.clear()
   treeData.value = []
@@ -165,6 +170,7 @@ const apiLoad = (key: any) => {
           addList.push({
             key: item.file_id,
             title: item.name,
+            timeStr: item.timeStr,
             sizeStr: item.sizeStr,
             children: [],
             isDir: item.isDir,
@@ -456,6 +462,7 @@ async function getNodeAllFiles(share_id: string, share_token: string, file_id: s
         <template #title='{ dataRef }'>
           <span :class="'sharetitleleft' + (fileList.has(dataRef.key) ? ' new' : '')">{{ dataRef.title }}</span>
           <span class='sharetitleright'>{{ dataRef.sizeStr }}</span>
+          <span class='sharetitleright'>{{ dataRef.timeStr }}</span>
         </template>
       </AntdTree>
     </div>
@@ -528,7 +535,7 @@ async function getNodeAllFiles(share_id: string, share_token: string, file_id: s
 .sharemodalbody {
   width: 80vw;
   max-width: 860px;
-  height: calc(80vh - 100px);
+  height: calc(80vh - 80px);
   padding-bottom: 16px
 }
 

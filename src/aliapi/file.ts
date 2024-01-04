@@ -80,7 +80,7 @@ export default class AliFile {
   }
 
   static async ApiFileDownloadUrl(user_id: string, drive_id: string, file_id: string, expire_sec: number): Promise<IDownloadUrl | string> {
-    if (!user_id || !drive_id || !file_id) return 'file_id错误'
+    if (!user_id || !drive_id || !file_id) return '参数错误'
     const data: IDownloadUrl = {
       drive_id: drive_id,
       file_id: file_id,

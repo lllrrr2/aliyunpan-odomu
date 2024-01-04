@@ -49,8 +49,8 @@ export function modalEditShareLink(sharelist: IAliShareItem[]) {
   useModalStore().showModal('editshare', { sharelist })
 }
 
-export function modalShowShareLink(share_id: string, share_pwd: string, share_token: string, withsave: boolean, file_id_list: string[]) {
-  useModalStore().showModal('showshare', { share_id, share_pwd, share_token, withsave, file_id_list })
+export function modalShowShareLink(share_id: string, share_pwd: string, share_token: string, withsave: boolean, file_id_list: string[], save_db: boolean = true) {
+  useModalStore().showModal('showshare', { share_id, share_pwd, share_token, withsave, save_db, file_id_list })
 }
 
 export function modalSelectPanDir(selecttype: string, selectid: string,
