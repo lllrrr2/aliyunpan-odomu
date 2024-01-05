@@ -117,7 +117,7 @@ const handleDelete = () => {
     return
   }
   delLoading.value = true
-  let drive_id = panType.value === 'backup' ? user.default_drive_id : user.resource_drive_id
+  let drive_id = panType.value === 'backup' ? user.backup_drive_id : user.resource_drive_id
   AliFileCmd.ApiTrashBatch(user.user_id, drive_id, checkedKeys.value).then((success: string[]) => {
     delLoading.value = false
     if (checkedKeys.value.length == checkedKeysBak.length) {
@@ -140,7 +140,7 @@ const handleMove = () => {
   modalSelectPanDir('cut', '', function(user_id: string, _drive_id: string, to_drive_id: string, dirID: string) {
     if (!dirID) return
     delLoading.value = true
-    let drive_id = panType.value === 'backup' ? user.default_drive_id : user.resource_drive_id
+    let drive_id = panType.value === 'backup' ? user.backup_drive_id : user.resource_drive_id
     AliFileCmd.ApiMoveBatch(user.user_id, drive_id, checkedKeys.value, to_drive_id, dirID).then((success: string[]) => {
       delLoading.value = false
       if (checkedKeys.value.length == checkedKeysBak.length) {
@@ -179,7 +179,7 @@ const handleScan = () => {
     }
   }
   setTimeout(refresh, 3000)
-  let drive_id = panType.value === 'backup' ? user.default_drive_id : user.resource_drive_id
+  let drive_id = panType.value === 'backup' ? user.backup_drive_id : user.resource_drive_id
   LoadScanDir(user.user_id, drive_id, panType.value,
     panType.value === 'backup' ? '备份盘' : '资源盘', totalDirCount, Processing, ScanPanData)
     .then(() => {

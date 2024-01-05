@@ -183,7 +183,7 @@ export default class UserDAL {
     await PanDAL.aReLoadResourceDrive(token)
     // 展开文件夹
     await PanDAL.aReLoadOneDirToShow(token.resource_drive_id, 'resource_root', true)
-    await PanDAL.aReLoadOneDirToShow(token.default_drive_id, 'backup_root', true)
+    await PanDAL.aReLoadOneDirToShow(token.backup_drive_id, 'backup_root', true)
     PanDAL.aReLoadQuickFile(token.user_id)
     // 刷新所有状态
     useAppStore().resetTab()

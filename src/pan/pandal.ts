@@ -27,7 +27,7 @@ export default class PanDAL {
 
   static async aReLoadBackupDrive(token: ITokenInfo): Promise<void> {
     const { user_id, default_drive_id, resource_drive_id, backup_drive_id } = token
-    const drive_id = backup_drive_id || default_drive_id
+    const drive_id = backup_drive_id
     const pantreeStore = usePanTreeStore()
     // 保存DriveId
     pantreeStore.mSaveUser(user_id, default_drive_id, resource_drive_id, backup_drive_id)
@@ -52,7 +52,7 @@ export default class PanDAL {
     const { user_id, default_drive_id, resource_drive_id, backup_drive_id } = token
     const pantreeStore = usePanTreeStore()
     // 保存DriveId
-    pantreeStore.mSaveUser(user_id, backup_drive_id || default_drive_id, resource_drive_id, backup_drive_id)
+    pantreeStore.mSaveUser(user_id, default_drive_id, resource_drive_id, backup_drive_id)
     if (!user_id || !resource_drive_id) return
     const resourceCache = await DB.getValueObject('AllDir_' + resource_drive_id)
     if (resourceCache) {

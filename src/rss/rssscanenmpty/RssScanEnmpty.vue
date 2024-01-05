@@ -95,10 +95,10 @@ const handleDelete = () => {
     return
   }
   delLoading.value = true
-  let drive_id = panType.value === 'backup' ? user.default_drive_id : user.resource_drive_id
+  let drive_id = panType.value === 'backup' ? user.backup_drive_id : user.resource_drive_id
   AliFileCmd.ApiTrashBatch(user.user_id, drive_id, checkedKeys.value).then((success: string[]) => {
       delLoading.value = false
-      DB.saveValueNumber('AllDir_' + user.default_drive_id, 0)
+      DB.saveValueNumber('AllDir_' + user.backup_drive_id, 0)
       RefreshTree()
   })
 }
@@ -128,7 +128,7 @@ const handleScan = () => {
     }
   }
   setTimeout(refresh, 3000)
-  let drive_id = panType.value === 'backup' ? user.default_drive_id : user.resource_drive_id
+  let drive_id = panType.value === 'backup' ? user.backup_drive_id : user.resource_drive_id
   LoadScanDir(user.user_id, drive_id, panType.value,
     panType.value === 'backup' ? '备份盘' : '资源盘', totalDirCount, Processing, ScanPanData)
     .then(() => {

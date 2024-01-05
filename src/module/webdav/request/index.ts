@@ -36,7 +36,7 @@ class Request {
           folders: [],
           current: {
             name: '备份盘',
-            drive_id: usePanTreeStore().default_drive_id,
+            drive_id: usePanTreeStore().backup_drive_id,
             parent_file_id: '',
             file_id: 'backup_root',
             ext: '',

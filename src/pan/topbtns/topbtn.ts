@@ -425,11 +425,7 @@ export function dropMoveSelectedFile(movetodirid: string, istree: boolean) {
     } else {
       let dirPath = TreeStore.GetDirPath(selectedData.user_id, selectedData.drive_id, movetodirid)
       if (dirPath.length == 0) {
-        if (selectedData.drive_id == usePanTreeStore().default_drive_id) {
-          to_drive_id = usePanTreeStore().resource_drive_id
-        } else {
-          to_drive_id = usePanTreeStore().default_drive_id
-        }
+        to_drive_id = GetDriveID(selectedData.user_id, selectedData.drive_id)
       }
     }
   }
@@ -686,7 +682,7 @@ export async function topSearchAll(word: string, inputsearchType: string[]) {
 export async function menuJumpToDir(inputsearchType: string) {
   let panTreeStore = usePanTreeStore()
   let first = usePanFileStore().GetSelectedFirst()
-  let drive_id = inputsearchType.includes('backup') ? panTreeStore.default_drive_id : panTreeStore.resource_drive_id
+  let drive_id = inputsearchType.includes('backup') ? panTreeStore.backup_drive_id : panTreeStore.resource_drive_id
   if (first && !first.parent_file_id) {
     first = await AliFile.ApiGetFile(panTreeStore.user_id, drive_id, first.file_id)
   }

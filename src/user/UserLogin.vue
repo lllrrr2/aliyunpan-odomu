@@ -96,7 +96,7 @@ const loginbizExt = (msg: string) => {
         user_name: result.userName,
         avatar: result.avatar,
         nick_name: result.nickName,
-        default_drive_id: result.defaultDriveId,
+        default_drive_id: '',
         default_sbox_drive_id: result.defaultSboxDriveId,
         resource_drive_id: '',
         backup_drive_id: '',

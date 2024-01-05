@@ -14,7 +14,7 @@ export function GetDriveID(user_id: string, drive: string): string {
   const token = UserDAL.GetUserToken(user_id)
   if (token) {
     if (drive.includes('backup')) {
-      return token.default_drive_id || token.backup_drive_id
+      return token.backup_drive_id
     } else if (drive.includes('resource')) {
       return token.resource_drive_id
     } else if (drive.includes('pic')) {
@@ -30,8 +30,6 @@ export function GetDriveType(user_id: string, drive_id: string): any {
   const token = UserDAL.GetUserToken(user_id)
   if (token) {
     switch (drive_id) {
-      case token.default_drive_id:
-        return { title: '备份盘', name: 'backup', key: 'backup_root' }
       case token.backup_drive_id:
         return { title: '备份盘', name: 'backup', key: 'backup_root' }
       case token.resource_drive_id:
