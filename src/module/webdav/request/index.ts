@@ -56,8 +56,8 @@ class Request {
         }]
       }
       // 获取访问的文件路径
-      let dir = TreeStore.GetDir(usePanTreeStore().user_id, drive_id, file_id)
-      let dirPath = TreeStore.GetDirPath(usePanTreeStore().user_id, drive_id, file_id)
+      let dir = TreeStore.GetDir(drive_id, file_id)
+      let dirPath = TreeStore.GetDirPath(drive_id, file_id)
       if (!dir || (dirPath.length == 0 && !file_id.includes('root'))) {
         let findPath = await AliFile.ApiFileGetPath(usePanTreeStore().user_id, drive_id, file_id)
         if (findPath.length > 0) {

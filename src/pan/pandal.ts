@@ -73,7 +73,7 @@ export default class PanDAL {
     if (error == 'time') return
     if (!error) {
       await TreeStore.SaveOneDriver(OneDriver)
-      PanDAL.RefreshPanTreeAllNode(OneDriver.user_id, OneDriver.drive_id)
+      PanDAL.RefreshPanTreeAllNode(OneDriver.drive_id)
     } else {
       message.error('列出全盘文件夹失败' + error)
     }
@@ -81,10 +81,11 @@ export default class PanDAL {
   }
 
 
-  static RefreshPanTreeAllNode(user_id: string, drive_id: string) {
-    const pantreeStore = usePanTreeStore()
+  static RefreshPanTreeAllNode(drive_id: string) {
     const OneDriver = TreeStore.GetDriver(drive_id)
-    const driveType = GetDriveType(user_id, drive_id)
+    if (!OneDriver) return
+    const pantreeStore = usePanTreeStore()
+    const driveType = GetDriveType(usePanTreeStore().user_id, drive_id)
     const dir: TreeNodeData = {
       __v_skip: true,
       title: driveType.title,
@@ -92,7 +93,6 @@ export default class PanDAL {
       key: driveType.key,
       children: []
     }
-    if (!OneDriver) return
     const expandedKeys = new Set(usePanTreeStore().treeExpandedKeys)
     const map = new Map<string, TreeNodeData>()
     TreeStore.GetTreeDataToShow(OneDriver, dir, expandedKeys, map, true)
@@ -150,8 +150,8 @@ export default class PanDAL {
         panTreeStore.History = []
       }
     }
-    let dir = TreeStore.GetDir(user_id, drive_id, file_id)
-    let dirPath = TreeStore.GetDirPath(user_id, drive_id, file_id)
+    let dir = TreeStore.GetDir(drive_id, file_id)
+    let dirPath = TreeStore.GetDirPath(drive_id, file_id)
     if (!dir || (dirPath.length == 0 && !file_id.includes('root'))) {
       let findPath = []
       if (!album_id) {
@@ -187,12 +187,12 @@ export default class PanDAL {
       treeExpandedKeys.add(dir.file_id)
     }
     panTreeStore.mShowDir(dir, dirPath, [dir.file_id], Array.from(treeExpandedKeys))
-    PanDAL.RefreshPanTreeAllNode(user_id, drive_id)
+    PanDAL.RefreshPanTreeAllNode(drive_id)
     const panfileStore = usePanFileStore()
     if (panfileStore.ListLoading && panfileStore.DriveID == drive_id && panfileStore.DirID == dir.file_id) {
       return false
     }
-    panfileStore.mSaveDirFileLoading(user_id, drive_id, dir.file_id, dir.name, dir.album_id)
+    panfileStore.mSaveDirFileLoading(drive_id, dir.file_id, dir.name, dir.album_id)
     return PanDAL.GetDirFileList(panTreeStore.user_id, dir.drive_id, dir.file_id, dir.name, dir.album_id)
   }
 
@@ -216,7 +216,7 @@ export default class PanDAL {
               if (hasFiles) {
                 usePanFileStore().mSaveDirFileLoadingFinish(drive_id, dirID, dir.items, dir.itemsTotal || 0)
               }
-              PanDAL.RefreshPanTreeAllNode(user_id, drive_id)
+              PanDAL.RefreshPanTreeAllNode(drive_id)
               resolve(true)
             })
           } else if (dir.next_marker == 'cancel') {
@@ -255,7 +255,7 @@ export default class PanDAL {
           if (!dir.next_marker) {
             dir.dirID = dirID
             TreeStore.SaveOneDirFileList(dir, false).then(() => {
-              PanDAL.RefreshPanTreeAllNode(user_id, drive_id)
+              PanDAL.RefreshPanTreeAllNode(drive_id)
               const pantreeStore = usePanTreeStore()
               if (pantreeStore.selectDir.drive_id == drive_id && pantreeStore.selectDir.file_id == dirID) {
                 PanDAL.aReLoadOneDirToShow(drive_id, dirID, false).then(() => {
@@ -363,13 +363,13 @@ export default class PanDAL {
       if (partList.length >= 30) {
         const partResult = await AliDirFileList.ApiDirFileSize(user_id, drive_id, partList)
         if (!partResult) return
-        if (partResult) TreeStore.SaveDirSizeNeedRefresh(user_id, drive_id, partResult)
+        if (partResult) TreeStore.SaveDirSizeNeedRefresh(drive_id, partResult)
         partList.length = 0
       }
     }
     if (partList.length > 0) {
       const partResult = await AliDirFileList.ApiDirFileSize(user_id, drive_id, partList)
-      if (partResult) TreeStore.SaveDirSizeNeedRefresh(user_id, drive_id, partResult)
+      if (partResult) TreeStore.SaveDirSizeNeedRefresh(drive_id, partResult)
       partList.length = 0
     }
   }

@@ -126,12 +126,12 @@ function GetScanDriver(user_id: string, drive_id: string, children: IAliGetDirMo
 }
 
 
-export function LoadScanDir(user_id: string, drive_id: string, totalDirCount: Ref<number>, processing: Ref<number>, scanPanData: IScanDriverModel) {
+export function LoadScanDir(user_id: string, drive_id: string, drive_root: string, totalDirCount: Ref<number>, processing: Ref<number>, scanPanData: IScanDriverModel) {
   scanPanData.drive_id = drive_id
   scanPanData.DirMap = new Map<string, IAliGetDirModel>()
   scanPanData.DirChildrenMap = new Map<string, IAliGetDirModel[]>()
 
-  return GetAllDir(user_id, drive_id).then((dirList: IAliGetDirModel[]) => {
+  return GetAllDir(user_id, drive_id, drive_root).then((dirList: IAliGetDirModel[]) => {
     totalDirCount.value = dirList.length
     processing.value = 50
     const PanData = GetScanDriver(user_id, drive_id, dirList)
@@ -139,7 +139,7 @@ export function LoadScanDir(user_id: string, drive_id: string, totalDirCount: Re
   })
 }
 
-async function GetAllDir(user_id: string, drive_id: string) {
+async function GetAllDir(user_id: string, drive_id: string, drive_root: string) {
   const data = await DB.getValueObject('AllDir_' + drive_id)
   if (data) {
     const dt = await DB.getValueNumber('AllDir_' + drive_id)
@@ -147,7 +147,7 @@ async function GetAllDir(user_id: string, drive_id: string) {
       return data as IAliGetDirModel[]
     }
   }
-  return AliDirList.ApiFastAllDirListByPID(user_id, drive_id)
+  return AliDirList.ApiFastAllDirListByPID(user_id, drive_id, drive_root)
     .then((data) => {
       if (!data.next_marker) {
         // return data.items

@@ -7,7 +7,6 @@ import dayjs from 'dayjs'
 import AliTrash from './trash'
 import { DirData } from '../store/treestore'
 import AliUser from './user'
-import { GetDriveType } from './utils'
 
 export interface IAliDirResp {
   items: IAliGetDirModel[]
@@ -371,14 +370,13 @@ export default class AliDirList {
   }
 
 
-  static async ApiFastAllDirListByPID(user_id: string, drive_id: string): Promise<IDirDataResp> {
-    const driveType = GetDriveType(user_id, drive_id)
+  static async ApiFastAllDirListByPID(user_id: string, drive_id: string, drive_root: string): Promise<IDirDataResp> {
     const result: IDirDataResp = {
       items: [],
       next_marker: '',
       m_user_id: user_id,
       m_drive_id: drive_id,
-      dirID: driveType.key,
+      dirID: drive_root,
       dirName: ''
     }
     if (!user_id || !drive_id) return result
@@ -387,11 +385,11 @@ export default class AliDirList {
     const dirCount = await AliUser.ApiUserDriveFileCount(user_id, '', 'folder')
     const PIDList: string[] = []
 
-    const root = await AliTrash.ApiDirFileListNoLock(user_id, drive_id, driveType.key, '', 'name ASC', 'folder', 0)
+    const root = await AliTrash.ApiDirFileListNoLock(user_id, drive_id, drive_root, '', 'name ASC', 'folder', 0)
     for (let i = 0, maxi = root.items.length; i < maxi; i++) {
       const item = root.items[i]
       if (item.parent_file_id === 'root') {
-        item.parent_file_id = driveType.key
+        item.parent_file_id = drive_root
       }
       const add: DirData = {
         file_id: item.file_id,
@@ -480,7 +478,7 @@ export default class AliDirList {
                     const item = items[i]
                     if (allMap.has(item.file_id)) continue
                     if (item.parent_file_id === 'root') {
-                      item.parent_file_id = driveType.key
+                      item.parent_file_id = drive_root
                     }
                     const add: DirData = {
                       file_id: item.file_id,

@@ -178,7 +178,7 @@ const handleScan = () => {
   }
   setTimeout(refresh, 3000)
   let drive_id = GetDriveID(user.user_id, panType.value)
-  LoadScanDir(user.user_id, drive_id, totalDirCount, Processing, ScanPanData)
+  LoadScanDir(user.user_id, drive_id, panType.value + '_root', totalDirCount, Processing, ScanPanData)
     .then(() => {
       return GetWeiGuiFile(user.user_id, ScanPanData, Processing, scanCount, totalFileCount, scanType.value)
     })

@@ -69,7 +69,7 @@ export function PageMain() {
     })
 }
 
-export const WinMsg = async (arg: any) => {
+export const WinMsg = (arg: any) => {
   if (arg.cmd == 'MainUploadEvent') {
     if (arg.ReportList.length > 0 && arg.ReportList.length != arg.RunningKeys.length) {
       console.log('RunningKeys', arg)
@@ -77,9 +77,9 @@ export const WinMsg = async (arg: any) => {
     if (arg.StopKeys.length > 0) console.log('StopKeys', arg)
     UploadingDAL.aUploadingEvent(arg.ReportList, arg.ErrorList, arg.SuccessList, arg.RunningKeys, arg.StopKeys, arg.LoadingKeys, arg.SpeedTotal)
   } else if (arg.cmd == 'MainUploadAppendFiles') {
-    await UploadingDAL.aUploadingAppendFiles(arg.TaskID, arg.UploadID, arg.CreatedDirID, arg.AppendList)
+    UploadingDAL.aUploadingAppendFiles(arg.TaskID, arg.UploadID, arg.CreatedDirID, arg.AppendList)
   } else if (arg.cmd == 'MainSaveAllDir') {
-    await PanDAL.aReLoadDriveSave(arg.OneDriver, arg.ErrorMessage)
+    PanDAL.aReLoadDriveSave(arg.OneDriver, arg.ErrorMessage)
   } else if (arg.cmd == 'MainShowAllDirProgress') {
     useFootStore().mSaveLoading('加载全部文件夹(' + Math.floor((arg.index * 100) / (arg.total + 1)) + '%)')
   }

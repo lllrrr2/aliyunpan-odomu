@@ -144,13 +144,13 @@ const usePanTreeStore = defineStore('pantree', {
     mTreeExpand(key: string) {
       const arr = this.treeExpandedKeys
       if (arr.includes(key)) {
-        const dirPath = TreeStore.GetDirPath(this.user_id, this.drive_id, this.selectDir.file_id)
+        const dirPath = TreeStore.GetDirPath(this.drive_id, this.selectDir.file_id)
         const needSelectNew = dirPath.filter((t) => t.parent_file_id == key).length > 0
         this.treeExpandedKeys = arr.filter((t) => t != key)
         if (needSelectNew) PanDAL.aReLoadOneDirToShow('', key, false)
       } else {
         this.treeExpandedKeys = arr.concat([key])
-        PanDAL.RefreshPanTreeAllNode(this.user_id, this.drive_id)
+        PanDAL.RefreshPanTreeAllNode(this.drive_id)
       }
       console.log('mTreeExpand.treeExpandedKeys', this.treeExpandedKeys)
     },
@@ -167,7 +167,7 @@ const usePanTreeStore = defineStore('pantree', {
         }
       }
       this.treeExpandedKeys = Array.from(arr)
-      if (isExpaned) PanDAL.RefreshPanTreeAllNode(this.user_id, this.drive_id)
+      if (isExpaned) PanDAL.RefreshPanTreeAllNode(this.drive_id)
     },
 
     mSaveUser(user_id: string, default_drive_id: string, resource_drive_id: string, backup_drive_id: string) {
@@ -186,12 +186,13 @@ const usePanTreeStore = defineStore('pantree', {
 
     mSaveTreeAllNode(drive_id: string, root: TreeNodeData, rootMap: Map<string, TreeNodeData>) {
       if (this.drive_id !== drive_id) return
+      const list: TreeNodeData[] = []
       for (let i = 0, maxi = this.treeData.length; i < maxi; i++) {
         if (this.treeData[i].key == root.key) {
-          this.treeData[i] = { ...root }
-          break
-        }
+          list.push(root)
+        } else list.push(this.treeData[i])
       }
+      this.treeData = list
       treeDataMap = rootMap
     },
 
