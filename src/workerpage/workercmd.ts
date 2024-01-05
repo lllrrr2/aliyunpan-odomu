@@ -69,7 +69,7 @@ function LoadAllDirList(user_id: string, drive_id: string, drive_root: string): 
     }
   }
   AllDirLock.set(drive_id, time)
-  AliDirList.ApiFastAllDirListByPID(user_id, drive_id, drive_root)
+  AliDirList.ApiFastAllDirListByPID(user_id, drive_id)
     .then((data) => {
       console.timeEnd('AllDirList')
       AllDirLock.delete(drive_id)
