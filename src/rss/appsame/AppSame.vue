@@ -11,6 +11,7 @@ import { GetSameFile } from './same'
 
 import { Checkbox as AntdCheckbox } from 'ant-design-vue'
 import 'ant-design-vue/es/checkbox/style/css'
+import { GetDriveID } from '../../aliapi/utils'
 
 const winStore = useWinStore()
 const userStore = useUserStore()
@@ -100,7 +101,7 @@ const handleDelete = () => {
     return
   }
   delLoading.value = true
-  let drive_id = panType.value === 'backup' ? user.backup_drive_id : user.resource_drive_id
+  let drive_id = GetDriveID(user.user_id, panType.value)
   AliFileCmd.ApiTrashBatch(user.user_id, drive_id, idList).then((success: string[]) => {
     delLoading.value = false
     handleScan()
@@ -131,10 +132,8 @@ const handleScan = () => {
     }
   }
   setTimeout(refresh, 3000)
-  let drive_id = panType.value === 'backup' ? user.backup_drive_id : user.resource_drive_id
-
-  LoadScanDir(user.user_id, drive_id, panType.value,
-    panType.value === 'backup' ? '备份盘' : '资源盘', totalDirCount, Processing, ScanPanData)
+  let drive_id = GetDriveID(user.user_id, panType.value)
+  LoadScanDir(user.user_id, drive_id, totalDirCount, Processing, ScanPanData)
     .then(() => {
       return GetSameFile(user.user_id, ScanPanData, Processing, scanCount, totalFileCount, scanType.value)
     })

@@ -4,6 +4,7 @@ import { IAliGetDirModel } from '../aliapi/alimodels'
 import DebugLog from '../utils/debuglog'
 import message from '../utils/message'
 import DB from '../utils/db'
+import { GetDriveType } from '../aliapi/utils'
 
 export interface TreeNodeData {
   key: string
@@ -44,13 +45,11 @@ export interface ScanTreeDataModel {
 
 export interface IScanDriverModel {
   drive_id: string
-
   DirMap: Map<string, IAliGetDirModel>
-
   DirChildrenMap: Map<string, IAliGetDirModel[]>
-
   EnmptyDirMap: Map<string, string>
   WeiGuiDirMap: Map<string, string>
+  PartWeiGuiDirMap: Map<string, string>
   NoShareDirMap: Map<string, string>
   SameDirMap: Map<string, FileData[]>
   CleanDirMap: Map<string, string>
@@ -63,6 +62,7 @@ export function NewScanDriver(drive_id: string): IScanDriverModel {
     DirChildrenMap: new Map<string, IAliGetDirModel[]>(),
     EnmptyDirMap: new Map<string, string>(),
     WeiGuiDirMap: new Map<string, string>(),
+    PartWeiGuiDirMap: new Map<string, string>(),
     NoShareDirMap: new Map<string, string>(),
     SameDirMap: new Map<string, FileData[]>(),
     CleanDirMap: new Map<string, string>()
@@ -75,20 +75,21 @@ export function ResetScanDriver(data: IScanDriverModel) {
   data.DirChildrenMap = new Map<string, IAliGetDirModel[]>()
   data.EnmptyDirMap = new Map<string, string>()
   data.WeiGuiDirMap = new Map<string, string>()
+  data.PartWeiGuiDirMap = new Map<string, string>()
   data.NoShareDirMap = new Map<string, string>()
   data.SameDirMap = new Map<string, FileData[]>()
 }
 
-function GetScanDriver(drive_id: string, drive_type: string, drive_name: string, children: IAliGetDirModel[]): IScanDriverModel {
+function GetScanDriver(user_id: string, drive_id: string, children: IAliGetDirModel[]): IScanDriverModel {
   const ts = Date.now()
   const driverData = NewScanDriver(drive_id)
-
+  const driveType = GetDriveType(user_id, drive_id)
   const root: IAliGetDirModel = {
     __v_skip: true,
     drive_id,
-    file_id: drive_type + '_root',
+    file_id: driveType.key,
     parent_file_id: '',
-    name: drive_name,
+    name: driveType.title,
     namesearch: '',
     size: 0,
     time: 0,
@@ -125,20 +126,20 @@ function GetScanDriver(drive_id: string, drive_type: string, drive_name: string,
 }
 
 
-export function LoadScanDir(user_id: string, drive_id: string, drive_type: string, drive_name: string, totalDirCount: Ref<number>, processing: Ref<number>, scanPanData: IScanDriverModel) {
+export function LoadScanDir(user_id: string, drive_id: string, totalDirCount: Ref<number>, processing: Ref<number>, scanPanData: IScanDriverModel) {
   scanPanData.drive_id = drive_id
   scanPanData.DirMap = new Map<string, IAliGetDirModel>()
   scanPanData.DirChildrenMap = new Map<string, IAliGetDirModel[]>()
 
-  return GetAllDir(user_id, drive_id, drive_type).then((dirList: IAliGetDirModel[]) => {
+  return GetAllDir(user_id, drive_id).then((dirList: IAliGetDirModel[]) => {
     totalDirCount.value = dirList.length
     processing.value = 50
-    const PanData = GetScanDriver(drive_id, drive_type, drive_name, dirList)
+    const PanData = GetScanDriver(user_id, drive_id, dirList)
     Object.assign(scanPanData, PanData)
   })
 }
 
-async function GetAllDir(user_id: string, drive_id: string, drive_type: string) {
+async function GetAllDir(user_id: string, drive_id: string) {
   const data = await DB.getValueObject('AllDir_' + drive_id)
   if (data) {
     const dt = await DB.getValueNumber('AllDir_' + drive_id)
@@ -146,8 +147,7 @@ async function GetAllDir(user_id: string, drive_id: string, drive_type: string) 
       return data as IAliGetDirModel[]
     }
   }
-
-  return AliDirList.ApiFastAllDirListByPID(user_id, drive_id, drive_type + '_root')
+  return AliDirList.ApiFastAllDirListByPID(user_id, drive_id)
     .then((data) => {
       if (!data.next_marker) {
         // return data.items

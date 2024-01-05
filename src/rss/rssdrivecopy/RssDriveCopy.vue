@@ -10,6 +10,7 @@ import 'ant-design-vue/es/checkbox/style/css'
 
 import 'ant-design-vue/es/tree/style/css'
 import AliFileCmd from '../../aliapi/filecmd'
+import { GetDriveID } from '../../aliapi/utils'
 
 const winStore = useWinStore()
 const userStore = useUserStore()
@@ -109,10 +110,7 @@ const handleLeftUser = (driveType: any) => {
   if (!userToken) return
   TreeState.LeftInfo.user_id = userToken.user_id
   TreeState.LeftInfo.driveType = driveType
-  if (driveType == 'backup') TreeState.LeftInfo.drive_id = userToken.backup_drive_id
-  if (driveType == 'resource') TreeState.LeftInfo.drive_id = userToken.resource_drive_id
-  if (driveType == 'pic') TreeState.LeftInfo.drive_id = userToken.pic_drive_id
-  if (driveType == 'safe') TreeState.LeftInfo.drive_id = userToken.default_sbox_drive_id
+  TreeState.LeftInfo.drive_id = GetDriveID(userToken.user_id, driveType)
   TreeState.LeftCheckedKeys = []
   LoadDir(driveType + '_root', TreeState.LeftInfo, TreeState.LeftTreeData, false)
 }
@@ -122,10 +120,7 @@ const handleRightUser = (driveType: any) => {
   if (!userToken) return
   TreeState.RightInfo.user_id = userToken.user_id
   TreeState.RightInfo.driveType = driveType
-  if (driveType == 'backup') TreeState.RightInfo.drive_id = userToken.backup_drive_id
-  if (driveType == 'resource') TreeState.RightInfo.drive_id = userToken.resource_drive_id
-  if (driveType == 'pic') TreeState.RightInfo.drive_id = userToken.pic_drive_id
-  if (driveType == 'safe') TreeState.RightInfo.drive_id = userToken.default_sbox_drive_id
+  TreeState.RightInfo.drive_id = GetDriveID(userToken.user_id, driveType)
   LoadDir(driveType + '_root', TreeState.RightInfo, TreeState.RightTreeData, true)
 }
 </script>

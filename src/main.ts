@@ -40,7 +40,7 @@ window.addEventListener('unhandledrejection', function (event) {
     const reason = event.reason
     if (reason && reason.message) {
       DebugLog.mSaveDanger('unhandledrejection', reason)
-      message.error('rejection ' + reason.message, 8)
+      message.error('rejection ' + reason.message, 1)
     }
     if (!reason) DebugLog.mSaveDanger('unhandledrejection', JSON.stringify(event))
   } catch {}
@@ -53,10 +53,10 @@ app.config.errorHandler = function (err: any, vm, info) {
   try {
     if (typeof err === 'string') {
       DebugLog.mSaveDanger('errorHandler', err)
-      message.error('errorHandler ' + err, 8)
+      message.error('errorHandler ' + err, 1)
     } else {
       DebugLog.mSaveDanger('errorHandler', err)
-      if (err && err.message) message.error('errorHandler ' + err.message, 8)
+      if (err && err.message) message.error('errorHandler ' + err.message, 1)
     }
   } catch {}
   return true

@@ -213,7 +213,7 @@ const useAppStore = defineStore('app', {
           break
         }
         case 'rss': {
-          next(this.appTabMenuMap, this.appTab, ['AppSame', 'RssXiMa', 'RssRename', 'RssScanClean', 'RssScanSame', 'RssScanPunish', 'RssScanEnmpty', 'RssMakeFileTree', 'RssMakeTreeMap', 'RssDriveCopy', 'RssUserCopy'])
+          next(this.appTabMenuMap, this.appTab, ['AppSame', 'RssXiMa', 'RssRename', 'RssScanClean', 'RssScanSame', 'RssScanPunish', 'RssScanEnmpty', 'RssMakeFileTree', 'RssDriveCopy', 'RssUserCopy'])
           break
         }
         case 'setting': {

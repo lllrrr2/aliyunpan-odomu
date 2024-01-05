@@ -121,9 +121,9 @@ export default class AliDirFileList {
       }
     }
     // 完全违规和部分违规
-    if (item.punish_flag == 2 || item.punish_flag == 103) add.icon = 'iconweifa'
+    if (item.punish_flag == 2) add.icon = 'iconweifa'
+    else if (item.punish_flag == 103) add.icon = 'iconpartweifa'
     else if (item.punish_flag > 0) add.icon = 'iconweixiang'
-
     return add
   }
 

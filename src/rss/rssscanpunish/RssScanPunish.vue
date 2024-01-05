@@ -23,6 +23,7 @@ import 'ant-design-vue/es/tree/style/css'
 import 'ant-design-vue/es/checkbox/style/css'
 import { EventDataNode } from 'ant-design-vue/es/tree'
 import { modalSelectPanDir } from '../../utils/modal'
+import { GetDriveID } from '../../aliapi/utils'
 
 const winStore = useWinStore()
 const userStore = useUserStore()
@@ -76,34 +77,31 @@ const handleReset = () => {
 
 watch(userStore.$state, handleReset)
 
-const RefreshTree = (checkall: boolean) => {
-  const expandedkeys: string[] = []
-  const checkedkeys: string[] = []
+const RefreshTree = (checkall: boolean): void => {
   let checkedsize = 0
-  const treeDataMap = new Map<string, TreeNodeData>()
-  const treeDataNodes = GetTreeNodes(panType.value, ScanPanData, panType.value + '_root', treeDataMap, ShowWeiGui.value, ShowPartWeiGui.value, ShowNoShare.value)
+  const expandedkeys: Set<string> = new Set()
+  const checkedkeys: Set<string> = new Set()
+  const treeDataMap: Map<string, TreeNodeData> = new Map()
+  const treeDataNodes: TreeNodeData[] = GetTreeNodes(ScanPanData, panType.value + '_root', treeDataMap, ShowWeiGui.value, ShowPartWeiGui.value, ShowNoShare.value)
   Object.freeze(treeDataNodes)
   treeData.value = treeDataNodes
-  const values = treeDataMap.values()
-  let clen = 0
-
-  for (let i = 0, maxi = treeDataMap.size; i < maxi; i++) {
-    const node = values.next().value as TreeNodeData
-    clen = node.children!.length
+  const values: TreeNodeData[] = Array.from(treeDataMap.values())
+  for (let node of values) {
+    const clen = node.children!.length
     node.selectable = clen == 0 && node.icon != foldericonfn
     if (checkall) node.checkable = true
-    if (clen > 0) expandedkeys.push(node.key as string)
-    else if (checkall && node.icon != foldericonfn) {
-      checkedkeys.push(node.key as string)
+    if (clen > 0) {
+      expandedkeys.add(node.key as string)
+    } else if (checkall && node.icon != foldericonfn) {
+      checkedkeys.add(node.key as string)
       checkedsize += node.size
     }
   }
-  Object.freeze(expandedkeys)
-  expandedKeys.value = expandedkeys
-  checkedKeys.value = checkedkeys
+  expandedKeys.value = Array.from(expandedkeys)
+  checkedKeys.value = Array.from(checkedkeys)
   checkedSize.value = checkedsize
-  checkedKeysBak = checkedkeys.concat()
-  scanCount.value = checkedkeys.length
+  checkedKeysBak = Array.from(checkedkeys)
+  scanCount.value = checkedkeys.size
 }
 
 const handleDelete = () => {
@@ -117,7 +115,7 @@ const handleDelete = () => {
     return
   }
   delLoading.value = true
-  let drive_id = panType.value === 'backup' ? user.backup_drive_id : user.resource_drive_id
+  let drive_id = GetDriveID(user.user_id, panType.value)
   AliFileCmd.ApiTrashBatch(user.user_id, drive_id, checkedKeys.value).then((success: string[]) => {
     delLoading.value = false
     if (checkedKeys.value.length == checkedKeysBak.length) {
@@ -140,7 +138,7 @@ const handleMove = () => {
   modalSelectPanDir('cut', '', function(user_id: string, _drive_id: string, to_drive_id: string, dirID: string) {
     if (!dirID) return
     delLoading.value = true
-    let drive_id = panType.value === 'backup' ? user.backup_drive_id : user.resource_drive_id
+    let drive_id = GetDriveID(user.user_id, panType.value)
     AliFileCmd.ApiMoveBatch(user.user_id, drive_id, checkedKeys.value, to_drive_id, dirID).then((success: string[]) => {
       delLoading.value = false
       if (checkedKeys.value.length == checkedKeysBak.length) {
@@ -179,9 +177,8 @@ const handleScan = () => {
     }
   }
   setTimeout(refresh, 3000)
-  let drive_id = panType.value === 'backup' ? user.backup_drive_id : user.resource_drive_id
-  LoadScanDir(user.user_id, drive_id, panType.value,
-    panType.value === 'backup' ? '备份盘' : '资源盘', totalDirCount, Processing, ScanPanData)
+  let drive_id = GetDriveID(user.user_id, panType.value)
+  LoadScanDir(user.user_id, drive_id, totalDirCount, Processing, ScanPanData)
     .then(() => {
       return GetWeiGuiFile(user.user_id, ScanPanData, Processing, scanCount, totalFileCount, scanType.value)
     })
@@ -247,28 +244,36 @@ const handleShowNoShare = () => {
     <div class='settingcard scanauto' style='padding: 4px; margin-top: 4px'>
       <a-row justify='space-between' align='center'
              style='margin: 12px; height: 28px; flex-grow: 0; flex-shrink: 0; flex-wrap: nowrap; overflow: hidden'>
-        <AntdCheckbox :disabled='scanLoaded == false' :checked='scanCount > 0 && checkedKeys.length == scanCount'
-                      style='margin-left: 12px; margin-right: 12px' @click.stop.prevent='handleSelectAll'>全选
+        <AntdCheckbox :disabled='scanLoaded == false'
+                      :checked='scanCount > 0 && checkedKeys.length == scanCount'
+                      style='margin-left: 12px; margin-right: 12px'
+                      @click.stop.prevent='handleSelectAll'>
+          全选
         </AntdCheckbox>
-        <span v-if='scanLoaded' class='checkedInfo'>已选中 {{ checkedKeys.length }} 个文件 {{ humanSize(checkedSize)
-          }}</span>
+        <span v-if='scanLoaded' class='checkedInfo'>
+          已选中 {{ checkedKeys.length }} 个文件{{ humanSize(checkedSize) }}
+        </span>
 
-        <span v-else-if='totalDirCount > 0' class='checkedInfo'>正在列出文件 {{ Processing }} / {{ totalDirCount
-          }}</span>
+        <span v-else-if='totalDirCount > 0' class='checkedInfo'>
+          正在列出文件 {{ Processing }} / {{ totalDirCount }}
+        </span>
         <span v-else class='checkedInfo'>网盘中文件很多时，需要扫描很长时间</span>
         <div style='flex: auto'></div>
 
         <AntdCheckbox v-if='scanLoaded' v-model:checked='ShowWeiGui' style='margin-right: 12px'
-                      title='是否显示完全违规的文件' @click.stop.prevent='handleShowWeiGui'>完全违规
+                      title='是否显示完全违规的文件' @click.stop.prevent='handleShowWeiGui'>
+          完全违规
         </AntdCheckbox>
 
         <AntdCheckbox v-if="scanLoaded && panType == 'resource'"
                       v-model:checked='ShowPartWeiGui' style='margin-right: 12px'
-                      title='是否显示部分违规的文件' @click.stop.prevent='handleShowPartWeiGui'>部分违规
+                      title='是否显示部分违规的文件' @click.stop.prevent='handleShowPartWeiGui'>
+          部分违规
         </AntdCheckbox>
 
         <AntdCheckbox v-if='scanLoaded' v-model:checked='ShowNoShare' style='margin-right: 12px'
-                      title='是否显示禁止分享的文件' @click.stop.prevent='handleShowNoShare'>禁止分享
+                      title='是否显示禁止分享的文件' @click.stop.prevent='handleShowNoShare'>
+          禁止分享
         </AntdCheckbox>
 
         <a-button v-if='scanLoaded' size='small' tabindex='-1' style='margin-right: 12px' @click='handleReset'>取消

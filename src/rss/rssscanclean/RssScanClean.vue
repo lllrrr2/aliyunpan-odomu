@@ -22,6 +22,7 @@ import { Checkbox as AntdCheckbox, Tree as AntdTree } from 'ant-design-vue'
 import 'ant-design-vue/es/tree/style/css'
 import 'ant-design-vue/es/checkbox/style/css'
 import { EventDataNode } from 'ant-design-vue/es/tree'
+import { GetDriveID } from '../../aliapi/utils'
 
 const winStore = useWinStore()
 const userStore = useUserStore()
@@ -114,12 +115,12 @@ const handleDelete = () => {
     message.error('账号错误')
     return
   }
-  if(!checkedKeys.value.length){
+  if (!checkedKeys.value.length) {
     message.error('没有选中需要删除的文件')
     return
   }
   delLoading.value = true
-  let drive_id = panType.value === 'backup' ? user.backup_drive_id : user.resource_drive_id
+  let drive_id = GetDriveID(user.user_id, panType.value)
   AliFileCmd.ApiTrashBatch(user.user_id, drive_id, checkedKeys.value).then((success: string[]) => {
     delLoading.value = false
     DeleteFromScanClean(ScanPanData, checkedKeys.value)
@@ -153,9 +154,8 @@ const handleScan = () => {
     }
   }
   setTimeout(refresh, 3000)
-  let drive_id = panType.value === 'backup' ? user.backup_drive_id : user.resource_drive_id
-  LoadScanDir(user.user_id, drive_id, panType.value,
-    panType.value === 'backup' ? '备份盘' : '资源盘', totalDirCount, Processing, ScanPanData)
+  let drive_id = GetDriveID(user.user_id, panType.value)
+  LoadScanDir(user.user_id, drive_id, totalDirCount, Processing, ScanPanData)
     .then(() => {
       return GetCleanFile(user.user_id, ScanPanData, Processing, scanCount, totalFileCount, scanType.value, fileSize.value)
     })
@@ -205,11 +205,12 @@ const handleScan = () => {
         <AntdCheckbox :disabled='scanLoaded == false' :checked='scanCount > 0 && checkedKeys.length == scanCount'
                       style='margin-left: 12px; margin-right: 12px' @click.stop.prevent='handleSelectAll'>全选
         </AntdCheckbox>
-        <span v-if='scanLoaded' class='checkedInfo'>已选中 {{ checkedKeys.length }} 个文件 {{ humanSize(checkedSize)
-          }}</span>
-
-        <span v-else-if='totalDirCount > 0' class='checkedInfo'>正在列出文件 {{ Processing }} / {{ totalDirCount
-          }}</span>
+        <span v-if='scanLoaded' class='checkedInfo'>
+          已选中 {{ checkedKeys.length }} 个文件 {{ humanSize(checkedSize) }}
+        </span>
+        <span v-else-if='totalDirCount > 0' class='checkedInfo'>
+          正在列出文件 {{ Processing }} / {{ totalDirCount }}
+        </span>
         <span v-else class='checkedInfo'>网盘中文件很多时，需要扫描很长时间</span>
         <div style='flex: auto'></div>
 
@@ -233,7 +234,8 @@ const handleScan = () => {
             <a-option value='size100'>全部>100MB</a-option>
           </a-select>
         </template>
-        <a-input-number v-if="scanType === 'size'" tabindex='-1' v-model='fileSize' size='small'
+        <a-input-number v-if="scanType === 'size' && !scanLoaded"
+                        tabindex='-1' v-model='fileSize' size='small' :disabled='scanLoading'
                         style='width: 180px;margin-right: 10px' placeholder='文件大小' :min='100' :max='100000'
                         :step='100'>
           <template #prefix>大于</template>

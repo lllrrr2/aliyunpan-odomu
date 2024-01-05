@@ -11,6 +11,7 @@ import { DeleteFromSameData, GetSameFile } from './scansame'
 
 import { Checkbox as AntdCheckbox } from 'ant-design-vue'
 import 'ant-design-vue/es/checkbox/style/css'
+import { GetDriveID } from '../../aliapi/utils'
 
 const winStore = useWinStore()
 const userStore = useUserStore()
@@ -116,7 +117,7 @@ const handleDelete = () => {
     return
   }
   delLoading.value = true
-  let drive_id = panType.value === 'backup' ? user.backup_drive_id : user.resource_drive_id
+  let drive_id = GetDriveID(user.user_id, panType.value)
   AliFileCmd.ApiTrashBatch(user.user_id, drive_id, idList).then((success: string[]) => {
     delLoading.value = false
     DeleteFromSameData(ScanPanData, idList)
@@ -151,9 +152,8 @@ const handleScan = () => {
     }
   }
   setTimeout(refresh, 3000)
-  let drive_id = panType.value === 'backup' ? user.backup_drive_id : user.resource_drive_id
-  LoadScanDir(user.user_id, drive_id, panType.value,
-    panType.value === 'backup' ? '备份盘' : '资源盘', totalDirCount, Processing, ScanPanData)
+  let drive_id = GetDriveID(user.user_id, panType.value)
+  LoadScanDir(user.user_id, drive_id, totalDirCount, Processing, ScanPanData)
     .then(() => {
       return GetSameFile(user.user_id, ScanPanData, Processing, scanCount, totalFileCount, scanType.value)
     })
@@ -200,12 +200,16 @@ const handleScan = () => {
       <a-row justify='space-between' align='center'
              style='margin: 12px; height: 28px; flex-grow: 0; flex-shrink: 0; flex-wrap: nowrap; overflow: hidden'>
         <AntdCheckbox :disabled='scanLoaded == false' :checked='isAllChecked'
-                      style='margin-left: 12px; margin-right: 12px' @click.stop.prevent='handleSmartSelect'>智能选择
+                      style='margin-left: 12px; margin-right: 12px' @click.stop.prevent='handleSmartSelect'>
+          智能选择
         </AntdCheckbox>
-        <span v-if='scanLoaded' class='checkedInfo'>已选中 {{ checkedCount }} 个文件 {{ humanSize(checkedSize) }}</span>
+        <span v-if='scanLoaded' class='checkedInfo'>
+          已选中 {{ checkedCount }} 个文件 {{ humanSize(checkedSize) }}
+        </span>
 
-        <span v-else-if='totalDirCount > 0' class='checkedInfo'>正在列出文件 {{ Processing }} / {{ totalDirCount
-          }}</span>
+        <span v-else-if='totalDirCount > 0' class='checkedInfo'>
+          正在列出文件 {{ Processing }} / {{ totalDirCount }}
+        </span>
         <span v-else class='checkedInfo'>网盘中文件很多时，需要扫描很长时间</span>
         <div style='flex: auto'></div>
 

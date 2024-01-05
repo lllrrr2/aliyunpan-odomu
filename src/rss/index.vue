@@ -18,7 +18,9 @@ const appStore = useAppStore()
   <a-layout style="height: 100%">
     <a-layout-sider hide-trigger :width="158" class="xbyleft">
       <div class="headdesc">好玩的插件</div>
-      <a-menu :style="{ width: '100%' }" class="xbyleftmenu" :selected-keys="[appStore.GetAppTabMenu]" @update:selected-keys="appStore.toggleTabMenu('rss', $event[0])">
+      <a-menu :style="{ width: '100%' }" class="xbyleftmenu"
+              :selected-keys="[appStore.GetAppTabMenu]"
+              @update:selected-keys="appStore.toggleTabMenu('rss', $event[0])">
         <a-menu-item key="AppSame">
           <template #icon><i class="iconfont iconcopy" /></template>
           重复文件清理
@@ -60,16 +62,16 @@ const appStore = useAppStore()
     <a-layout-content>
       <a-tabs type="text" :direction="'horizontal'" class="hidetabs" :justify="true" :active-key="appStore.GetAppTabMenu">
         <a-tab-pane key="AppSame" title="1"><AppSame /></a-tab-pane>
-        <a-tab-pane key="RssXiMa" title="1"><RssXiMa /></a-tab-pane>
-        <a-tab-pane key="RssRename" title="1"><RssRename /></a-tab-pane>
-        <a-tab-pane key="RssJiaMi" title="1"><RssJiaMi /></a-tab-pane>
-        <a-tab-pane key="RssScanClean" title="1"><RssScanClean /></a-tab-pane>
-        <a-tab-pane key="RssScanSame" title="2"><RssScanSame /></a-tab-pane>
-        <a-tab-pane key="RssScanPunish" title="3"><RssScanPunish /></a-tab-pane>
-        <a-tab-pane key="RssScanEnmpty" title="4"><RssScanEnmpty /></a-tab-pane>
-        <a-tab-pane key="RssDriveCopy" title="5"><RssDriveCopy /></a-tab-pane>
-        <a-tab-pane key="RssUserCopy" title="5"><RssUserCopy /></a-tab-pane>
-        <a-tab-pane key="RssMakeFileTree" title="5">生成指定文件夹的全部子文件夹和子文件的详细列表(类似 cmd > dir linux > ls)，功能正在规划中，以后提供</a-tab-pane>
+        <a-tab-pane key="RssXiMa" title="2"><RssXiMa /></a-tab-pane>
+        <a-tab-pane key="RssRename" title="3"><RssRename /></a-tab-pane>
+        <a-tab-pane key="RssJiaMi" title="4"><RssJiaMi /></a-tab-pane>
+        <a-tab-pane key="RssScanClean" title="5"><RssScanClean /></a-tab-pane>
+        <a-tab-pane key="RssScanSame" title="6"><RssScanSame /></a-tab-pane>
+        <a-tab-pane key="RssScanPunish" title="7"><RssScanPunish /></a-tab-pane>
+        <a-tab-pane key="RssScanEnmpty" title="8"><RssScanEnmpty /></a-tab-pane>
+        <a-tab-pane key="RssDriveCopy" title="9"><RssDriveCopy /></a-tab-pane>
+        <a-tab-pane key="RssUserCopy" title="10"><RssUserCopy /></a-tab-pane>
+        <a-tab-pane key="RssMakeFileTree" title="11">生成指定文件夹的全部子文件夹和子文件的详细列表(类似 cmd > dir linux > ls)，功能正在规划中，以后提供</a-tab-pane>
       </a-tabs>
     </a-layout-content>
   </a-layout>
