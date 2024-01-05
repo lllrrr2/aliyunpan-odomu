@@ -364,7 +364,7 @@ const handleOK = (type: string) => {
         if (!multiOpt.value) {
           usePanTreeStore().mRenameFiles(success)
           usePanFileStore().mRenameFiles(success)
-          PanDAL.RefreshPanTreeAllNode(pantreeStore.user_id, pantreeStore.drive_id)
+          PanDAL.RefreshPanTreeAllNode(pantreeStore.drive_id)
           modalCloseAll()
         } else {
           let fileMap: Map<string, string> = new Map<string, string>()

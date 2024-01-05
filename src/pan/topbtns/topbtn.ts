@@ -423,7 +423,7 @@ export function dropMoveSelectedFile(movetodirid: string, istree: boolean) {
       to_drive_id = GetDriveID(selectedData.user_id, movetodirid)
       movetodirid = 'root'
     } else {
-      let dirPath = TreeStore.GetDirPath(selectedData.user_id, selectedData.drive_id, movetodirid)
+      let dirPath = TreeStore.GetDirPath(selectedData.drive_id, movetodirid)
       if (dirPath.length == 0) {
         to_drive_id = GetDriveID(selectedData.user_id, selectedData.drive_id)
       }

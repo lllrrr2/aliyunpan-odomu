@@ -68,8 +68,8 @@ const handleOpen = async () => {
   const expandedKeys: string[] = ['backup_root', 'resource_root']
   const selectid = props.selectid || localStorage.getItem('selectpandir-' + drive_id.value) || ''
   if (selectid) {
-    const backup_data = TreeStore.GetDirPath(user_id.value, pantreeStore.backup_drive_id, selectid)
-    const resource_data = TreeStore.GetDirPath(user_id.value, pantreeStore.resource_drive_id, selectid)
+    const backup_data = TreeStore.GetDirPath(pantreeStore.backup_drive_id, selectid)
+    const resource_data = TreeStore.GetDirPath(pantreeStore.resource_drive_id, selectid)
     const data = [...backup_data, ...resource_data]
     if (data && data.length > 0) {
       for (let i = 0, maxi = data.length; i < maxi; i++) {
