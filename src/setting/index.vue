@@ -28,7 +28,7 @@ onMounted(() => {
     },
     {
       root: document.getElementById('SettingObserver'),
-      threshold: 0.5
+      threshold: 0.4
     }
   )
 
@@ -38,10 +38,10 @@ onMounted(() => {
   observer.observe(document.getElementById('SettingUpload')!)
   observer.observe(document.getElementById('SettingPlay')!)
   observer.observe(document.getElementById('SettingPan')!)
-  observer.observe(document.getElementById('SettingAria')!)
   observer.observe(document.getElementById('SettingWebDav')!)
   observer.observe(document.getElementById('SettingDebug')!)
   observer.observe(document.getElementById('SettingProxy')!)
+  observer.observe(document.getElementById('SettingAria')!)
   observer.observe(document.getElementById('SettingLog')!)
 })
 

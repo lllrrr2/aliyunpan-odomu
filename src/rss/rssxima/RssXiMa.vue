@@ -21,7 +21,7 @@ const handleAddExtList = (addList: string[]) => {
     while (ext.startsWith(' ') || ext.startsWith('.')) ext = ext.substr(1)
     if (!ext) continue
     ext = '.' + ext
-    if (list.includes(ext) == false) list.push(ext)
+    if (!list.includes(ext)) list.push(ext)
   }
   matchExtList.value = list
 }
@@ -79,27 +79,28 @@ const handleClickXiMa = async () => {
       </div>
 
       <div class="settingspace"></div>
-      <div class="settingspace"></div>
-
       <div class="settingrow">
         <a-button type="primary" tabindex="-1" status="danger" :loading="ximaLoading" @click="handleClickXiMa">执行洗码</a-button>
       </div>
     </div>
 
     <div class="settingcard">
-      <span class="oporg">警告</span>：会对文件夹内 全部子文件、子文件夹 递归执行，会直接修改原文件！ <br />
-      <span class="oporg">警告</span>：洗码操作不可逆，不可恢复，如果原文件很重要请提前自己 备份一份！ <br />
-      <span class="oporg">警告</span>：仅推荐对常见视频格式洗码(.mp4.mkv.mov.avi.wmv.flv...)<br />
-      <span class="oporg">警告</span>：洗码并不能对抗分享审查<br />
-      <div class="settingspace"></div>
-      <ol>
-        <li><a-typography-text type="success">.mp4.mkv.mov.avi.wmv.flv已测试通过</a-typography-text></li>
-        <li><a-typography-text type="success">.jpg.png.apng.tif.gif.heic已测试通过</a-typography-text></li>
-        <li><a-typography-text type="success">.zip.rar.7z.tar已测试通过</a-typography-text></li>
-        <li><a-typography-text type="danger">.gz文件测试失败，提示多余的附加数据</a-typography-text></li>
-        <li><a-typography-text type="danger">.txt等文本类(.css.html.ini.csv.ass)测试失败，打开后在结尾会显示5个空字符(乱码)</a-typography-text></li>
-        <li>更多格式请自行测试(洗码--检查文件是否可用)</li>
-      </ol>
+      <div class="settinghead">:注意事项</div>
+        <div class="settingrow">
+        <span class="oporg">警告</span>：会对文件夹内 全部子文件、子文件夹 递归执行，会直接修改原文件！ <br />
+        <span class="oporg">警告</span>：洗码操作不可逆，不可恢复，如果原文件很重要请提前自己 备份一份！ <br />
+        <span class="oporg">警告</span>：仅推荐对常见视频格式洗码(.mp4.mkv.mov.avi.wmv.flv...)<br />
+        <span class="oporg">警告</span>：洗码并不能对抗分享审查<br />
+        <div class="settingspace"></div>
+        <ol>
+          <li><a-typography-text type="success">.mp4.mkv.mov.avi.wmv.flv已测试通过</a-typography-text></li>
+          <li><a-typography-text type="success">.jpg.png.apng.tif.gif.heic已测试通过</a-typography-text></li>
+          <li><a-typography-text type="success">.zip.rar.7z.tar已测试通过</a-typography-text></li>
+          <li><a-typography-text type="danger">.gz文件测试失败，提示多余的附加数据</a-typography-text></li>
+          <li><a-typography-text type="danger">.txt等文本类(.css.html.ini.csv.ass)测试失败，打开后在结尾会显示5个空字符(乱码)</a-typography-text></li>
+          <li>更多格式请自行测试(洗码--检查文件是否可用)</li>
+        </ol>
+      </div>
     </div>
 
     <div class="settingcard">

@@ -77,8 +77,8 @@ const useAppStore = defineStore('app', {
       ['pan', 'wangpan'],
       ['down', 'DowningRight'],
       ['share', 'ShareSiteRight'],
-      ['rss', 'AppSame'],
-      ['setting', '']
+      ['rss', 'RssXiMa'],
+      ['setting', 'SettingUI']
     ]),
     appDark: false,
     appShutDown: false
@@ -126,8 +126,8 @@ const useAppStore = defineStore('app', {
           ['pan', 'wangpan'],
           ['down', 'DowningRight'],
           ['share', 'ShareSiteRight'],
-          ['rss', 'AppSame'],
-          ['setting', '']
+          ['rss', 'RssXiMa'],
+          ['setting', 'SettingUI']
         ])
       })
     },
@@ -192,7 +192,6 @@ const useAppStore = defineStore('app', {
         const menu = map.get(tab)!
         for (let i = 0, maxi = menuList.length; i < maxi; i++) {
           if (menuList[i] == menu) {
-
             if (i + 1 >= menuList.length) map.set(tab, menuList[0])
             else map.set(tab, menuList[i + 1])
           }
@@ -201,23 +200,23 @@ const useAppStore = defineStore('app', {
 
       switch (this.appTab) {
         case 'pan': {
-          next(this.appTabMenuMap, this.appTab, ['wangpan', 'kuaijie', 'fangying'])
+          next(this.appTabMenuMap, this.appTab, ['wangpan', 'kuaijie'])
           break
         }
         case 'down': {
-          next(this.appTabMenuMap, this.appTab, ['DowningRight', 'DownedRight', 'UploadingRight', 'UploadedRight', 'SyncRight', 'M3U8Right'])
+          next(this.appTabMenuMap, this.appTab, ['DowningRight', 'DownedRight', 'UploadingRight', 'UploadedRight', 'SyncRight'])
           break
         }
         case 'share': {
-          next(this.appTabMenuMap, this.appTab, ['ShareSiteRight', 'OtherShareRight', 'MyShareRight', 'MyTransferShareRight', 'MyFollowingRight', 'OtherFollowingRight'])
+          next(this.appTabMenuMap, this.appTab, ['ShareSiteRight', 'OtherShareRight', 'MyShareRight', 'ShareHistoryRight', 'MyTransferShareRight', 'MyFollowingRight', 'OtherFollowingRight'])
           break
         }
         case 'rss': {
-          next(this.appTabMenuMap, this.appTab, ['AppSame', 'RssXiMa', 'RssRename', 'RssScanClean', 'RssScanSame', 'RssScanPunish', 'RssScanEnmpty', 'RssMakeFileTree', 'RssDriveCopy', 'RssUserCopy'])
+          next(this.appTabMenuMap, this.appTab, ['RssXiMa', 'RssRename', 'RssJiaMi', 'AppSame', 'RssScanClean', 'RssScanSame', 'RssScanPunish', 'RssScanEnmpty', 'RssDriveCopy', 'RssUserCopy'])
           break
         }
         case 'setting': {
-          next(this.appTabMenuMap, this.appTab, ['SettingUI', 'SettingAccount', 'SettingDown', 'SettingPan', 'SettingDebug', 'SettingAria', 'SettingWebDav', 'SettingLog'])
+          next(this.appTabMenuMap, this.appTab, ['SettingUI', 'SettingAccount', 'SettingDown', 'SettingUpload', 'SettingPlay', 'SettingPan', 'SettingWebDav', 'SettingDebug', 'SettingProxy', 'SettingAria', 'SettingLog'])
           const menu = this.appTabMenuMap.get('setting')!
           document.getElementById(menu)?.scrollIntoView()
           break

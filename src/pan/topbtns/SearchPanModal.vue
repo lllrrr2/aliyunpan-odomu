@@ -95,7 +95,7 @@ const handleOK = () => {
       searchid += 'ext:' + ext + ' '
     }
     searchid = searchid.trim()
-    if (!form.name || !searchid) {
+    if (!searchid) {
       message.error('搜索失败 搜索条件错误')
     } else {
       PanDAL.aReLoadOneDirToShow('', 'search' + searchid, false)
