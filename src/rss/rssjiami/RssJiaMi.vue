@@ -55,7 +55,7 @@ const handleSelectDir = (inout: boolean) => {
 const handleClickJiaMi = async () => {
   if (Loading.value) return
   if (!encPath.value) {
-    message.error('没有选择要执行加密的文件夹')
+    message.error('没有选择要执行操作的文件夹')
     return
   }
   Loading.value = true
@@ -128,7 +128,14 @@ const handleClickJiaMi = async () => {
       </div>
       <div v-else>
         <div class="settingspace"></div>
-        <div class="settinghead">3:解密的密码</div>
+        <div class="settinghead">3:选择要解密的格式</div>
+        <div class="settingrow">
+          <MyTags :value="matchExtList" :maxlen="20" @update:value="handleAddExtList" />
+          <div class="helptxt">默认不填，对文件夹内的全部文件，执行一次加密</div>
+          <div class="helptxt">例如填写 .mp4 就是只加密.mp4结尾的文件</div>
+        </div>
+        <div class="settingspace"></div>
+        <div class="settinghead">4:解密的密码</div>
         <div class="settingrow">
           <a-input v-model="password" tabindex="-1" :style="{ width: '257px' }" placeholder="没有不填" allow-clear />
           <div class="helptxt">如果文件加密时设置了密码，则解密必须提供密码</div>
@@ -172,8 +179,8 @@ const handleClickJiaMi = async () => {
       <div class="settingspace"></div>
       <div class="settinghead">:文件加密方式说明</div>
       <div class="settingrow">
-        1.AES-CTR 更加安全，速度最快。推荐 armV8 以上的 cpu 使用，X86 架构的也推荐在支持 AES 指令的机器使用
-        2.RC4 由于使用 nodejs 进行实现，性能会稍微差一些。适合在 CPU 不支持 AES 指令的设备中使用
+        1.AES-CTR 更加安全，速度最快。推荐 armV8 以上的 cpu 使用，X86 架构的也推荐在支持 AES 指令的机器使用<br />
+        2.RC4 由于使用 nodejs 进行实现，性能会稍微差一些。适合在 CPU 不支持 AES 指令的设备中使用<br />
       </div>
     </div>
   </div>

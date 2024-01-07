@@ -3,7 +3,7 @@ import DB from '../../utils/db'
 import { humanDateTime, humanExpiration, Sleep } from '../../utils/format'
 import message from '../../utils/message'
 import useMyShareStore from './MyShareStore'
-import { IShareSiteModel, useServerStore } from '../../store'
+import { IShareSiteGroupModel, IShareSiteModel, useServerStore } from '../../store'
 import useOtherShareStore, { IOtherShareLinkModel } from './OtherShareStore'
 import ServerHttp from '../../aliapi/server'
 import { IID, ParseShareIDList } from '../../utils/shareurl'
@@ -12,8 +12,8 @@ import AliShare from '../../aliapi/share'
 import { IAliShareAnonymous } from '../../aliapi/alimodels'
 import useMyTransferShareStore from './MyShareTransferStore'
 import AliTransferShareList from '../../aliapi/transfersharelist'
-import { IShareSiteGroupModel } from '../../store'
 import useShareHistoryStore from './ShareHistoryStore'
+import useShareBottleFishStore from './ShareBottleFishStore'
 
 export default class ShareDAL {
 
@@ -46,6 +46,17 @@ export default class ShareDAL {
     const resp = await AliShareList.ApiShareRecentListAll(user_id)
     shareHistoryStore.aLoadListData(resp.items)
     shareHistoryStore.ListLoading = false
+  }
+
+  static async aReloadShareBottleFish(user_id: string, force: boolean): Promise<void> {
+    if (!user_id) return
+    const shareBottleFishStore = useShareBottleFishStore()
+    if (!force && shareBottleFishStore.ListDataRaw.length > 0) return
+    if (shareBottleFishStore.ListLoading == true) return
+    shareBottleFishStore.ListLoading = true
+    const resp = await AliShareList.ApiShareBottleFishListAll(user_id)
+    shareBottleFishStore.aLoadListData(resp.items)
+    shareBottleFishStore.ListLoading = false
   }
 
   static async aReloadMyTransferShare(user_id: string, force: boolean): Promise<void> {

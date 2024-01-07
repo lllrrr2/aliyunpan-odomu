@@ -87,7 +87,9 @@ const handleOpen = () => {
   AliShare.ApiGetShareAnonymous(props.share_id).then((info) => {
     share.value = info
     isAlbum.value = info.shareinfo.is_photo_collection
-    if (props.withsave) ShareDAL.SaveOtherShare(props.share_pwd, info, true)
+    if (props.save_db) {
+      ShareDAL.SaveOtherShare(props.share_pwd, info, true)
+    }
   })
   treeExpandedKeys.value = []
   treeSelectedKeys.value = []

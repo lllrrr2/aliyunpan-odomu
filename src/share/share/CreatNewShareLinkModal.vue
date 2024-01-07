@@ -14,6 +14,7 @@ import { GetShareUrlFormate } from '../../utils/shareurl'
 import AliTransferShare from '../../aliapi/transfershare'
 
 const formRef = ref()
+const invalid_file = ref('')
 const okLoading = ref(false)
 const okBatchLoading = ref(false)
 const settingStore = useSettingStore()
@@ -48,7 +49,7 @@ const getShareType = (): any => {
   return key.includes('backup') ? { type: 't', title: '快传' } : { type: 's', title: '分享' }
 }
 
-const handleOpen = () => {
+const handleOpen = async () => {
   form.share_name = props.filelist[0].name
   shareType.value = getShareType()
   let share_pwd = ''
@@ -62,11 +63,24 @@ const handleOpen = () => {
   else expiration += 30 * 24 * 60 * 60 * 1000
 
   form.expiration = expiration > 0 ? humanDateTime(expiration) : ''
+  // 检查文件
+  const pantreeStore = usePanTreeStore()
+  const user_id = pantreeStore.user_id
+  const drive_id = pantreeStore.drive_id
+  const file_id_list = ArrayKeyList<string>('file_id', props.filelist)
+  if (shareType.value.type == 's') {
+    let invalidList = await AliShare.ApiShareFileCheckAvailable(user_id, drive_id, file_id_list)
+    if (invalidList.length > 0) {
+      invalid_file.value = invalidList.map(v=> v.name).join(',')
+    }
+  }
 }
 
 const handleClose = () => {
   if (okLoading.value) okLoading.value = false
   if (okBatchLoading.value) okBatchLoading.value = false
+  invalid_file.value = ''
+  formRef.value.resetFields()
 }
 
 const handleHide = () => {
@@ -78,13 +92,11 @@ const handleOK = async (multi: boolean) => {
     message.error('新建文件失败 父文件夹错误')
     return
   }
-
   const mindate = new Date()
   mindate.setMinutes(mindate.getMinutes() + 2)
   let expiration = form.expiration
   if (expiration) expiration = new Date(expiration) < mindate ? mindate.toISOString() : new Date(expiration).toISOString()
   else expiration = ''
-
   let share_name = form.share_name.trim().replaceAll('"', '')
   share_name = share_name.replace(/[<>:"\\|?*]+/g, '')
   share_name = share_name.replace(/[\f\n\r\t\v]/g, '')
@@ -94,11 +106,9 @@ const handleOK = async (multi: boolean) => {
     return
   }
   const share_pwd = form.share_pwd
-
   const user_id = pantreeStore.user_id
   const drive_id = pantreeStore.drive_id
   const file_id_list = ArrayKeyList<string>('file_id', props.filelist)
-
   localStorage.setItem('share_pwd', share_pwd)
   if (!multi) {
     okLoading.value = true
@@ -169,12 +179,42 @@ const handleOK = async (multi: boolean) => {
 </script>
 
 <template>
-  <a-modal :visible='visible' modal-class='modalclass' :footer='false'
+  <a-modal :visible='visible' modal-class='modalclass createsharelinkmodal' :footer='false'
            :unmount-on-close='true' :mask-closable='false'
            @cancel='handleHide' @before-open='handleOpen' @close='handleClose'>
     <template #title>
-      <span class='modaltitle'>创建{{ shareType.title }}链接<span
-        class='titletips'> (已选择{{ filelist.length }}个文件) </span></span>
+      <span class='modaltitle'>
+        创建{{ shareType.title }}链接
+        <a-popover position="bottom">
+          <i class="iconfont iconbulb" />
+          <template #content>
+            <div v-if="shareType.type === 's'">
+              <span class="opred">普通用户</span>每天只能使用分享功能<span class="opred">5次</span><br />
+              <span class="opred">会员用户和Lv.1及以上的达人用户</span>，每天可使用分享次数<span class="opred">1000次</span><br />
+              <div class="hrspace"></div>
+              <span class="oporg">超过上限后，将提示「今日分享次数已达上限」。</span>
+              <div class="hrspace"></div>
+              <span class="oporg">目前支持分享的文件类型有 image、video、doc、other</span> <br />
+              1、image支持以下格式：JPG、JPEG、PNG、HEIC、GIF、<br />
+              WEBP、 BMP <br />
+              2、video 支持以下格式：ASF、AVI、FLASH、FLV、LIVP、M3U8、<br />
+              MOV、MP4、MPG、RM、RMVB、TS、WMA、WMV、MKV <br />
+              3、doc 支持以下格式：WORD、EXCEL、OUTLOOK、PDF、PPT、RTF、<br />
+              TXT、VISIO<br />
+              4、other支持以下格式：MODE、FONT、APPLICATION <br />
+              <div class="hrspace"></div>
+              文件夹已支持分享，<span class="oporg">压缩包暂不支持（可以洗码分享）</span>
+            </div>
+            <div v-else>
+              <span class="opred">普通用户</span>每天的快传次数为<span class="opred">5次</span><br />
+              <span class="opred">会员用户</span>每天的快传次数为<span class="opred">100次</span><br />
+              <div class="hrspace"></div>
+              普通用户请前往会员中心，购买会员开通权益<br />
+            </div>
+          </template>
+        </a-popover>
+        <span class='titletips'> (已选择{{ filelist.length }}个文件) </span>
+      </span>
     </template>
     <div class='modalbody' style='width: 440px'>
       <a-form ref='formRef' :model='form' layout='vertical'>
@@ -182,11 +222,13 @@ const handleOK = async (multi: boolean) => {
           <template #label>
             <template v-if='shareType.type === "s"'> {{ shareType.title }}链接标题：</template>
             <template v-else> {{ shareType.title }}文件：</template>
-            <span class='opblue' style='margin-left: 0; font-size: 12px'
-                  v-if='shareType.type === "s"'> 修改后的标题只有自己可见 </span>
+            <span class='opblue' style='margin-left: 0; font-size: 12px' v-if='shareType.type === "s"'> 修改后的标题只有自己可见 </span>
             <span class='opblue' style='margin-left: 0; font-size: 12px' v-else> 🎉快传支持发送所有格式的文件 </span>
           </template>
           <a-input v-model.trim='form.share_name' :placeholder='form.share_name' />
+          <template #extra v-if='shareType.type === "s"'>
+            <span class='opred'> 无法分享的文件：{{ invalid_file }} </span>
+          </template>
         </a-form-item>
 
         <template v-if='shareType.type === "s"'>
@@ -206,30 +248,12 @@ const handleOK = async (multi: boolean) => {
                   placeholder='永久有效'
                   value-format='YYYY-MM-DD HH:mm:ss'
                   :shortcuts="[
-                    {
-                      label: '永久',
-                      value: () => ''
-                    },
-                    {
-                      label: '3小时',
-                      value: () => dayjs().add(3, 'hour')
-                    },
-                    {
-                      label: '1天',
-                      value: () => dayjs().add(1, 'day')
-                    },
-                    {
-                      label: '3天',
-                      value: () => dayjs().add(3, 'day')
-                    },
-                    {
-                      label: '7天',
-                      value: () => dayjs().add(7, 'day')
-                    },
-                    {
-                      label: '30天',
-                      value: () => dayjs().add(30, 'day')
-                    }
+                    { label: '永久', value: () => '' },
+                    { label: '3小时', value: () => dayjs().add(3, 'hour') },
+                    { label: '1天', value: () => dayjs().add(1, 'day') },
+                    { label: '3天', value: () => dayjs().add(3, 'day') },
+                    { label: '7天', value: () => dayjs().add(7, 'day') },
+                    { label: '30天', value: () => dayjs().add(30, 'day') }
                   ]" />
               </a-form-item>
             </a-col>
@@ -245,15 +269,26 @@ const handleOK = async (multi: boolean) => {
       </a-form>
     </div>
     <div class='modalfoot'>
-      <a-button type='outline' size='small' :loading='okBatchLoading' @click='() => handleOK(true)'>为每个文件单独创建
+      <a-button type='outline' size='small' :loading='okBatchLoading' @click='handleOK(true)'>
+        为每个文件单独创建
       </a-button>
       <div style='flex-grow: 1'></div>
       <a-button v-if='!okLoading' type='outline' size='small' @click='handleHide'>取消</a-button>
-      <a-button type='primary' size='small' :loading='okLoading' @click='() => handleOK(false)'>创建{{ shareType.title
-        }}链接
+      <a-button type='primary' size='small' :loading='okLoading' @click='handleOK(false)'>
+        创建{{ shareType.title }}链接
       </a-button>
     </div>
   </a-modal>
 </template>
 
-<style></style>
+<style scoped>
+.iconbulb {
+  display: inline-block;
+  height: 22px;
+  margin-left: 4px;
+  color: #ffc107dd;
+  font-size: 18px;
+  line-height: 22px;
+  cursor: help;
+}
+</style>

@@ -1,46 +1,71 @@
-<script lang='ts'>
-import { computed, defineComponent } from 'vue'
+<script setup lang='ts'>
+import { computed } from 'vue'
 import { handleUpload } from '../topbtns/topbtn'
-import { modalCreatNewAlbum, modalCreatNewDir, modalCreatNewFile, modalDaoRuShareLink } from '../../utils/modal'
+import {
+  modalCreatNewAlbum,
+  modalCreatNewDir,
+  modalCreatNewFile,
+  modalDaoRuShareLink,
+  modalShowShareLink
+} from '../../utils/modal'
+import AliShare from '../../aliapi/share'
+import { usePanTreeStore } from '../../store'
+import message from '../../utils/message'
 
-export default defineComponent({
-  props: {
-    dirtype: {
-      type: String,
-      required: true
-    },
-    inputpicType: {
-      type: String,
-      required: true
-    },
-    isselected: {
-      type: Boolean,
-      required: true
-    }
+const props = defineProps({
+  dirtype: {
+    type: String,
+    required: true
   },
-  setup(props) {
-    const isShowBtn = computed(() => {
-      return (props.dirtype === 'pic' && props.inputpicType != 'mypic')
-        || props.dirtype === 'mypic' || props.dirtype === 'pan'
-    })
-    const isPic = computed(() => {
-      return (props.dirtype === 'pic' && props.inputpicType != 'pic_root') || props.dirtype === 'mypic'
-    })
-    return {
-      isShowBtn,
-      isPic,
-      modalCreatNewFile,
-      modalCreatNewAlbum,
-      modalCreatNewDir,
-      handleUpload,
-      modalDaoRuShareLink
-    }
+  inputselectType: {
+    type: String,
+    required: true
+  },
+  inputpicType: {
+    type: String,
+    required: true
+  },
+  isselected: {
+    type: Boolean,
+    required: true
   }
 })
+const isShowBtn = computed(() => {
+  return (props.dirtype === 'pic' && props.inputpicType != 'mypic')
+    || props.dirtype === 'mypic' || props.dirtype === 'pan'
+})
+const isPic = computed(() => {
+  return (props.dirtype === 'pic' && props.inputpicType != 'pic_root') || props.dirtype === 'mypic'
+})
+
+const handleClickBottleFish = async () => {
+  const pantreeStore = usePanTreeStore()
+  let resp = await AliShare.ApiShareBottleFish(pantreeStore.user_id)
+  if (typeof resp !== 'string') {
+    // 打开分享
+    let share_id = resp.shareId
+    AliShare.ApiGetShareToken(share_id, '')
+      .then((share_token) => {
+        if (!share_token || share_token.startsWith('，')) {
+          message.error('解析链接出错' + share_token)
+        } else {
+          modalShowShareLink(share_id, '', share_token, true, [], false)
+        }
+      })
+      .catch((err: any) => {
+        message.error('解析链接出错', err)
+      })
+  } else {
+    message.info(resp)
+  }
+}
 </script>
 
 <template>
   <div v-show="!isselected && ['pan', 'pic', 'mypic'].includes(dirtype)" class='toppanbtn'>
+    <a-button v-if="inputselectType.includes('resource')" type='text' size='small' tabindex='-1' @click="handleClickBottleFish">
+      <i class='iconfont iconnotification' />好运瓶
+    </a-button>
     <a-dropdown v-if='dirtype !== "pic"' trigger='hover' class='rightmenu' position='bl'>
       <a-button v-show="!dirtype.includes('pic')" type='text' size='small' tabindex='-1'>
         <i class='iconfont iconplus' />新建<i class='iconfont icondown' />

@@ -208,7 +208,7 @@ const useAppStore = defineStore('app', {
           break
         }
         case 'share': {
-          next(this.appTabMenuMap, this.appTab, ['ShareSiteRight', 'OtherShareRight', 'MyShareRight', 'ShareHistoryRight', 'MyTransferShareRight', 'MyFollowingRight', 'OtherFollowingRight'])
+          next(this.appTabMenuMap, this.appTab, ['ShareSiteRight', 'OtherShareRight', 'MyShareRight', 'ShareHistoryRight', 'MyTransferShareRight', 'ShareBottleFishRight', 'MyFollowingRight', 'OtherFollowingRight'])
           break
         }
         case 'rss': {

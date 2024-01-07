@@ -636,6 +636,7 @@ const onPanDragEnd = (ev: any) => {
 
     <PanTopbtn :dirtype='panfileStore.SelectDirType'
                :inputpicType='inputpicType'
+               :inputselectType='inputselectType'
                :isselected='panfileStore.IsListSelected' />
     <FileTopbtn :dirtype='panfileStore.SelectDirType'
                 :isselected='panfileStore.IsListSelected'

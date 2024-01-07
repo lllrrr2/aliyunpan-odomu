@@ -37,10 +37,12 @@ const handleJumpPath = () => {
       </a-popover>
     </div>
     <div class="settingspace"></div>
-    <div class="settinghead">:收藏夹/回收站/全盘搜索/文件标记 显示限制</div>
+    <div class="settinghead">:收藏夹/回收站/全盘搜索/文件标记/文件恢复 显示限制</div>
     <div class="settingrow">
       <div class="settingrow">
-        <a-input-number tabindex="-1" :style="{ width: '252px' }" mode="button" :min="100" :max="3000" :step="100" :model-value="settingStore.debugFavorListMax" @update:model-value="cb({ debugFavorListMax: $event })">
+        <a-input-number tabindex="-1" :style="{ width: '252px' }" mode="button" :min="100"
+                        :max="3000" :step="100" :model-value="settingStore.debugFavorListMax"
+                        @update:model-value="cb({ debugFavorListMax: $event })">
           <template #prefix> 只显示前 </template>
           <template #suffix> 个文件 </template>
         </a-input-number>
@@ -48,7 +50,7 @@ const handleJumpPath = () => {
           <i class="iconfont iconbulb" />
           <template #content>
             <div>
-              默认：<span class="opred">1000</span> (1000-3000)
+              默认：<span class="opred">100</span> (100-3000)
               <hr />
               收藏夹/回收站/全盘搜索/文件标记/放映室，只显示前1000个文件
               <div class="hrspace"></div>

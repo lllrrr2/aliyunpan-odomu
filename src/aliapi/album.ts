@@ -9,6 +9,7 @@ export default class AliAlbum {
    * 创建相册
    */
   static async ApiAlbumCreate(user_id: string, album_name: string, album_description: string): Promise<string> {
+    if (!user_id || !album_name) return '创建相册出错'
     const url = 'adrive/v1/album/create'
     const postData = { name: album_name, description: album_description }
     const resp = await AliHttp.Post(url, postData, user_id, '')
@@ -68,6 +69,7 @@ export default class AliAlbum {
    * 列出相册
    */
   static async ApiAlbumList(user_id: string, limit?: string, order_by?: string, order_direction?: string) {
+    if (!user_id) return []
     const url = 'adrive/v1/album/list'
     const postData = {
       limit: limit || 20,
@@ -95,6 +97,7 @@ export default class AliAlbum {
    * 更新相册
    */
   static async ApiAlbumUpdate(user_id: string, album_id: string, name: string, description: string): Promise<IUrlRespData | undefined> {
+    if (!user_id || !album_id) return undefined
     const url = 'adrive/v1/album/update'
     const postData = { name, album_id, description }
     const resp = await AliHttp.Post(url, postData, user_id, '')
@@ -110,6 +113,7 @@ export default class AliAlbum {
    * 删除相册（不会删除文件）
    */
   static async ApiAlbumDelete(user_id: string, album_id: string): Promise<IUrlRespData | undefined> {
+    if (!user_id || !album_id) return undefined
     const url = 'adrive/v1/album/delete'
     const resp = await AliHttp.Post(url, { album_id }, user_id, '')
     if (AliHttp.IsSuccess(resp.code)) {
@@ -127,6 +131,7 @@ export default class AliAlbum {
     drive_id: string,
     file_id: string
   }[]): Promise<IUrlRespData | undefined> {
+    if (!user_id || !album_id || !drive_file_list) return undefined
     const url = 'adrive/v1/album/add_files'
     const resp = await AliHttp.Post(url, { album_id, drive_file_list }, user_id, '')
     if (AliHttp.IsSuccess(resp.code)) {
@@ -144,6 +149,7 @@ export default class AliAlbum {
     drive_id: string,
     file_id: string
   }[]): Promise<IUrlRespData | undefined> {
+    if (!user_id || !album_id || !drive_file_list) return undefined
     const url = 'adrive/v1/album/delete_files'
     const resp = await AliHttp.Post(url, { album_id, drive_file_list }, user_id, '')
     if (AliHttp.IsSuccess(resp.code)) {

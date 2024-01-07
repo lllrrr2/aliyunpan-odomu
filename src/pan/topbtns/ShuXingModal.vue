@@ -193,7 +193,7 @@ export default defineComponent({
     <template #title>
       <span class='modaltitle'>查看属性</span>
     </template>
-    <div class='modalbody' style='width: 500px; max-height: calc(80vh - 100px); overflow-y: scroll'>
+    <div class='modalbody' style='width: 520px; max-height: calc(80vh - 100px); overflow-y: scroll'>
       <a-row>
         <a-col flex='auto'> 路径：</a-col>
       </a-row>
@@ -240,10 +240,9 @@ export default defineComponent({
         <a-row>
           <a-col flex='110px'> 分类：</a-col>
           <a-col flex='auto'></a-col>
-          <a-col flex='170px'> mime_type：</a-col>
+          <a-col flex='170px'> 媒体类型：</a-col>
           <a-col flex='auto'></a-col>
-          <a-col flex='180px'> crc64：<i class='iconfont iconchakan link' title='点击切换格式' @click='handleCRC'></i>
-          </a-col>
+          <a-col flex='180px'> 描述：</a-col>
         </a-row>
         <a-row>
           <a-col flex='110px'>
@@ -255,18 +254,7 @@ export default defineComponent({
           </a-col>
           <a-col flex='auto'></a-col>
           <a-col flex='180px'>
-            <a-input
-              size='small'
-              class='small'
-              tabindex='-1'
-              :model-value="
-                formateCRC
-                  ? fileInfo?.crc64_hash
-                  : parseInt(fileInfo?.crc64_hash || '0')
-                      .toString(16)
-                      .toUpperCase()
-              "
-              readonly />
+            <a-input size='small' tabindex='-1' :model-value='fileInfo?.description' readonly />
           </a-col>
         </a-row>
         <div class='h16'></div>

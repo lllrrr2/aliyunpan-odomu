@@ -11,6 +11,7 @@ import ShareDAL from './share/ShareDAL'
 import FollowingDAL from './following/FollowingDAL'
 import { ref } from 'vue'
 import ShareHistoryRight from './share/ShareHistoryRight.vue'
+import ShareBottleFishRight from './share/ShareBottleFishRight.vue'
 
 const appStore = useAppStore()
 const hideLeft = ref(false)
@@ -22,6 +23,7 @@ appStore.$subscribe(() => {
   if (appPage == 'MyShareRight') ShareDAL.aReloadMyShare(useUserStore().user_id, false)
   if (appPage == 'ShareHistoryRight') ShareDAL.aReloadShareHistory(useUserStore().user_id, false)
   if (appPage == 'MyTransferShareRight') ShareDAL.aReloadMyTransferShare(useUserStore().user_id, false)
+  if (appPage == 'ShareBottleFishRight') ShareDAL.aReloadShareBottleFish(useUserStore().user_id, false)
   if (appPage == 'MyFollowingRight') FollowingDAL.aReloadMyFollowing(useUserStore().user_id, false)
   if (appPage == 'OtherFollowingRight') FollowingDAL.aReloadOtherFollowingList(useUserStore().user_id, false)
 })
@@ -57,6 +59,10 @@ const handleHideLeft = (val: boolean) => {
           <template #icon><i class='iconfont iconfenxiang' /></template>
           我的快传
         </a-menu-item>
+        <a-menu-item key='ShareBottleFishRight'>
+          <template #icon><i class='iconfont icontuijian' /></template>
+          好运分享
+        </a-menu-item>
         <a-menu-item key='MyFollowingRight'>
           <template #icon><i class='iconfont icondingyue' /></template>
           我的订阅
@@ -84,6 +90,9 @@ const handleHideLeft = (val: boolean) => {
         </a-tab-pane>
         <a-tab-pane key='MyTransferShareRight' title='4'>
           <MyTransferShareRight />
+        </a-tab-pane>
+        <a-tab-pane key='ShareBottleFishRight' title='5'>
+          <ShareBottleFishRight />
         </a-tab-pane>
         <a-tab-pane key='MyFollowingRight' title='5'>
           <MyFollowingRight />

@@ -1,12 +1,12 @@
 import fuzzysort from 'fuzzysort'
 import { defineStore } from 'pinia'
-import { IAliShareRecentItem } from '../../aliapi/alimodels'
+import { IAliShareBottleFishItem } from '../../aliapi/alimodels'
 import { GetFocusNext, GetSelectedList, KeyboardSelectOne, MouseSelectOne, SelectAll } from '../../utils/selecthelper'
 import { HanToPin } from '../../utils/utils'
 
-type Item = IAliShareRecentItem
+type Item = IAliShareBottleFishItem
 
-export interface ShareHistoryState {
+export interface ShareBottleFishState {
   ListLoading: boolean
   ListDataRaw: Item[]
   ListDataShow: Item[]
@@ -18,10 +18,10 @@ export interface ShareHistoryState {
   ListSearchKey: string
 }
 
-type State = ShareHistoryState
-const KEY = 'share_id'
+type State = ShareBottleFishState
+const KEY = 'shareId'
 
-const useShareHistoryStore = defineStore('sharehistory', {
+const useShareBottleFishStore = defineStore('sharebottlefish', {
   state: (): State => ({
     ListLoading: false,
     ListDataRaw: [],
@@ -52,16 +52,14 @@ const useShareHistoryStore = defineStore('sharehistory', {
     },
 
     ListStats(state: State) {
-      const stats = { preview: 0, browse: 0, save: 0, previewMax: 0, forbidden: 0 }
+      const stats = { saved: 0 }
       const list = state.ListDataShow
       let item: Item
       for (let i = 0, maxi = list.length; i < maxi; i++) {
         item = list[i]
-        stats.preview += item.preview_count
-        stats.previewMax = Math.max(stats.previewMax, item.preview_count)
-        stats.browse += item.browse_count
-        stats.save += item.save_count
-        if (item.status == 'forbidden') stats.forbidden++
+        if (item.saved) {
+          stats.saved++
+        }
       }
       return stats
     }
@@ -73,7 +71,8 @@ const useShareHistoryStore = defineStore('sharehistory', {
       let item: Item
       for (let i = 0, maxi = list.length; i < maxi; i++) {
         item = list[i]
-        item.display_name = HanToPin(item.share_name)
+        item.share_name = item.name
+        item.display_name = HanToPin(item.name)
       }
       this.ListDataRaw = this.mGetOrder(this.ListOrderKey, list)
       const oldSelected = this.ListSelected
@@ -113,11 +112,7 @@ const useShareHistoryStore = defineStore('sharehistory', {
     },
 
     mGetOrder(order: string, list: Item[]) {
-      if (order == 'ctime') list.sort((a, b) => new Date(b.gmt_created).getTime() - new Date(a.gmt_created).getTime())
-      if (order == 'mtime') list.sort((a, b) => new Date(b.gmt_modified).getTime() - new Date(a.gmt_modified).getTime())
-      if (order == 'preview') list.sort((a, b) => b.preview_count - a.preview_count)
-      if (order == 'browse') list.sort((a, b) => b.browse_count - a.browse_count)
-      if (order == 'save') list.sort((a, b) => b.save_count - a.save_count)
+      if (order == 'mtime') list.sort((a, b) => new Date(b.gmtCreate).getTime() - new Date(a.gmtCreate).getTime())
       return list
     },
 
@@ -136,7 +131,7 @@ const useShareHistoryStore = defineStore('sharehistory', {
           scoreFn: (a) => Math.max(a[0] ? a[0].score : -200000, a[1] ? a[1].score : -200000)
         })
         for (let i = 0, maxi = results.length; i < maxi; i++) {
-          if (results[i].score > -200000) searchList.push(results[i].obj as IAliShareRecentItem)
+          if (results[i].score > -200000) searchList.push(results[i].obj as Item)
         }
         Object.freeze(searchList)
         this.ListDataShow = searchList
@@ -204,4 +199,4 @@ const useShareHistoryStore = defineStore('sharehistory', {
   }
 })
 
-export default useShareHistoryStore
+export default useShareBottleFishStore

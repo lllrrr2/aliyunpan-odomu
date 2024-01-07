@@ -359,6 +359,12 @@ export default class AliHttp {
     }
     for (let i = 0; i <= 5; i++) {
       const resp = await AliHttp._Post(url, postData, user_id, share_token, need_open_api)
+      if (resp.code == 429
+          && resp.body.display_message
+          && !url.includes('getDownloadUrl')
+          && !url.includes('get_download_url')) {
+        return resp
+      }
       if (resp.code == 400 &&
           (url.includes('/file/search')
           || url.includes('/file/list')

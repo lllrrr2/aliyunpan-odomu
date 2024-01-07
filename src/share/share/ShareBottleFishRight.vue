@@ -17,59 +17,55 @@ import { Tooltip as AntdTooltip } from 'ant-design-vue'
 import 'ant-design-vue/es/tooltip/style/css'
 import { modalShowShareLink } from '../../utils/modal'
 import { GetShareUrlFormate } from '../../utils/shareurl'
-import useShareHistoryStore from './ShareHistoryStore'
+import useShareBottleFishStore from './ShareBottleFishStore'
 
 const viewlist = ref()
 const inputsearch = ref()
 
 const appStore = useAppStore()
 const winStore = useWinStore()
-const shareHistoryStore = useShareHistoryStore()
+const shareBottleFishStore = useShareBottleFishStore()
 
 const keyboardStore = useKeyboardStore()
 keyboardStore.$subscribe((_m: any, state: KeyboardState) => {
-  if (appStore.appTab != 'share' || appStore.GetAppTabMenu != 'ShareHistoryRight') return
-  if (TestCtrl('a', state.KeyDownEvent, () => shareHistoryStore.mSelectAll())) return
+  if (appStore.appTab != 'share' || appStore.GetAppTabMenu != 'ShareBottleFishRight') return
+  if (TestCtrl('a', state.KeyDownEvent, () => shareBottleFishStore.mSelectAll())) return
   if (TestCtrl('b', state.KeyDownEvent, handleBrowserLink)) return
   if (TestCtrl('c', state.KeyDownEvent, handleCopySelectedLink)) return
   if (TestCtrl('f', state.KeyDownEvent, () => inputsearch.value.focus())) return
   if (TestKey('f3', state.KeyDownEvent, () => inputsearch.value.focus())) return
   if (TestKey(' ', state.KeyDownEvent, () => inputsearch.value.focus())) return
   if (TestKey('f5', state.KeyDownEvent, handleRefresh)) return
-  if (TestKeyboardSelect(state.KeyDownEvent, viewlist.value, shareHistoryStore, handleOpenLink)) return
-  if (TestKeyboardScroll(state.KeyDownEvent, viewlist.value, shareHistoryStore)) return
+  if (TestKeyboardSelect(state.KeyDownEvent, viewlist.value, shareBottleFishStore, handleOpenLink)) return
+  if (TestKeyboardScroll(state.KeyDownEvent, viewlist.value, shareBottleFishStore)) return
 })
-const handleRefresh = () => ShareDAL.aReloadShareHistory(useUserStore().user_id, true)
-const handleSelectAll = () => shareHistoryStore.mSelectAll()
-const handleOrder = (order: string) => shareHistoryStore.mOrderListData(order)
-const handleSelect = (share_id: string, event: any, isCtrl: boolean = false) => {
+
+const handleRefresh = () => ShareDAL.aReloadShareBottleFish(useUserStore().user_id, true)
+const handleSelectAll = () => shareBottleFishStore.mSelectAll()
+const handleOrder = (order: string) => shareBottleFishStore.mOrderListData(order)
+const handleSelect = (shareId: string, event: any, isCtrl: boolean = false) => {
   onHideRightMenuScroll()
-  shareHistoryStore.mMouseSelect(share_id, event.ctrlKey || isCtrl, event.shiftKey)
+  shareBottleFishStore.mMouseSelect(shareId, event.ctrlKey || isCtrl, event.shiftKey)
 }
-const onSelectCancel = () => {
-  onHideRightMenuScroll()
-  shareHistoryStore.ListSelected.clear()
-  shareHistoryStore.ListFocusKey = ''
-  shareHistoryStore.mRefreshListDataShow(false)
-}
+
 const handleOpenLink = (share: any) => {
-  if (share && share.share_id) {
+  if (share && share.shareId) {
     // donothing
   } else {
-    share = shareHistoryStore.GetSelectedFirst()
+    share = shareBottleFishStore.GetSelectedFirst()
   }
-  if (!share.share_id) {
+  if (!share.shareId) {
     message.error('没有选中分享链接！')
   } else {
-    modalShowShareLink(share.share_id, share.share_pwd, '', true, [])
+    modalShowShareLink(share.shareId, share.share_pwd, '', true, [])
   }
 }
 const handleCopySelectedLink = () => {
-  const list = shareHistoryStore.GetSelected()
+  const list = shareBottleFishStore.GetSelected()
   let link = ''
   for (let i = 0, maxi = list.length; i < maxi; i++) {
     const item = list[i]
-    link += GetShareUrlFormate(item.share_name, 'https://www.alipan.com/s/' + item.share_id, '') + '\n'
+    link += GetShareUrlFormate(item.share_name, 'https://www.alipan.com/s/' + item.shareId, '') + '\n'
   }
   if (list.length == 0) {
     message.error('没有选中分享链接！')
@@ -79,15 +75,15 @@ const handleCopySelectedLink = () => {
   }
 }
 const handleBrowserLink = () => {
-  const first = shareHistoryStore.GetSelectedFirst()
+  const first = shareBottleFishStore.GetSelectedFirst()
   if (!first) return
-  if (first.share_id) {
-    openExternal('https://www.alipan.com/s/' + first.share_id)
+  if (first.shareId) {
+    openExternal('https://www.alipan.com/s/' + first.shareId)
   }
 }
 
 const handleSearchInput = (value: string) => {
-  shareHistoryStore.mSearchListData(value)
+  shareBottleFishStore.mSearchListData(value)
   viewlist.value.scrollIntoView(0)
 }
 const handleSearchEnter = (event: any) => {
@@ -96,8 +92,8 @@ const handleSearchEnter = (event: any) => {
 }
 const handleRightClick = (e: { event: MouseEvent; node: any }) => {
   const key = e.node.key
-  if (!shareHistoryStore.ListSelected.has(key)) shareHistoryStore.mMouseSelect(key, false, false)
-  onShowRightMenu('rightsharehistorymenu', e.event.clientX, e.event.clientY)
+  if (!shareBottleFishStore.ListSelected.has(key)) shareBottleFishStore.mMouseSelect(key, false, false)
+  onShowRightMenu('rightsharebottlefishmenu', e.event.clientX, e.event.clientY)
 }
 </script>
 
@@ -106,8 +102,8 @@ const handleRightClick = (e: { event: MouseEvent; node: any }) => {
   <div class='toppanbtns' style='height: 26px'>
     <div style="min-height: 26px; max-width: 100%; flex-shrink: 0; flex-grow: 0">
       <div class="toppannav">
-        <div class="toppannavitem" title="历史导入">
-          <span> 历史导入 </span>
+        <div class="toppannavitem" title="好运分享">
+          <span> 好运分享 </span>
         </div>
       </div>
     </div>
@@ -116,7 +112,7 @@ const handleRightClick = (e: { event: MouseEvent; node: any }) => {
   <div style="height: 14px"></div>
   <div class="toppanbtns" style="height: 26px">
     <div class="toppanbtn">
-      <a-button type="text" size="small" tabindex="-1" :loading="shareHistoryStore.ListLoading" title="F5"
+      <a-button type="text" size="small" tabindex="-1" :loading="shareBottleFishStore.ListLoading" title="F5"
                 @click="handleRefresh">
         <template #icon>
           <i class="iconfont iconreload-1-icon" />
@@ -124,22 +120,22 @@ const handleRightClick = (e: { event: MouseEvent; node: any }) => {
         刷新
       </a-button>
     </div>
-    <div v-show="shareHistoryStore.IsListSelected" class="toppanbtn">
-      <a-button type="text" size="small" tabindex="-1" title="Ctrl+O" @click="handleOpenLink"><i
-        class="iconfont iconchakan" />查看
+    <div v-show="shareBottleFishStore.IsListSelected" class="toppanbtn">
+      <a-button type="text" size="small" tabindex="-1" title="Ctrl+O" @click="handleOpenLink">
+        <i class="iconfont iconchakan" />查看
       </a-button>
-      <a-button type="text" size="small" tabindex="-1" title="Ctrl+C" @click="handleCopySelectedLink"><i
-        class="iconfont iconcopy" />复制链接
+      <a-button type="text" size="small" tabindex="-1" title="Ctrl+C" @click="handleCopySelectedLink">
+        <i class="iconfont iconcopy" />复制链接
       </a-button>
-      <a-button type="text" size="small" tabindex="-1" title="Ctrl+B" @click="handleBrowserLink"><i
-        class="iconfont iconchrome" />浏览器
+      <a-button type="text" size="small" tabindex="-1" title="Ctrl+B" @click="handleBrowserLink">
+        <i class="iconfont iconchrome" />浏览器
       </a-button>
     </div>
     <div style="flex-grow: 1"></div>
     <div style="flex-grow: 1"></div>
     <div class="toppanbtn">
       <a-input-search ref="inputsearch" tabindex="-1" size="small" title="Ctrl+F / F3 / Space" placeholder="快速筛选"
-                      v-model="shareHistoryStore.ListSearchKey" allow-clear
+                      v-model="shareBottleFishStore.ListSearchKey" allow-clear
                       @clear='(e:any)=>handleSearchInput("")'
                       @input="(val:any)=>handleSearchInput(val as string)"
                       @press-enter="handleSearchEnter"
@@ -152,45 +148,19 @@ const handleRightClick = (e: { event: MouseEvent; node: any }) => {
     <div style="margin: 0 3px">
       <AntdTooltip title="点击全选" placement="left">
         <a-button shape="circle" type="text" tabindex="-1" class="select all" title="Ctrl+A" @click="handleSelectAll">
-          <i :class="shareHistoryStore.IsListSelectedAll ? 'iconfont iconrsuccess' : 'iconfont iconpic2'" />
+          <i :class="shareBottleFishStore.IsListSelectedAll ? 'iconfont iconrsuccess' : 'iconfont iconpic2'" />
         </a-button>
       </AntdTooltip>
     </div>
-    <div class="selectInfo">{{ shareHistoryStore.ListDataSelectCountInfo }}</div>
-    <div style='margin: 0 2px'>
-      <a-button shape='square' v-if='shareHistoryStore.ListSelected.size > 0'
-                type='text' tabindex='-1' class='qujian' status='normal' @click='onSelectCancel'>
-        取消已选
-      </a-button>
-    </div>
+    <div class="selectInfo">{{ shareBottleFishStore.ListDataSelectCountInfo }}</div>
+
     <div style="flex-grow: 1"></div>
-    <div :class="'cell sharestate order ' + (shareHistoryStore.ListOrderKey == 'save' ? 'active' : '')"
-         @click="handleOrder('save')">
-      保存数
-      <i class="iconfont iconxia" />
+    <div :class="'cell sharetime'">
+      是否保存
     </div>
-    <div :class="'cell sharestate order ' + (shareHistoryStore.ListOrderKey == 'preview' ? 'active' : '')"
-         @click="handleOrder('preview')">
-      预览数
-      <i class="iconfont iconxia" />
-    </div>
-    <div :class="'cell sharestate order ' + (shareHistoryStore.ListOrderKey == 'browse' ? 'active' : '')"
-         @click="handleOrder('browse')">
-      浏览数
-      <i class="iconfont iconxia" />
-    </div>
-    <div :class="'cell sharetime order ' + (shareHistoryStore.ListOrderKey == 'ctime' ? 'active' : '')"
-         @click="handleOrder('ctime')">
-      创建时间
-      <i class="iconfont iconxia" />
-    </div>
-    <div :class="'cell sharetime order ' + (shareHistoryStore.ListOrderKey == 'mtime' ? 'active' : '')"
-         @click="handleOrder('mtime')">
+    <div :class="'cell sharetime order ' + (shareBottleFishStore.ListOrderKey == 'mtime' ? 'active' : '')" @click="handleOrder('mtime')">
       修改时间
       <i class="iconfont iconxia" />
-    </div>
-    <div :class="'cell sharetime'">
-      创建者
     </div>
     <div class="cell pr"></div>
   </div>
@@ -205,49 +175,44 @@ const handleRightClick = (e: { event: MouseEvent; node: any }) => {
         fixedSize: true,
         estimatedSize: 50,
         threshold: 1,
-        itemKey: 'share_id'
+        itemKey: 'shareId'
       }"
       style="width: 100%"
-      :data="shareHistoryStore.ListDataShow"
+      :data="shareBottleFishStore.ListDataShow"
       tabindex="-1"
       @scroll="onHideRightMenuScroll">
       <template #empty>
         <a-empty description="没导入过任何分享链接" />
       </template>
       <template #item="{ item, index }">
-        <div :key="item.share_id" class="listitemdiv">
+        <div :key="item.shareId" class="listitemdiv">
           <div
-            :class="'fileitem' + (shareHistoryStore.ListSelected.has(item.share_id) ? ' selected' : '') + (shareHistoryStore.ListFocusKey == item.share_id ? ' focus' : '')"
-            @click="handleSelect(item.share_id, $event)"
-            @contextmenu="(event:MouseEvent)=>handleRightClick({event,node:{key:item.share_id}} )">
+            :class="'fileitem' + (shareBottleFishStore.ListSelected.has(item.shareId) ? ' selected' : '') + (shareBottleFishStore.ListFocusKey == item.shareId ? ' focus' : '')"
+            @click="handleSelect(item.shareId, $event)"
+            @contextmenu="(event:MouseEvent)=>handleRightClick({event,node:{key:item.shareId}} )">
             <div style="margin: 2px">
               <a-button shape="circle" type="text" tabindex="-1" class="select" :title="index"
-                        @click.prevent.stop="handleSelect(item.share_id, $event, true)">
+                        @click.prevent.stop="handleSelect(item.shareId, $event, true)">
                 <i
-                  :class="shareHistoryStore.ListSelected.has(item.share_id) ? 'iconfont iconrsuccess' : 'iconfont iconpic2'" />
+                  :class="shareBottleFishStore.ListSelected.has(item.shareId) ? 'iconfont iconrsuccess' : 'iconfont iconpic2'" />
               </a-button>
             </div>
             <div class="fileicon">
               <i class="iconfont iconlink2" aria-hidden="true"></i>
             </div>
             <div class="filename">
-              <div :title="'https://www.alipan.com/s/' + item.share_id" @click="handleOpenLink(item)">
+              <div :title="'https://www.alipan.com/s/' + item.shareId" @click="handleOpenLink(item)">
                 {{ item.share_name }}
               </div>
             </div>
-            <div class="cell sharestate active">{{ item.save_count }}</div>
-            <div class="cell sharestate active">{{ item.preview_count }}</div>
-            <div class="cell sharestate active">{{ item.browse_count }}</div>
+            <div class="cell sharestate active">{{ item.saved_msg }}</div>
             <div class="cell sharetime">{{ item.gmt_created }}</div>
-            <div class="cell sharetime">{{ item.gmt_modified }}</div>
-            <div class="cell sharestate">{{ item.creator_name }}</div>
           </div>
         </div>
       </template>
     </a-list>
 
-    <a-dropdown id="rightsharehistorymenu" class="rightmenu" :popup-visible="true"
-                style="z-index: -1; left: -200px; opacity: 0">
+    <a-dropdown id="rightsharebottlefishmenu" class="rightmenu" :popup-visible="true" style="z-index: -1; left: -200px; opacity: 0">
       <template #content>
         <a-doption @click="handleOpenLink">
           <template #icon><i class="iconfont iconchakan" /></template>

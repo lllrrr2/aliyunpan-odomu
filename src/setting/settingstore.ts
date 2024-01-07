@@ -253,7 +253,7 @@ const setting: SettingState = {
   debugCacheSize: '',
   debugDirSize: '',
   debugFileListMax: 3000,
-  debugFavorListMax: 1000,
+  debugFavorListMax: 100,
   debugDowningListMax: 1000,
   debugDownedListMax: 5000,
   debugFolderSizeCacheHour: 72,
@@ -351,7 +351,7 @@ function _loadSetting(val: any) {
   setting.debugDirSize = defaultString(val.debugDirSize, '')
   setting.debugCacheSize = defaultString(val.debugCacheSize, '')
   setting.debugFileListMax = defaultNumberSub(val.debugFileListMax, 3000, 3000, 10000)
-  setting.debugFavorListMax = defaultNumberSub(val.debugFavorListMax, 1000, 100, 3000)
+  setting.debugFavorListMax = defaultNumberSub(val.debugFavorListMax, 100, 100, 3000)
   setting.debugDowningListMax = 1000
   setting.debugDownedListMax = defaultNumberSub(val.debugDownedListMax, 5000, 1000, 50000)
   setting.debugFolderSizeCacheHour = defaultValue(val.debugFolderSizeCacheHour, [72, 2, 8, 24, 48, 72])

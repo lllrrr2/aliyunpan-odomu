@@ -1,8 +1,8 @@
 import DebugLog from '../utils/debuglog'
-import { humanDateTime, humanExpiration, Sleep } from '../utils/format'
+import { humanDateTime, humanExpiration } from '../utils/format'
 import message from '../utils/message'
 import AliHttp, { IUrlRespData } from './alihttp'
-import { IAliShareItem, IAliShareRecentItem } from './alimodels'
+import { IAliShareBottleFishItem, IAliShareItem, IAliShareRecentItem } from './alimodels'
 import AliDirFileList from './dirfilelist'
 
 export interface IAliShareResp {
@@ -16,6 +16,15 @@ export interface IAliShareResp {
 
 export interface IAliShareRecentResp {
   items: IAliShareRecentItem[]
+  itemsKey: Set<string>
+  next_marker: string
+
+  m_time: number
+  m_user_id: string
+}
+
+export interface IAliShareBottleFishResp {
+  items: IAliShareBottleFishItem[]
   itemsKey: Set<string>
   next_marker: string
 
@@ -129,11 +138,35 @@ export default class AliShareList {
     return dir
   }
 
+  static async ApiShareBottleFishListAll(user_id: string): Promise<IAliShareBottleFishResp> {
+    const dir: IAliShareBottleFishResp = {
+      items: [],
+      itemsKey: new Set(),
+      next_marker: '',
+      m_time: 0,
+      m_user_id: user_id
+    }
+    do {
+      const isGet = await AliShareList.ApiShareBottleFishListOnePage(dir)
+      if (!isGet) {
+        break
+      }
+    } while (dir.next_marker)
+    return dir
+  }
+
   static async ApiShareRecentListOnePage(dir: IAliShareRecentResp): Promise<boolean> {
     const url = 'adrive/v2/share_link/recent_copy_list'
     const postData = { limit: 50, marker: dir.next_marker, order_by: 'gmt_modified DESC' /* 更新时间 降序 */ }
     const resp = await AliHttp.Post(url, postData, dir.m_user_id, '')
     return AliShareList._ShareRecentListOnePage(dir, resp)
+  }
+
+  static async ApiShareBottleFishListOnePage(dir: IAliShareBottleFishResp): Promise<boolean> {
+    const url = 'adrive/v1/bottle/list'
+    const postData = { limit: 100 }
+    const resp = await AliHttp.Post(url, postData, dir.m_user_id, '')
+    return AliShareList._ShareBottleFishListOnePage(dir, resp)
   }
 
   static _ShareRecentListOnePage(dir: IAliShareRecentResp, resp: IUrlRespData): boolean {
@@ -184,28 +217,58 @@ export default class AliShareList {
     return false
   }
 
+  static _ShareBottleFishListOnePage(dir: IAliShareBottleFishResp, resp: IUrlRespData): boolean {
+    try {
+      if (AliHttp.IsSuccess(resp.code)) {
+        dir.next_marker = ''
+        for (let i = 0, maxi = resp.body.items.length; i < maxi; i++) {
+          const item = resp.body.items[i] as IAliShareBottleFishItem
+          const add = Object.assign({}, item) as IAliShareBottleFishItem
+          if (dir.itemsKey.has(item.bottleId)) continue
+          if (!add.share_name) add.share_name = 'share_name'
+          if (add.gmtCreate) {
+            add.gmt_created = humanDateTime(new Date(add.gmtCreate).getTime())
+          } else {
+            add.gmt_created = ''
+          }
+          if (add.saved) add.saved_msg = '已保存'
+          else add.saved_msg = '未保存'
+          dir.items.push(add)
+          dir.itemsKey.add(add.bottleId)
+        }
+        return true
+      } else if (resp.code == 404) {
+        dir.items.length = 0
+        dir.next_marker = ''
+        return true
+      } else if (resp.body && resp.body.code) {
+        dir.items.length = 0
+        dir.next_marker = resp.body.code
+        message.warning('列出好运瓶领取记录列表出错' + resp.body.code, 2)
+        return false
+      } else if (!AliHttp.HttpCodeBreak(resp.code)) {
+        DebugLog.mSaveWarning('_ShareBottleFishListOnePage err=' + (resp.code || ''), resp.body)
+      }
+    } catch (err: any) {
+      DebugLog.mSaveDanger('_ShareBottleFishListOnePage', err)
+    }
+    dir.next_marker = 'error ' + resp.code
+    return false
+  }
+
   static async ApiShareListUntilShareID(user_id: string, share_id: string): Promise<boolean> {
     const url = 'adrive/v3/share_link/list'
     const postData = {
-
       marker: '',
       creator: user_id,
       include_canceled: false,
       order_by: 'created_at',
       order_direction: 'DESC'
     }
-    for (let j = 0; j < 10; j++) {
-      const resp = await AliHttp.Post(url, postData, user_id, '')
-      try {
-        if (AliHttp.IsSuccess(resp.code)) {
-          for (let i = 0, maxi = resp.body.items.length; i < maxi; i++) {
-            const item = resp.body.items[i] as IAliShareItem
-            if (item.share_id == share_id) return true
-          }
-        }
-      } catch {
-      }
-      await Sleep(500)
+    const resp = await AliHttp.Post(url, postData, user_id, '')
+    for (let i = 0, maxi = resp.body.items.length; i < maxi; i++) {
+      const item = resp.body.items[i] as IAliShareItem
+      if (item.share_id == share_id) return true
     }
     return false
   }

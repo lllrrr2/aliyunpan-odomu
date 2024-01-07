@@ -150,7 +150,8 @@ export default class AliDirFileList {
 
     let max: number = useSettingStore().debugFileListMax
     if (dirID == 'favorite' || dirID.startsWith('color')
-      || dirID.startsWith('search') || dirID.startsWith('video')) {
+      || dirID.startsWith('search') || dirID == 'trash'
+      || dirID.startsWith('video') || dirID == 'recover') {
       max = useSettingStore().debugFavorListMax
     }
 

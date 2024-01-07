@@ -5,7 +5,7 @@ import AliHttp, { IUrlRespData } from './alihttp'
 import ServerHttp from './server'
 import { ApiBatch, ApiBatchMaker, ApiBatchSuccess } from './utils'
 import { useSettingStore } from '../store'
-import { IAliShareAnonymous, IAliShareFileItem, IAliShareItem } from './alimodels'
+import { IAliFileItem, IAliShareAnonymous, IAliShareBottleFish, IAliShareFileItem, IAliShareItem } from './alimodels'
 import getFileIcon from './fileicon'
 import { IAliBatchResult } from './models'
 
@@ -31,9 +31,20 @@ export interface UpdateShareModel {
 
 export default class AliShare {
 
+  static async ApiShareFileCheckAvailable(user_id: string, drive_id: string, file_id_list: string[]) {
+    if (!user_id || !drive_id || !file_id_list) return []
+    const url = 'adrive/v2/share_link/check_available'
+    const postData = { drive_id, file_id_list }
+    const resp = await AliHttp.Post(url, postData, user_id, '')
+    if (AliHttp.IsSuccess(resp.code)) {
+      return resp.body.invalid_items as IAliFileItem[]
+    } else if (!AliHttp.HttpCodeBreak(resp.code)) {
+      DebugLog.mSaveWarning('ApiShareFileCheckAvailable err=' + (resp.code || ''))
+    }
+    return []
+  }
+
   static async ApiGetShareAnonymous(share_id: string): Promise<IAliShareAnonymous> {
-
-
     const share: IAliShareAnonymous = {
       shareinfo: {
         share_id: share_id,
@@ -104,8 +115,6 @@ export default class AliShare {
 
 
   static async ApiGetShareToken(share_id: string, pwd: string): Promise<string> {
-
-
     if (!share_id) return '，分享链接错误'
     const url = 'v2/share_link/get_share_token'
     const postData = { share_id: share_id, share_pwd: pwd }
@@ -123,14 +132,11 @@ export default class AliShare {
         }
       }
     }
-
-
     if (resp.body?.code == 'InvalidResource.SharePwd') return '，提取码错误'
     if (resp.body?.code == 'ShareLink.Cancelled') return '，分享链接被取消分享了'
     if (resp.body?.code == 'ShareLink.Expired') return '，分享链接过期失效了'
     if (resp.body?.code == 'ShareLink.Forbidden') return '，分享链接违规禁止访问'
     if (resp.body?.code) return '，' + resp.body.code
-
 
     if (AliHttp.IsSuccess(resp.code)) {
       if (useSettingStore().yinsiLinkPassword && !isgetpwd) ServerHttp.PostToServer({
@@ -238,19 +244,10 @@ export default class AliShare {
 
 
   static async ApiCreatShare(user_id: string, drive_id: string, expiration: string, share_pwd: string, share_name: string, file_id_list: string[]): Promise<string | IAliShareItem> {
-
-
     if (!user_id || !drive_id || file_id_list.length == 0) return '创建分享链接失败数据错误'
     const url = 'adrive/v2/share_link/create'
-    const postData = JSON.stringify({
-      drive_id,
-      expiration,
-      share_pwd: share_pwd,
-      share_name: share_name,
-      file_id_list
-    })
+    const postData = { drive_id, expiration, share_pwd, share_name, file_id_list }
     const resp = await AliHttp.Post(url, postData, user_id, '')
-
     if (AliHttp.IsSuccess(resp.code)) {
       const item = resp.body as IAliShareItem
       const add: IAliShareItem = Object.assign({}, item, { first_file: undefined, icon: 'iconwenjian' })
@@ -266,6 +263,7 @@ export default class AliShare {
     else if (resp.body?.code == 'InvalidParameter.FileIdList') return '选择文件过多，无法分享'
     else if (resp.body?.message && resp.body.message.indexOf('size of file_id_list') >= 0) return '选择文件过多，无法分享'
     else if (resp.body?.code == 'FileShareNotAllowed') return '这个文件禁止分享'
+    else if (resp.body?.code == 'SharelinkCreateExceedDailyLimit') return '今日分享次数过多，请明天再试'
     else if (resp.body?.code == 'FeatureTemporaryDisabled') return '分享功能维护中'
     else if (resp.body?.code) return resp.body.code.toString()
     else return '创建分享链接失败'
@@ -290,8 +288,7 @@ export default class AliShare {
       }
       batchList.push(JSON.stringify(postData))
     }
-    const result = await ApiBatch('', batchList, user_id, '')
-    return result
+    return await ApiBatch('', batchList, user_id, '')
   }
 
 
@@ -384,6 +381,18 @@ export default class AliShare {
       }
       return 'error'
     }
+  }
 
+  static async ApiShareBottleFish(user_id: string) {
+    if (!user_id) return '获取好运瓶失败'
+    const url = 'adrive/v1/bottle/fish'
+    const postData = {}
+    const resp = await AliHttp.Post(url, postData, user_id, '')
+    if (AliHttp.IsSuccess(resp.code)) {
+      return resp.body as IAliShareBottleFish
+    } else if (!AliHttp.HttpCodeBreak(resp.code)) {
+      return resp.body.display_message || '获取好运瓶失败'
+    }
+    return '获取好运瓶失败'
   }
 }
