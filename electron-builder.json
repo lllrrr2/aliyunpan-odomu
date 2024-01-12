@@ -23,8 +23,7 @@
       { "from": "./static/engine/darwin/${arch}", "to": "./engine"}
     ],
     "target": [
-      { "target": "dmg", "arch": [ "x64", "arm64" ] },
-      { "target": "zip", "arch": [ "arm64" ] }
+      { "target": "dmg", "arch": [ "x64", "arm64" ] }
     ]
   },
   "linux": {
@@ -41,7 +40,7 @@
       { "target": "AppImage", "arch": [  "x64", "arm64", "armv7l" ] },
       { "target": "deb", "arch": [ "x64",  "arm64", "armv7l" ] },
       { "target": "rpm", "arch": [ "x64", "arm64", "armv7l" ] },
-      { "target": "zip", "arch": [ "x64" ] }
+      { "target": "pacman", "arch": [ "x64", "arm64", "armv7l" ] }
     ]
   },
   "win": {
@@ -54,8 +53,7 @@
       { "from": "./static/engine/win32/${arch}", "to": "./engine"}
     ],
     "target": [
-      { "target": "nsis", "arch": [ "x64", "ia32", "arm64" ] },
-      { "target": "zip", "arch": [ "x64", "ia32", "arm64" ] }
+      { "target": "nsis", "arch": [ "x64", "ia32", "arm64" ] }
     ]
   },
   "dmg": {
@@ -77,7 +75,7 @@
       "owner": "odomu",
       "repo": "aliyunpan",
       "provider": "github",
-      "releaseType": "prerelease"
+      "releaseType": "draft"
     }
   ]
 }
