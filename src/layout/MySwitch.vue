@@ -3,6 +3,7 @@ import { PropType } from 'vue'
 
 const props = defineProps({
   value: { type: Boolean },
+  disabled: { type: Boolean },
   beforeChange: {
     type: Function as PropType<(newValue: string | number | boolean) => Promise<boolean | void> | boolean | void>
   }
@@ -15,9 +16,12 @@ const emits = defineEmits(['update:value', 'change'])
     <a-switch type="round" :model-value='value' tabindex='-1'
               :before-change="beforeChange"
               @change="$emit('change', $event)"
+              :disabled="disabled"
               @update:model-value="$emit('update:value', $event)">
     </a-switch>
-    <span class='myswitchspan' @click="$emit('update:value', !value)"><slot></slot></span>
+    <span class='myswitchspan' @click="$emit('update:value', !value)">
+      <slot></slot>
+    </span>
   </div>
 </template>
 <style>

@@ -10,6 +10,8 @@ import DebugLog from '../utils/debuglog'
 import PanDAL from '../pan/pandal'
 import UploadingDAL from '../transfer/uploadingdal'
 import { Sleep } from '../utils/format'
+import { portIsOccupied } from '../utils/utils'
+import { createProxyServer } from '../utils/proxyhelper'
 
 export function PageMain() {
   if (window.WinMsg) return
@@ -25,10 +27,19 @@ export function PageMain() {
       await UserDAL.aLoadFromDB().catch((err: any) => {
         DebugLog.mSaveDanger('UserDALLDB', err)
       })
+      // 创建代理server
+      if (!window.MainProxyServer) {
+        window.MainProxyPort = await portIsOccupied(8000)
+        window.MainProxyServer = await createProxyServer(window.MainProxyPort)
+      } else {
+        window.MainProxyServer.on('close', () => {
+          window.MainProxyPort = 0
+          window.MainProxyServer = null
+        })
+      }
     })
     .then(async () => {
       await Sleep(500)
-
       // 启动时检查更新
       if (useSettingStore().uiLaunchAutoCheckUpdate) {
         ServerHttp.CheckUpgrade(false).catch((err: any) => {
@@ -69,7 +80,7 @@ export function PageMain() {
     })
 }
 
-export const WinMsg = (arg: any) => {
+export const WinMsg = async (arg: any) => {
   if (arg.cmd == 'MainUploadEvent') {
     if (arg.ReportList.length > 0 && arg.ReportList.length != arg.RunningKeys.length) {
       console.log('RunningKeys', arg)

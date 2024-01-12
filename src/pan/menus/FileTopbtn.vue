@@ -1,5 +1,5 @@
-<script lang='ts'>
-import { computed, defineComponent } from 'vue'
+<script setup lang='ts'>
+import { computed } from 'vue'
 
 import {
   menuAddAlbumSelectFile,
@@ -7,7 +7,6 @@ import {
   menuCopyFileTree,
   menuCopySelectedFile,
   menuCreatShare,
-  menuDLNA,
   menuDownload,
   menuFavSelectFile,
   menuFileColorChange,
@@ -18,71 +17,47 @@ import {
 } from '../topbtns/topbtn'
 import { modalRename, modalShuXing } from '../../utils/modal'
 
-export default defineComponent({
-  props: {
-    dirtype: {
-      type: String,
-      required: true
-    },
-    isvideo: {
-      type: Boolean,
-      required: true
-    },
-    isselected: {
-      type: Boolean,
-      required: true
-    },
-    isselectedmulti: {
-      type: Boolean,
-      required: true
-    },
-    isallfavored: {
-      type: Boolean,
-      required: true
-    },
-    isallcolored: {
-      type: Boolean,
-      required: true
-    },
-    inputselectType: {
-      type: String,
-      required: true
-    },
-    inputpicType: {
-      type: String,
-      required: true
-    }
+const props = defineProps({
+  dirtype: {
+    type: String,
+    required: true
   },
-  setup(props) {
-    const istree = false
-    const isShowBtn = computed(() => {
-      return (props.dirtype === 'pic' && props.inputpicType != 'mypic')
-        || props.dirtype === 'mypic' || props.dirtype === 'pan'
-    })
-    const isPic = computed(() => {
-      return (props.dirtype === 'pic' && props.inputpicType == 'mypic')
-    })
-    return {
-      istree,
-      isShowBtn,
-      isPic,
-      menuDownload,
-      menuCreatShare,
-      menuFavSelectFile,
-      menuTrashSelectFile,
-      menuAddAlbumSelectFile,
-      modalRename,
-      menuCopySelectedFile,
-      modalShuXing,
-      menuJumpToDir,
-      menuVideoXBT,
-      menuDLNA,
-      menuM3U8Download,
-      menuCopyFileName,
-      menuCopyFileTree,
-      menuFileColorChange
-    }
+  isvideo: {
+    type: Boolean,
+    required: true
+  },
+  isselected: {
+    type: Boolean,
+    required: true
+  },
+  isselectedmulti: {
+    type: Boolean,
+    required: true
+  },
+  isallfavored: {
+    type: Boolean,
+    required: true
+  },
+  isallcolored: {
+    type: Boolean,
+    required: true
+  },
+  inputselectType: {
+    type: String,
+    required: true
+  },
+  inputpicType: {
+    type: String,
+    required: true
   }
+})
+const istree = false
+const isShowBtn = computed(() => {
+  return (props.dirtype === 'pic' && props.inputpicType != 'mypic')
+    || props.dirtype === 'mypic' || props.dirtype === 'pan'
+})
+const isPic = computed(() => {
+  return (props.dirtype === 'pic' && props.inputpicType == 'mypic')
 })
 </script>
 
@@ -109,12 +84,8 @@ export default defineComponent({
               @click='() => menuFavSelectFile(istree, false)'>
       <i class='iconfont iconcrown2' />取消收藏
     </a-button>
-    <a-button v-show='isShowBtn && isallcolored' type='text' size='small' tabindex='-1' title='Ctrl+M'
-              @click="() => menuFileColorChange(istree, '')">
-      <i class='iconfont iconfangkuang' />清除标记
-    </a-button>
     <a-button v-show='dirtype === "mypic"' type='text' size='small' tabindex='-1'
-              @click='() => menuTrashSelectFile(istree, false, isPic)'>
+              @click='() => menuTrashSelectFile(istree, false, true)'>
       <i class='iconfont iconqingkong' />移出相册
     </a-button>
     <a-button v-show='dirtype === "pic" && inputpicType === "pic"' type='text' size='small' tabindex='-1'
@@ -122,7 +93,7 @@ export default defineComponent({
       <i class='iconfont iconmoveto' />添加到相册
     </a-button>
     <a-button v-show='isShowBtn' title='F2 / Ctrl+E' type='text' size='small' tabindex='-1'
-               @click='() => modalRename(istree, isselectedmulti, isPic)'>
+              @click='() => modalRename(istree, isselectedmulti, isPic)'>
       <i class='iconfont iconedit-square' />重命名
     </a-button>
     <a-dropdown v-if="dirtype !== 'video'" trigger='hover' class='rightmenu' position='bl'>
@@ -172,6 +143,11 @@ export default defineComponent({
         <a-doption v-show='isvideo' @click='() => menuVideoXBT()'>
           <template #icon><i class='iconfont iconjietu' /></template>
           <template #default>雪碧图</template>
+        </a-doption>
+        <a-doption v-show='isShowBtn && isallcolored' type='text' size='small' tabindex='-1' title='Ctrl+M'
+                   @click="() => menuFileColorChange(istree, '')">
+          <template #icon><i class='iconfont iconfangkuang' /></template>
+          <template #default>清除标记</template>
         </a-doption>
         <!--        <a-doption v-show="isvideo" @click="() => menuDLNA()">-->
         <!--          <template #icon> <i class="iconfont icontouping2" /> </template>-->

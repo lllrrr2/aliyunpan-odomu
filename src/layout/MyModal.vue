@@ -26,9 +26,11 @@ import MoveToAlbumModal from '../pan/topbtns/MoveToAlbumModal.vue'
 import ShowUpdateLog from '../pan/topbtns/ShowUpdateLog.vue'
 import PostModal from '../pan/topbtns/PostModal.vue'
 import UserRewardSpace from '../user/UserRewardSpace.vue'
+import PasswordModal from '../pan/topbtns/PasswordModal.vue'
 
 export default defineComponent({
   components: {
+    PasswordModal,
     UserRewardSpace,
     UserSpaceModal,
     RenameModal,
@@ -64,7 +66,7 @@ export default defineComponent({
 
 <template>
   <UserSpaceModal :visible="modalStore.modalName == 'userspace'" />
-  <UserRewardSpace :visible="modalStore.modalName == 'userrewardspace'" :user_id="modalStore.modalData.user_id || ''"/>
+  <UserRewardSpace :visible="modalStore.modalName == 'userrewardspace'" :user_id="modalStore.modalData.user_id || ''" />
   <CreatNewFileModal :visible="modalStore.modalName == 'creatfile'" />
   <CreatNewAlbumModal :visible="modalStore.modalName == 'creatalbum'" />
   <MoveToAlbumModal :visible="modalStore.modalName == 'movetoalbum'" :istree='modalStore.modalData.istree || false' />
@@ -128,7 +130,8 @@ export default defineComponent({
   <UploadModal :visible="modalStore.modalName == 'upload'"
                :file_id="modalStore.modalData.file_id || ''"
                :filelist='modalStore.modalData.filelist || []'
-               :ispic='modalStore.modalData.ispic || false' />
+               :ispic='modalStore.modalData.ispic || false'
+               :encType="modalStore.modalData.encType || ''" />
   <DownloadModal :visible="modalStore.modalName == 'download'" :istree='modalStore.modalData.istree || false' />
 
   <SelectPanDirModal :visible="modalStore.modalName == 'selectpandir'"
@@ -143,6 +146,10 @@ export default defineComponent({
   <PostModal :visible="modalStore.modalName == 'showpostmodal'"
              :msg='modalStore.modalData.msg || ""'
              :msgid='modalStore.modalData.msgid || ""' />
+
+  <PasswordModal :visible="modalStore.modalName == 'showpassword'"
+                 :optType="modalStore.modalData.optType || 'input'"
+                 :callback="modalStore.modalData.callback" />
 
 </template>
 <style>

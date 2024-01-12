@@ -111,7 +111,7 @@ async function ApiDuplicateList(user_id: string, drive_id: string, category: str
         for (let i = 0, maxi = resp.body.items.length; i < maxi; i++) {
           const oneItems = resp.body.items[i].items as IAliFileItem[]
           for (let j = 0; j < oneItems.length; j++) {
-            const add = AliDirFileList.getFileInfo(oneItems[j], '')
+            const add = AliDirFileList.getFileInfo(user_id, oneItems[j], '')
             add.namesearch = oneItems[j].content_hash
             items.push(add)
           }

@@ -195,26 +195,28 @@ const handleHide = () => {
   modalCloseAll()
 }
 
+const searchData = (keyword: string) => {
+  const loop = (data: TreeNodeData[]) => {
+    const result: TreeNodeData[] = []
+    data.forEach((item: TreeNodeData) => {
+      if (item.isLeaf && item.title.toLowerCase().indexOf(keyword) > 0) {
+        result.push({ ...item })
+      } else if (item.isDir && item.children) {
+        const filterData = loop(item.children)
+        if (filterData.length) {
+          result.push({ ...item, children: filterData })
+        }
+      }
+    })
+    return result
+  }
+
+  return loop(treeData.value)
+}
 const filteredTreeData = computed(() => {
   const keyword = filterKeyword.value.trim().toLowerCase()
-  if (!keyword) {
-    // 如果关键词为空，则返回原始的文件树数据
-    return treeData.value
-  } else {
-    const matchedNodes: TreeNodeData[] = []
-    for (const node of treeData.value) {
-      if (node.isDir && node.children.length > 0) {
-        for (const cnode of node.children) {
-          if (cnode.title.toLowerCase().includes(keyword)) {
-            matchedNodes.push(cnode)
-          }
-        }
-      } else if (node.isLeaf && node.title.toLowerCase().includes(keyword)) {
-        matchedNodes.push(node)
-      }
-    }
-    return matchedNodes
-  }
+  if (!keyword) return treeData.value
+  return searchData(keyword)
 })
 
 const handleFilterChange = (val: any) => {
@@ -462,7 +464,9 @@ async function getNodeAllFiles(share_id: string, share_token: string, file_id: s
           <i class='ant-tree-switcher-icon iconfont Arrow' />
         </template>
         <template #title='{ dataRef }'>
-          <span :class="'sharetitleleft' + (fileList.has(dataRef.key) ? ' new' : '')">{{ dataRef.title }}</span>
+          <span :class="'sharetitleleft' + (fileList.has(dataRef.key) ? ' new' : '')">
+             {{ dataRef?.title }}
+          </span>
           <span class='sharetitleright'>{{ dataRef.sizeStr }}</span>
           <span class='sharetitleright'>{{ dataRef.timeStr }}</span>
         </template>
@@ -576,6 +580,11 @@ async function getNodeAllFiles(share_id: string, share_token: string, file_id: s
 
 .sharetree .sharetitleleft.new {
   color: rgb(var(--primary-6));
+}
+
+.sharetree .sharetitleleft .filter-text {
+  color: red;
+  font-weight: bold;
 }
 
 .sharetree .sharetitleright {

@@ -59,6 +59,10 @@ class Rc4Md5 {
     return this.PRGAExcute(plainBuffer)
   }
 
+  decrypt(plainBuffer: Buffer): Buffer {
+    return this.PRGAExcute(plainBuffer)
+  }
+
   encryptTransform(): Transform {
     return new Transform({
       transform: (chunk, encoding, next) => {
@@ -70,7 +74,7 @@ class Rc4Md5 {
   decryptTransform(): Transform {
     return new Transform({
       transform: (chunk, encoding, next) => {
-        next(null, this.encrypt(chunk))
+        next(null, this.decrypt(chunk))
       }
     })
   }

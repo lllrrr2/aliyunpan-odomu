@@ -12,6 +12,7 @@ import SettingAria from './SettingAria.vue'
 import SettingLog from './SettingLog.vue'
 import SettingProxy from './SettingProxy.vue'
 import SettingWebDav from './SettingWebDav.vue'
+import SettingSecurity from './SettingSecurity.vue'
 
 const appStore = useAppStore()
 
@@ -28,16 +29,17 @@ onMounted(() => {
     },
     {
       root: document.getElementById('SettingObserver'),
-      threshold: 0.4
+      threshold: 0.5
     }
   )
 
   observer.observe(document.getElementById('SettingUI')!)
   observer.observe(document.getElementById('SettingAccount')!)
-  observer.observe(document.getElementById('SettingDown')!)
-  observer.observe(document.getElementById('SettingUpload')!)
+  observer.observe(document.getElementById('SettingSecurity')!)
   observer.observe(document.getElementById('SettingPlay')!)
   observer.observe(document.getElementById('SettingPan')!)
+  observer.observe(document.getElementById('SettingDown')!)
+  observer.observe(document.getElementById('SettingUpload')!)
   observer.observe(document.getElementById('SettingWebDav')!)
   observer.observe(document.getElementById('SettingDebug')!)
   observer.observe(document.getElementById('SettingProxy')!)
@@ -64,13 +66,9 @@ onUnmounted(() => {
           <template #icon><i class="iconfont iconrobot" /></template>
           账户设置
         </a-menu-item>
-        <a-menu-item key="SettingDown">
-          <template #icon><i class="iconfont icondownload" /></template>
-          下载文件
-        </a-menu-item>
-        <a-menu-item key="SettingUpload">
-          <template #icon><i class="iconfont iconupload" /></template>
-          上传文件
+        <a-menu-item key="SettingSecurity">
+          <template #icon><i class="iconfont iconchrome" /></template>
+          安全设置
         </a-menu-item>
         <a-menu-item key="SettingPlay">
           <template #icon><i class="iconfont iconshipin" /></template>
@@ -79,6 +77,14 @@ onUnmounted(() => {
         <a-menu-item key="SettingPan">
           <template #icon><i class="iconfont iconfile-folder" /></template>
           网盘设置
+        </a-menu-item>
+        <a-menu-item key="SettingDown">
+          <template #icon><i class="iconfont icondownload" /></template>
+          下载文件
+        </a-menu-item>
+        <a-menu-item key="SettingUpload">
+          <template #icon><i class="iconfont iconupload" /></template>
+          上传文件
         </a-menu-item>
         <a-menu-item key='SettingWebDav'>
           <template #icon><i class='iconfont iconchuanshu2' /></template>
@@ -116,18 +122,11 @@ onUnmounted(() => {
           </div>
           <SettingAccount />
         </div>
-        <div id="SettingDown">
+        <div id="SettingSecurity">
           <div>
-            <a-divider :size="2" orientation="center" class="settinghr">下载文件</a-divider>
+            <a-divider :size="2" orientation="center" class="settinghr">安全设置</a-divider>
           </div>
-          <SettingDown />
-        </div>
-
-        <div id="SettingUpload">
-          <div>
-            <a-divider :size="2" orientation="center" class="settinghr">上传文件</a-divider>
-          </div>
-          <SettingUpload />
+          <SettingSecurity />
         </div>
         <div id="SettingPlay">
           <div>
@@ -140,6 +139,19 @@ onUnmounted(() => {
             <a-divider :size="2" orientation="center" class="settinghr">网盘设置</a-divider>
           </div>
           <SettingPan />
+        </div>
+        <div id="SettingDown">
+          <div>
+            <a-divider :size="2" orientation="center" class="settinghr">下载文件</a-divider>
+          </div>
+          <SettingDown />
+        </div>
+
+        <div id="SettingUpload">
+          <div>
+            <a-divider :size="2" orientation="center" class="settinghr">上传文件</a-divider>
+          </div>
+          <SettingUpload />
         </div>
         <div id='SettingWebDav'>
           <div>

@@ -64,42 +64,35 @@ const handleUpdateLog = () => {
         <a-radio tabindex='-1' value='dark'>深色模式</a-radio>
       </a-radio-group>
     </div>
-    <div class='settingspace'></div>
-    <a-row class='grid-demo'>
-      <a-col flex='252px'>
-        <div class='settinghead'>:启动时检查更新</div>
-        <div class='settingrow'>
-          <MySwitch :value='settingStore.uiLaunchAutoCheckUpdate'
-                    @update:value='cb({ uiLaunchAutoCheckUpdate: $event })'>
-            自动检查更新
-          </MySwitch>
-        </div>
-      </a-col>
-      <a-col flex='180px'>
-        <div class='settinghead'>:启动时自动签到</div>
-        <div class='settingrow'>
-          <MySwitch :value='settingStore.uiLaunchAutoSign' @update:value='cb({ uiLaunchAutoSign: $event })'>自动签到
-          </MySwitch>
-        </div>
-      </a-col>
-    </a-row>
     <template v-if="['win32', 'darwin'].includes(os.platform())">
       <div class='settingspace'></div>
-      <div class='settinghead'>:开机自启</div>
+      <div class='settinghead'>:开机自启设置</div>
       <div class='settingrow'>
-        <a-row class='grid-demo'>
-          <a-col flex='180px'>
-            <MySwitch :value='settingStore.uiLaunchStart' @update:value='cb({ uiLaunchStart: $event })'>开机自动启动
-            </MySwitch>
-          </a-col>
-          <a-col flex='180px'>
-            <MySwitch :value='settingStore.uiLaunchStartShow' @update:value='cb({ uiLaunchStartShow: $event })'>
-              显示主窗口
-            </MySwitch>
-          </a-col>
-        </a-row>
+        <MySwitch :value='settingStore.uiLaunchStart' @update:value='cb({ uiLaunchStart: $event })'>
+          开机时自动启动
+        </MySwitch>
+      </div>
+      <div class='settingrow'>
+        <MySwitch :value='settingStore.uiLaunchStartShow' @update:value='cb({ uiLaunchStartShow: $event })'>
+          自动启动后显示主窗口
+        </MySwitch>
       </div>
     </template>
+    <div class='settingspace'></div>
+    <div class='settinghead'>:检查更新设置</div>
+    <div class='settingrow'>
+      <MySwitch :value='settingStore.uiLaunchAutoCheckUpdate'
+                @update:value='cb({ uiLaunchAutoCheckUpdate: $event })'>
+        启动时检查更新
+      </MySwitch>
+    </div>
+    <div class='settingspace'></div>
+    <div class='settinghead'>:自动签到设置</div>
+    <div class='settingrow'>
+      <MySwitch :value='settingStore.uiLaunchAutoSign' @update:value='cb({ uiLaunchAutoSign: $event })'>
+        启动时自动签到
+      </MySwitch>
+    </div>
     <div class='settingspace'></div>
     <div class='settinghead'>:关闭时彻底退出</div>
     <div class='settingrow'>

@@ -1,10 +1,14 @@
 import DebugLog from '../utils/debuglog'
 import AliHttp from './alihttp'
 import { IUploadCreat, IUploadInfo } from './models'
+import { EncodeEncName } from './utils'
 
 export default class AliUpload {
-
-  static async UploadCreatFileWithPreHash(user_id: string, drive_id: string, parent_file_id: string, name: string, fileSize: number, prehash: string, check_name_mode: string): Promise<IUploadCreat> {
+  static async UploadCreatFileWithPreHash(
+    user_id: string, drive_id: string, parent_file_id: string,
+    filename: string, fileSize: number,
+    prehash: string, check_name_mode: string, encType: string = ''
+  ): Promise<IUploadCreat> {
     const result: IUploadCreat = {
       user_id,
       drive_id,
@@ -15,7 +19,7 @@ export default class AliUpload {
       part_info_list: [],
       errormsg: ''
     }
-    if (!user_id || !drive_id || !parent_file_id || !name) {
+    if (!user_id || !drive_id || !parent_file_id || !filename) {
       result.errormsg = '创建文件失败(数据错误)'
       return result
     }
@@ -34,7 +38,7 @@ export default class AliUpload {
     } = {
       drive_id,
       parent_file_id: parent_file_id,
-      name: name,
+      name: filename,
       type: 'file',
       check_name_mode: check_name_mode == 'ignore' ? 'refuse' : check_name_mode,
       size: fileSize,
@@ -77,7 +81,7 @@ export default class AliUpload {
       if (resp.body.exist) {
         if (check_name_mode == 'ignore') {
           await AliUpload.UploadFileDelete(user_id, drive_id, result.file_id).catch()
-          return await AliUpload.UploadCreatFileWithPreHash(user_id, drive_id, parent_file_id, name, fileSize, prehash, check_name_mode)
+          return await AliUpload.UploadCreatFileWithPreHash(user_id, drive_id, parent_file_id, filename, fileSize, prehash, check_name_mode)
         } else {
           result.errormsg = '出错暂停，网盘内有重名文件'
         }
@@ -105,7 +109,12 @@ export default class AliUpload {
     }
   }
 
-  static async UploadCreatFileWithFolders(user_id: string, drive_id: string, parent_file_id: string, name: string, fileSize: number, hash: string, proof_code: string, check_name_mode: string): Promise<IUploadCreat> {
+  static async UploadCreatFileWithFolders(
+    user_id: string, drive_id: string,
+    parent_file_id: string, filename: string,
+    fileSize: number, hash: string, proof_code: string,
+    check_name_mode: string, encType: string = ''
+  ): Promise<IUploadCreat> {
     const result: IUploadCreat = {
       user_id,
       drive_id,
@@ -116,12 +125,13 @@ export default class AliUpload {
       part_info_list: [],
       errormsg: ''
     }
-    if (!user_id || !drive_id || !parent_file_id || !name) {
+    if (!user_id || !drive_id || !parent_file_id || !filename) {
       result.errormsg = '创建文件失败(数据错误)'
       return result
     }
     if (parent_file_id.includes('root')) parent_file_id = 'root'
     const url = 'adrive/v2/file/createWithFolders'
+    const name = EncodeEncName(user_id, filename, false, encType)
     const postData: {
       drive_id: string
       parent_file_id: string
@@ -134,7 +144,8 @@ export default class AliUpload {
       proof_code?: string
       proof_version?: string
       part_info_list: { part_number: number; part_size: number }[]
-      ignore_rapid?: boolean
+      ignore_rapid?: boolean,
+      description: string
     } = {
       drive_id,
       parent_file_id: parent_file_id,
@@ -142,9 +153,9 @@ export default class AliUpload {
       type: 'file',
       check_name_mode: check_name_mode == 'ignore' ? 'refuse' : check_name_mode,
       size: fileSize,
-      part_info_list: []
+      part_info_list: [],
+      description: encType
     }
-
 
     if (hash) {
       postData.content_hash = hash.toUpperCase()
@@ -203,9 +214,7 @@ export default class AliUpload {
           result.errormsg = ''
         } else {
           if (check_name_mode == 'ignore') {
-
-            await AliUpload.UploadFileDelete(user_id, drive_id, result.file_id).catch(() => {
-            })
+            await AliUpload.UploadFileDelete(user_id, drive_id, result.file_id).catch()
             return await AliUpload.UploadCreatFileWithFolders(user_id, drive_id, parent_file_id, name, fileSize, hash, proof_code, check_name_mode)
           } else {
 

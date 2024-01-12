@@ -23,6 +23,7 @@ import { Tooltip as AntdTooltip } from 'ant-design-vue'
 import 'ant-design-vue/es/tooltip/style/css'
 import { IStateDownFile } from './DownDAL'
 import { TestButton } from '../utils/mosehelper'
+import { xorWith } from 'lodash'
 
 const viewlist = ref()
 const inputsearch = ref()
@@ -55,6 +56,18 @@ const onSelectRangStart = () => {
   rangSelectStart.value = ''
   rangSelectEnd.value = ''
   rangSelectFiles.value = {}
+  downedStore.mRefreshListDataShow(false)
+}
+const onSelectReverse = () => {
+  onHideRightMenuScroll()
+  const listData = downedStore.ListDataShow
+  const listSelected = downedStore.GetSelected()
+  const reverseSelect = xorWith(listData, listSelected, (a, b) => a.DownID === b.DownID)
+  downedStore.ListSelected.clear()
+  downedStore.ListFocusKey = ''
+  if (reverseSelect.length > 0) {
+    downedStore.mRangSelect(reverseSelect[0].DownID, reverseSelect.map(r => r.DownID))
+  }
   downedStore.mRefreshListDataShow(false)
 }
 const onSelectCancel = () => {
@@ -237,7 +250,7 @@ const handleRightClick = (e: { event: MouseEvent; node: any }) => {
     </div>
     <div class="selectInfo">{{ downedStore.ListDataSelectCountInfo }}</div>
     <div style='margin: 0 2px'>
-      <AntdTooltip placement='rightTop'>
+      <AntdTooltip placement='rightTop' v-if="downedStore.ListDataShow.length > 0">
         <a-button shape='square' type='text' tabindex='-1' class='qujian'
                   :status="rangIsSelecting ? 'danger' : 'normal'" title='Ctrl+Q' @click='onSelectRangStart'>
           {{ rangIsSelecting ? '取消选择' : '区间选择' }}
@@ -252,6 +265,14 @@ const handleRightClick = (e: { event: MouseEvent; node: any }) => {
           </div>
         </template>
       </AntdTooltip>
+      <a-button shape='square'
+                v-if='!rangIsSelecting && downedStore.ListSelected.size > 0 && downedStore.ListSelected.size < downedStore.ListDataShow.length'
+                type='text'
+                tabindex='-1'
+                class='qujian'
+                status='normal' @click='onSelectReverse'>
+        反向选择
+      </a-button>
       <a-button shape='square' v-if='!rangIsSelecting && downedStore.ListSelected.size > 0' type='text' tabindex='-1' class='qujian'
                 status='normal' @click='onSelectCancel'>
         取消已选

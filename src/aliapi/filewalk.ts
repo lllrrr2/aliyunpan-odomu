@@ -59,7 +59,7 @@ export default class AliFileWalk {
         for (let i = 0, maxi = resp.body.items.length; i < maxi; i++) {
           const item = resp.body.items[i] as IAliFileItem
           if (dir.itemsKey.has(item.file_id)) continue
-          const add = AliDirFileList.getFileInfo(item, downUrl)
+          const add = AliDirFileList.getFileInfo(dir.m_user_id, item, downUrl)
           if (isRecover) add.description = item.content_hash
           dir.items.push(add)
           dir.itemsKey.add(item.file_id)

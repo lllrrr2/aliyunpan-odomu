@@ -37,7 +37,7 @@ const handleJumpPath = () => {
       </a-popover>
     </div>
     <div class="settingspace"></div>
-    <div class="settinghead">:收藏夹/回收站/全盘搜索/文件标记/文件恢复 显示限制</div>
+    <div class="settinghead">:收藏夹/回收站/全盘搜索/文件标记/文件恢复/历史导入 显示限制</div>
     <div class="settingrow">
       <div class="settingrow">
         <a-input-number tabindex="-1" :style="{ width: '252px' }" mode="button" :min="100"
@@ -50,9 +50,9 @@ const handleJumpPath = () => {
           <i class="iconfont iconbulb" />
           <template #content>
             <div>
-              默认：<span class="opred">100</span> (100-3000)
+              默认：<span class="opred">500</span> (500-3000)
               <hr />
-              收藏夹/回收站/全盘搜索/文件标记/放映室，只显示前1000个文件
+              收藏夹/回收站/全盘搜索/文件标记/放映室，只显示前500个文件
               <div class="hrspace"></div>
               <span class="oporg">注：</span>只是不显示，不影响文件。为了加快文件列表的加载速度
             </div>

@@ -17,8 +17,10 @@ export interface PanSelectedData {
   drive_id: string
   dirID: string
   parentDirID: string
+  fileDescription: string
+  parentDirDescription: string
   selectedKeys: string[]
-  selectedParentKeys: string[]
+  selectedParentKeys: string[],
 }
 
 const RefreshLock = new Set<string>()
@@ -284,16 +286,19 @@ export default class PanDAL {
   }
 
   static GetPanSelectedData(istree: boolean): PanSelectedData {
-    const pantreeStore = usePanTreeStore()
+    const panTreeStore = usePanTreeStore()
+    const panFileStore = usePanFileStore()
     const data: PanSelectedData = {
       isError: false,
       isErrorSelected: false,
-      user_id: pantreeStore.user_id,
-      drive_id: pantreeStore.drive_id,
-      dirID: pantreeStore.selectDir.file_id,
-      parentDirID: pantreeStore.selectDir.parent_file_id,
-      selectedKeys: istree ? [pantreeStore.selectDir.file_id] : usePanFileStore().GetSelectedID(),
-      selectedParentKeys: istree ? [pantreeStore.selectDir.parent_file_id] : usePanFileStore().GetSelectedParentDirID()
+      user_id: panTreeStore.user_id,
+      drive_id: panTreeStore.drive_id,
+      dirID: panTreeStore.selectDir.file_id,
+      parentDirID: panTreeStore.selectDir.parent_file_id,
+      selectedKeys: istree ? [panTreeStore.selectDir.file_id] : panFileStore.GetSelectedID(),
+      selectedParentKeys: istree ? [panTreeStore.selectDir.parent_file_id] : panFileStore.GetSelectedParentDirID(),
+      fileDescription: panFileStore.GetSelectedFirst()?.description || '',
+      parentDirDescription: panTreeStore.selectDir.description
     }
 
     data.isError = !data.user_id || !data.drive_id || !data.dirID

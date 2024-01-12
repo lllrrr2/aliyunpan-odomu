@@ -114,9 +114,7 @@ const handleClickXiMa = async () => {
       <div class="settingspace"></div>
       <div class="settinghead">:洗码方式说明</div>
       <div class="settingrow">
-        洗码会在原始文件的<span class="opblue">结尾增加</span>5字节的<span class="opblue">随机</span>数字(改变文件size/sha1/md5/crc64)，被洗码后的文件可以认为是全世界独一无二的。操作执行的很快的，1秒可以处理几千个文件。但是洗码操作不可逆，洗码后不可恢复，如果原文件很重要请提前<span class="oporg"
-          >自己备份一份</span
-        >！经过长期的测试验证，洗码后可以在网盘里长期保存。但洗码后如果创建分享，则会立即失效
+        洗码会在原始文件的<span class="opblue">结尾增加</span>5字节的<span class="opblue">随机</span>数字(改变文件size/sha1/md5/crc64)，被洗码后的文件可以认为是全世界独一无二的。操作执行的很快的，1秒可以处理几千个文件。但是洗码操作不可逆，洗码后不可恢复，如果原文件很重要请提前<span class="oporg">自己备份一份</span>！经过长期的测试验证，洗码后可以在网盘里长期保存。但洗码后如果创建分享，则会立即失效
       </div>
     </div>
   </div>

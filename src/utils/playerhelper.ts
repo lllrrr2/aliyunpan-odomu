@@ -1,7 +1,3 @@
-import { getUserDataPath } from './electronhelper'
-import fs, { stat } from 'node:fs'
-import net from 'net'
-import { IncomingMessage, ServerResponse } from 'http'
 import { existsSync } from 'fs'
 import message from './message'
 import is from 'electron-is'
@@ -12,8 +8,9 @@ import AliFileCmd from '../aliapi/filecmd'
 import levenshtein from 'fast-levenshtein'
 import AliDirFileList from '../aliapi/dirfilelist'
 import { usePanFileStore, useSettingStore } from '../store'
-import { GetExpiresTime } from './utils'
+import { createTmpFile } from './utils'
 import { IAliGetFileModel } from '../aliapi/alimodels'
+import { getEncType, getProxyUrl } from './proxyhelper'
 
 const PlayerUtils = {
   filterSubtitleFile(name: string, subTitlesList: any[]) {
@@ -37,7 +34,12 @@ const PlayerUtils = {
       message.error('在线预览失败 获取文件信息出错：' + info)
       return undefined
     }
-    let play_duration: number = info?.video_media_metadata.duration || info?.user_meta.duration || 0
+    let play_duration: number = 0
+    if (info?.video_media_metadata) {
+      play_duration = info?.video_media_metadata.duration
+    } else if (info?.user_meta) {
+      play_duration = info?.user_meta.duration
+    }
     let play_cursor: number = 0
     if (info?.play_cursor) {
       play_cursor = info?.play_cursor
@@ -54,10 +56,10 @@ const PlayerUtils = {
     }
     return { play_duration, play_cursor }
   },
-  async getVideoUrl(user_id: string, drive_id: string, file_id: string, weifa: boolean) {
+  async getVideoUrl(user_id: string, drive_id: string, file_id: string, weifa: boolean, encType: string | boolean = false) {
     let url = ''
-    let mode = ''
-    if (useSettingStore().uiVideoMode == 'online') {
+    let size = 0
+    if (!encType && useSettingStore().uiVideoMode == 'online') {
       const data = await AliFile.ApiVideoPreviewUrl(user_id, drive_id, file_id)
       if (data && data.url != '') {
         url = data.url
@@ -67,7 +69,12 @@ const PlayerUtils = {
       const data = await AliFile.ApiFileDownloadUrl(user_id, drive_id, file_id, 14400)
       if (typeof data !== 'string' && data.url && data.url != '') {
         url = data.url
+        size = data.size
       }
+    }
+    // 代理播放
+    if (typeof encType == 'string') {
+      url = getProxyUrl({ user_id, drive_id, file_id, encType, file_size: size, lastUrl: url })
     }
     return url
   },
@@ -80,56 +87,22 @@ const PlayerUtils = {
     }
     return curDirFileList.sort((a, b) => a.name.localeCompare(b.name, 'zh-CN'))
   },
-  createTmpFile(content: string, name: string) {
-    let tmpFile = ''
-    try {
-      // 生成临时文件路径
-      tmpFile = getUserDataPath(name)
-      // 向临时文件中写入数据
-      fs.writeFileSync(tmpFile, content)
-    } catch (err) {
-    }
-    return tmpFile
-  },
-  delTmpFile(tmpFilePath: string) {
-    stat(tmpFilePath, async (err, stats) => {
-      if (!err) {
-        fs.rmSync(tmpFilePath, { recursive: true })
-      }
-    })
-  },
-  portIsOccupied(port: number) {
-    return new Promise<number>((resolve, reject) => {
-      let server = net.createServer().listen(port)
-      server.on('listening', async () => {
-        console.log(`the server is runnint on port ${port}`)
-        server.close()
-        resolve(port) // 返回可用端口
-      })
-      server.on('error', (err: any) => {
-        if (err.code === 'EADDRINUSE') {
-          resolve(this.portIsOccupied(port + 1)) // 如传入端口号被占用则 +1
-          console.log(`this port ${port} is occupied.try another.`)
-        } else {
-          // reject(err)
-          resolve(port)
-        }
-      })
-    })
-  },
-  async createPlayListFile(port: number,
-                           file_id: string,
-                           duration: number,
-                           play_cursor: number,
-                           fileExt: string,
-                           fileList: IAliGetFileModel[]) {
+  async createPlayListFile(user_id: string, file_id: string, duration: number,
+                           play_cursor: number, fileExt: string, fileList: IAliGetFileModel[]) {
     let contentStr = ''
     if (fileExt.includes('m3u')) {
       let header = '#EXTM3U\r\n#EXT-X-ALLOW-CACHE:NO\r\n'
       let end = '#EXT-X-ENDLIST\r\n'
       let list = ''
       for (let item of fileList) {
-        const url = `http://127.0.0.1:${port}/play?drive_id=${item.drive_id}&file_id=${item.file_id}`
+        const encType = getEncType(item)
+        const url = getProxyUrl({
+          user_id,
+          drive_id: item.drive_id,
+          file_id: item.file_id,
+          encType,
+          file_size: item.size
+        })
         list += '#EXTINF:0,' + item.name + '\r\n' + url + '\r\n'
       }
       contentStr = header + list + end
@@ -144,7 +117,14 @@ const PlayerUtils = {
       for (let index = 0; index < fileList.length; index++) {
         const item = fileList[index]
         const start = index + 1
-        const url = `http://127.0.0.1:${port}/play?drive_id=${item.drive_id}&file_id=${item.file_id}`
+        const encType = getEncType(item)
+        const url = getProxyUrl({
+          user_id,
+          drive_id: item.drive_id,
+          file_id: item.file_id,
+          encType,
+          file_size: item.size
+        })
         let listStr = `${start}*file*${url}\r\n${start}*title*${item.name.trim()}\r\n${start}*played*0\r\n`
         if (item.file_id === file_id) {
           playname = 'playname=' + url
@@ -159,42 +139,7 @@ const PlayerUtils = {
       }
       contentStr = `${header}\r\n${playname}\r\n${playtime}\r\n${topindex}\r\n${saveplaypos}\r\n${list}`
     }
-    return this.createTmpFile(contentStr, 'play_list' + '.' + fileExt)
-  },
-  async createTmpServer(port: number, user_id: string, playInfo: any) {
-    const http = require('http')
-    const url = require('url')
-    // 创建服务器
-    const server = http.createServer(async (req: IncomingMessage, res: ServerResponse) => {
-      try {
-        const { pathname, query } = url.parse(req.url, true)
-        let fileId = query.file_id
-        if (pathname === '/play') {
-          if (!playInfo.playUrl || fileId != playInfo.playFileId || playInfo.playExpireTime <= Date.now()) {
-            // 获取真实播放地址
-            let url = await this.getVideoUrl(user_id, query.drive_id, fileId, false)
-            playInfo.drive_id = query.drive_id
-            playInfo.playUrl = url
-            playInfo.playFileId = fileId
-            playInfo.playExpireTime = GetExpiresTime(playInfo.playUrl)
-          }
-          // 重定向
-          res.writeHead(302, {
-            'Location': playInfo.playUrl
-          })
-          res.flushHeaders()
-          res.end()
-        } else {
-          res.writeHead(404, { 'Content-Type': 'text/plain' })
-          res.end('Not Found')
-        }
-      } catch (error) {
-        res.writeHead(500, { 'Content-Type': 'text/plain' })
-        res.end('Internal Server Error')
-      }
-    })
-    server.listen(port)
-    return server
+    return createTmpFile(contentStr, 'play_list' + '.' + fileExt)
   },
   async mpvPlayer(binary: string, playArgs: any, otherArgs: any, options: SpawnOptions, exitCallBack: any) {
     let { user_id, socketPath, fileList, playInfo } = otherArgs
@@ -219,8 +164,8 @@ const PlayerUtils = {
             const item = playInfo.playList[status.value]
             await AliFile.ApiUpdateVideoTime(user_id, playInfo.drive_id, currentFileId, currentTime)
             currentFileId = item && item.file_id || undefined
-            if (currentFileId && useSettingStore().uiAutoColorVideo && !item.description) {
-              AliFileCmd.ApiFileColorBatch(user_id, item.drive_id, 'ce74c3c', [currentFileId])
+            if (currentFileId && useSettingStore().uiAutoColorVideo && !item.description.includes('ce74c3c')) {
+              AliFileCmd.ApiFileColorBatch(user_id, item.drive_id, item.description ? item.description + ',' + 'ce74c3c' : 'ce74c3c', [currentFileId])
                 .then((success) => {
                   usePanFileStore().mColorFiles('ce74c3c', success)
                 })

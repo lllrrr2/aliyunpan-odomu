@@ -1,87 +1,92 @@
-<script lang='ts'>
+<script setup lang='ts'>
 import { usePanTreeStore, useSettingStore } from '../../store'
 import message from '../../utils/message'
 import { modalCloseAll } from '../../utils/modal'
-import { defineComponent, nextTick, PropType, ref } from 'vue'
+import { nextTick, PropType, ref } from 'vue'
 import UploadingDAL from '../../transfer/uploadingdal'
 import AliFile from '../../aliapi/file'
 
-export default defineComponent({
-  props: {
-    visible: {
-      type: Boolean,
-      required: true
-    },
-    file_id: {
-      type: String,
-      required: true
-    },
-    filelist: {
-      type: Array as PropType<string[]>,
-      required: true
-    },
-    ispic: {
-      type: Boolean,
-      required: true
-    }
+const props = defineProps({
+  visible: {
+    type: Boolean,
+    required: true
   },
-  setup(props) {
-    const okLoading = ref(false)
-    const dirPath = ref('')
-    const file_id = ref('')
-    const settingStore = useSettingStore()
-
-    const cb = (val: any) => {
-      settingStore.updateStore(val)
-    }
-
-    const handleOpen = () => {
-      file_id.value = props.ispic ? 'pic_root' : props.file_id
-      const pantreeStore = usePanTreeStore()
-      if (!file_id.value) file_id.value = pantreeStore.selectDir.file_id
-      if (!file_id.value) {
-        message.error('错误的网盘位置')
-        nextTick(() => {
-          modalCloseAll()
-        })
-        return
-      }
-      AliFile.ApiFileGetPathString(pantreeStore.user_id, pantreeStore.drive_id, file_id.value, '/').then((data) => {
-        dirPath.value = '/' + data + (props.ispic ? '/' + pantreeStore.selectDir.name : '')
-      })
-    }
-
-    const handleClose = () => {
-      if (okLoading.value) okLoading.value = false
-      dirPath.value = ''
-    }
-
-    return { okLoading, dirPath, file_id, settingStore, cb, handleOpen, handleClose }
+  file_id: {
+    type: String,
+    required: true
   },
-  methods: {
-    handleHide() {
-      modalCloseAll()
-    },
-    handleOK() {
-      const pantreeStore = usePanTreeStore()
-      const settingStore = useSettingStore()
-      UploadingDAL.aUploadLocalFiles(pantreeStore.user_id, pantreeStore.drive_id, this.file_id, this.filelist, settingStore.downUploadWhatExist, true)
-      modalCloseAll()
-    }
+  filelist: {
+    type: Array as PropType<string[]>,
+    required: true
+  },
+  ispic: {
+    type: Boolean,
+    required: true
+  },
+  encType: {
+    type: String,
+    required: true
   }
 })
+
+const okLoading = ref(false)
+const dirPath = ref('')
+const file_id = ref('')
+const settingStore = useSettingStore()
+
+const cb = (val: any) => {
+  settingStore.updateStore(val)
+}
+
+const handleOpen = () => {
+  file_id.value = props.ispic ? 'pic_root' : props.file_id
+  const pantreeStore = usePanTreeStore()
+  if (!file_id.value) {
+    file_id.value = pantreeStore.selectDir.file_id
+  }
+  if (!file_id.value) {
+    message.error('错误的网盘位置')
+    nextTick(() => {
+      modalCloseAll()
+    })
+    return
+  }
+  let fileName = pantreeStore.selectDir.name
+  AliFile.ApiFileGetPathString(pantreeStore.user_id, pantreeStore.drive_id, file_id.value, '/').then((data) => {
+    dirPath.value = '/' + data + (props.ispic ? '/' + fileName : '')
+  })
+}
+
+const handleClose = () => {
+  if (okLoading.value) okLoading.value = false
+  dirPath.value = ''
+}
+
+const handleHide = () => {
+  modalCloseAll()
+}
+const handleOK = () => {
+  const pantreeStore = usePanTreeStore()
+  const settingStore = useSettingStore()
+  UploadingDAL.aUploadLocalFiles(
+    pantreeStore.user_id, pantreeStore.drive_id,
+    props.file_id, props.filelist,
+    settingStore.downUploadWhatExist,
+    true, props.encType
+  )
+  modalCloseAll()
+}
 </script>
 
 <template>
   <a-modal :visible='visible' modal-class='modalclass' :footer='false' :unmount-on-close='true' :mask-closable='false'
            @cancel='handleHide' @before-open='handleOpen' @close='handleClose'>
     <template #title>
-      <span class='modaltitle'>上传 文件/文件夹 到网盘</span>
+      <span class='modaltitle'>{{ `${encType == 'enc' ? '加密' : encType == 'myenc' ? '私密' : ''}上传 文件/文件夹 到网盘` }}</span>
     </template>
     <div class='modalbody' style='width: 440px; max-height: calc(80vh - 100px); overflow-y: scroll'>
       <div class='settinghead'>
-        :把<span class='filelistcount'>{{ filelist.length }}</span
-      >个文件上传到网盘：
+        :把<span class='filelistcount'>{{ filelist.length }}</span>个文件上传到网盘：
       </div>
       <div class='settingrow'>
         <div class='pathtitle'>

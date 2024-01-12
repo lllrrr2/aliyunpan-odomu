@@ -8,7 +8,8 @@ import { HanToPin, MapValueToArray } from '../utils/utils'
 import AliHttp, { IUrlRespData } from './alihttp'
 import { IAliFileItem, IAliGetFileModel } from './alimodels'
 import getFileIcon from './fileicon'
-import { GetDriveID } from './utils'
+import { DecodeEncName, GetDriveID } from './utils'
+
 
 export interface IAliFileResp {
   items: IAliGetFileModel[]
@@ -45,22 +46,23 @@ export default class AliDirFileList {
   static LimitMax = 100
   static ItemJsonmask = 'category%2Ccreated_at%2Cdomain_id%2Cdrive_id%2Cfile_extension%2Cfile_id%2Chidden%2Cmime_extension%2Cmime_type%2Cname%2Cparent_file_id%2Cpunish_flag%2Csize%2Cstarred%2Ctype%2Cupdated_at%2Cdescription'
 
-  static getFileInfo(item: IAliFileItem, downUrl: string): IAliGetFileModel {
+  static getFileInfo(user_id: string, item: IAliFileItem, downUrl: string): IAliGetFileModel {
     const size = item.size ? item.size : 0
     const file_count = item.file_count || item.image_count || item.video_count || 0
     const time = new Date(item.updated_at || item.created_at || item.gmt_deleted || item.last_played_at || '')
     const timeStr = humanDateTimeDateStr(item.updated_at || item.created_at || item.gmt_deleted || item.last_played_at || '')
     const isDir = item.type == 'folder'
-
+    const { name, mine_type, ext } = DecodeEncName(user_id, item)
     const add: IAliGetFileModel = {
       __v_skip: true,
       drive_id: item.drive_id,
       file_id: item.file_id,
       parent_file_id: item.parent_file_id || '',
-      name: item.name,
-      namesearch: HanToPin(item.name),
-      ext: item.file_extension?.toLowerCase() || '',
-      mime_type: item.mime_type || '',
+      name: name,
+      namesearch: HanToPin(name),
+      ext: ext || '',
+      mime_type: mine_type || '',
+      mime_extension: item.mime_extension,
       category: item.category || '',
       starred: item.starred || false,
       time: time.getTime(),
@@ -72,11 +74,13 @@ export default class AliDirFileList {
       isDir: isDir,
       thumbnail: '',
       punish_flag: item.punish_flag,
-      description: item.description || ''
+      description: item.description || '',
+      user_meta: item.user_meta || ''
     }
     if (!isDir) {
-      const icon = getFileIcon(add.category, add.ext, item.mime_extension, item.mime_type, add.size)
+      const icon = getFileIcon(add.category, add.ext, add.ext || item.mime_extension, add.mime_type, add.size)
       add.category = icon[0]
+      // 加密图标
       add.icon = icon[1]
 
       if (downUrl) {
@@ -195,7 +199,7 @@ export default class AliDirFileList {
         isGet = await AliDirFileList._ApiAlbumListFilesOnePage(orders[0], orders[1], dir, pageIndex)
       } else {
         if (!needTotal) {
-          needTotal = AliDirFileList._ApiDirFileListCount(dir, type).then((total) => {
+          needTotal = AliDirFileList._ApiDirFileListCount(dir, dirID.includes('pic') ? 'file' : type).then((total) => {
             dir.itemsTotal = total
           })
         }
@@ -477,6 +481,8 @@ export default class AliDirFileList {
         } else if (k == 'size') {
           const size = parseInt(v)
           if (size > 0) query += 'size = ' + v + ' and '
+        } else if (k == 'description') {
+          query += 'description = ' + v + ' and '
         } else if (k == 'max') {
           const max = parseInt(v)
           if (max > 0) query += 'size <= ' + v + ' and '
@@ -615,10 +621,11 @@ export default class AliDirFileList {
         const downUrl = isRecover ? '' : 'https://api.aliyundrive.com/v2/file/download?t=' + Date.now().toString()
 
         if (resp.body.items) {
+          let settingStore = useSettingStore()
           const driverData = TreeStore.GetDriver(dir.m_drive_id)
           const DirFileSizeMap = driverData?.DirFileSizeMap || {}
           const DirTotalSizeMap = driverData?.DirTotalSizeMap || {}
-          const isFolderSize = useSettingStore().uiFolderSize
+          const isFolderSize = settingStore.uiFolderSize
           let dirList: IAliGetFileModel[] = []
           let fileList: IAliGetFileModel[] = []
           for (let i = 0, maxi = resp.body.items.length; i < maxi; i++) {
@@ -644,9 +651,12 @@ export default class AliDirFileList {
                 item.type = 'folder'
                 item.file_id = item.album_id
               }
+              if (dir.dirID != 'pic_root') {
+                dir.itemsTotal = resp.body.total_count
+              }
             }
             if (dir.itemsKey.has(item.file_id)) continue
-            const add = AliDirFileList.getFileInfo(item, downUrl)
+            const add = AliDirFileList.getFileInfo(dir.m_user_id, item, downUrl)
             if (isRecover) add.description = item.content_hash
             if (isVideo) add.compilation_id = item.compilation_id
             if (isPic) add.album_id = item.album_id

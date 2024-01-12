@@ -10,12 +10,39 @@ import { isEmpty } from 'lodash'
 declare type ProxyType = 'none' | 'http' | 'https' | 'socks4' | 'socks4a' | 'socks5' | 'socks5h'
 
 export interface SettingState {
-
-
+  // 应用设置
   uiTheme: string
-
   uiImageMode: string
+  uiExitOnClose: boolean
+  uiLaunchAutoCheckUpdate: boolean
+  uiLaunchAutoSign: boolean
+  uiLaunchStart: boolean
+  uiLaunchStartShow: boolean
+  uiUpdateProxyUrl: string
 
+  // 账户设置
+  uiEnableOpenApi: boolean
+  uiOpenApi: string
+  uiOpenApiClientId: string
+  uiOpenApiClientSecret: string
+  uiOpenApiOauthUrl: string
+  uiOpenApiAccessToken: string
+  uiOpenApiRefreshToken: string
+
+  // 安全设置
+  securityEncType: string
+  securityPassword: string
+  securityPasswordConfirm: boolean
+  securityEncFileName: boolean
+  securityEncFileNameHideExt: boolean
+  securityFileNameAutoDecrypt: boolean
+  securityPreviewAutoDecrypt: boolean
+
+  securityHideBackupDrive: boolean
+  securityHideResourceDrive: boolean
+  securityHidePicDrive: boolean
+
+  // 在线预览
   uiVideoMode: string
   uiVideoPlayer: string
   uiVideoEnablePlayerList: boolean
@@ -24,155 +51,121 @@ export interface SettingState {
   uiVideoPlayerParams: string
   uiVideoSubtitleMode: string
   uiVideoPlayerPath: string
-  uiAutoPlaycursorVideo: boolean
 
   uiAutoColorVideo: boolean
-
-  uiShowPanPath: boolean
-
-  uiShowPanMedia: boolean
-
-  uiExitOnClose: boolean
-
-  uiLaunchAutoCheckUpdate: boolean
-
-  uiLaunchAutoSign: boolean
-
-  uiLaunchStart: boolean
-
-  uiLaunchStartShow: boolean
-
-  uiUpdateProxyUrl: string
-
-  uiEnableOpenApi: boolean
-
-  uiOpenApi: string
-
-  uiOpenApiClientId: string
-
-  uiOpenApiClientSecret: string
-
-  uiOpenApiOauthUrl: string
-
-  uiOpenApiAccessToken: string
-
-  uiOpenApiRefreshToken: string
-
-  uiFolderSize: boolean
-
-  uiFileOrderDuli: string
-
-  uiTimeFolderFormate: string
-
-  uiTimeFolderIndex: number
-
-  uiShareDays: string
-
-  uiSharePassword: string
-
-  uiShareFormate: string
+  uiAutoPlaycursorVideo: boolean
 
   uiXBTNumber: number
-
   uiXBTWidth: number
 
+  // 网盘设置
+  uiShowPanPath: boolean
+  uiShowPanMedia: boolean
+  uiFolderSize: boolean
+  uiFileOrderDuli: string
+  uiTimeFolderFormate: string
+  uiTimeFolderIndex: number
+  uiShareDays: string
+  uiSharePassword: string
+  uiShareFormate: string
   uiFileListOrder: string
-
   uiFileListMode: string
-
   uiFileColorArray: { key: string; title: string }[]
 
+  // 下载文件
+  downSavePath: string
+  downSavePathDefault: boolean
+  downSavePathFull: boolean
+  downSaveBreakWeiGui: boolean
+  downFileMax: number
+  downThreadMax: number
+  downGlobalSpeed: number
+  downGlobalSpeedM: string
+
+  // 上传文件
+  uploadFileMax: number
+  uploadGlobalSpeed: number
+  uploadGlobalSpeedM: string
+
+  // 上传下载综合设置
+  downAutoShutDown: number
+  downSaveShowPro: boolean
+  downSmallFileFirst: boolean
+  downUploadBreakFile: boolean
+  downUploadWhatExist: string
+  downIngoredList: string[]
+  downFinishAudio: boolean
+  downAutoStart: boolean
+
+  // webdav
   webDavHost: string
   webDavPort: number
   webDavListCache: number
   webDavStrategy: string
 
-  downSavePath: string
-
-  downSavePathDefault: boolean
-
-  downSavePathFull: boolean
-
-  downSaveBreakWeiGui: boolean
-
-  uploadFileMax: number
-
-  downFileMax: number
-
-  downThreadMax: number
-
-  uploadGlobalSpeed: number
-
-  uploadGlobalSpeedM: string
-
-  downGlobalSpeed: number
-
-  downGlobalSpeedM: string
-
-  downAutoShutDown: number
-
-  downSaveShowPro: boolean
-
-  downSmallFileFirst: boolean
-
-  downUploadBreakFile: boolean
-
-  downUploadWhatExist: string
-
-  downIngoredList: string[]
-
-
-  ariaSavePath: string
-
-  ariaUrl: string
-
-  ariaPwd: string
-
-  ariaHttps: boolean
-
-  ariaState: string
-
-  ariaLoading: boolean
-
-  downFinishAudio: boolean
-
-  downAutoStart: boolean
-
+  // 高级选项
   debugDirSize: string
   debugCacheSize: string
-
   debugFileListMax: number
-
   debugFavorListMax: number
-
   debugDowningListMax: number
-
   debugDownedListMax: number
-
   debugFolderSizeCacheHour: number
-
-
+  // 自动填写 分享链接提取码
   yinsiLinkPassword: boolean
-
   yinsiZipPassword: boolean
 
+  // 网络代理
   proxyUseProxy: boolean
-
   proxyType: ProxyType
-
   proxyHost: string
-
   proxyPort: number
-
   proxyUserName: string
-
   proxyPassword: string
+
+  // 远程Aria
+  ariaSavePath: string
+  ariaUrl: string
+  ariaPwd: string
+  ariaHttps: boolean
+  ariaState: string
+  ariaLoading: boolean
 }
 
 const setting: SettingState = {
-
+  // 应用设置
   uiTheme: 'system',
   uiImageMode: 'fill',
+  uiExitOnClose: false,
+  uiLaunchAutoCheckUpdate: false,
+  uiLaunchAutoSign: false,
+  uiLaunchStart: false,
+  uiLaunchStartShow: false,
+  uiUpdateProxyUrl: 'https://mirror.ghproxy.com',
+
+  // 账户设置
+  uiEnableOpenApi: false,
+  uiOpenApi: 'inputToken',
+  uiOpenApiClientId: '',
+  uiOpenApiClientSecret: '',
+  uiOpenApiOauthUrl: 'https://api.xhofe.top/alist/ali_open/token',
+  uiOpenApiAccessToken: '',
+  uiOpenApiRefreshToken: '',
+
+  // 安全设置
+  securityEncType: 'aesctr',
+  securityPassword: '',
+  securityPasswordConfirm: false,
+  securityEncFileName: true,
+  securityEncFileNameHideExt: false,
+  securityFileNameAutoDecrypt: true,
+  securityPreviewAutoDecrypt: true,
+
+  securityHideBackupDrive: false,
+  securityHideResourceDrive: false,
+  securityHidePicDrive: false,
+
+  // 在线预览
   uiVideoMode: 'web',
   uiVideoPlayer: 'web',
   uiVideoEnablePlayerList: false,
@@ -181,23 +174,16 @@ const setting: SettingState = {
   uiVideoPlayerParams: '',
   uiVideoSubtitleMode: 'auto',
   uiVideoPlayerPath: '',
+
   uiAutoPlaycursorVideo: true,
   uiAutoColorVideo: true,
+
+  uiXBTNumber: 36,
+  uiXBTWidth: 960,
+
+  // 网盘设置
   uiShowPanPath: true,
   uiShowPanMedia: false,
-  uiExitOnClose: false,
-  uiLaunchAutoCheckUpdate: false,
-  uiUpdateProxyUrl: 'https://mirror.ghproxy.com',
-  uiLaunchAutoSign: false,
-  uiLaunchStart: false,
-  uiLaunchStartShow: false,
-  uiEnableOpenApi: false,
-  uiOpenApi: 'inputToken',
-  uiOpenApiClientId: '',
-  uiOpenApiClientSecret: '',
-  uiOpenApiOauthUrl: 'https://api.xhofe.top/alist/ali_open/token',
-  uiOpenApiAccessToken: '',
-  uiOpenApiRefreshToken: '',
   uiFolderSize: true,
   uiFileOrderDuli: 'null',
   uiTimeFolderFormate: 'yyyy-MM-dd HH-mm-ss',
@@ -205,8 +191,6 @@ const setting: SettingState = {
   uiShareDays: 'always',
   uiSharePassword: 'random',
   uiShareFormate: '「NAME」URL\n提取码: PWD',
-  uiXBTNumber: 36,
-  uiXBTWidth: 960,
   uiFileListOrder: 'name asc',
   uiFileListMode: 'list',
   uiFileColorArray: [
@@ -218,62 +202,100 @@ const setting: SettingState = {
     { key: '#ff9800', title: '金盏黄' }
   ],
 
-  webDavHost: '127.0.0.1',
-  webDavPort: 2000,
-  webDavListCache: 40,
-  webDavStrategy: 'redirect',
-
+  // 下载文件
   downSavePath: '',
   downSavePathDefault: true,
   downSavePathFull: true,
   downSaveBreakWeiGui: true,
-  uploadFileMax: 5,
   downFileMax: 5,
   downThreadMax: 4,
-  uploadGlobalSpeed: 0,
-  uploadGlobalSpeedM: 'MB',
   downGlobalSpeed: 0,
   downGlobalSpeedM: 'MB',
+
+  // 上传文件
+  uploadFileMax: 5,
+  uploadGlobalSpeed: 0,
+  uploadGlobalSpeedM: 'MB',
+
+  // 上传下载综合设置
   downAutoShutDown: 0,
   downSaveShowPro: true,
   downSmallFileFirst: false,
   downUploadBreakFile: false,
   downUploadWhatExist: 'refuse',
   downIngoredList: ['thumbs.db', 'desktop.ini', '.ds_store', '.td', '~', '.downloading'],
-
-  ariaSavePath: '',
-  ariaUrl: '',
-  ariaPwd: '',
-  ariaHttps: false,
-  ariaState: 'local',
-  ariaLoading: false,
   downFinishAudio: true,
   downAutoStart: true,
 
+  // webdav
+  webDavHost: '127.0.0.1',
+  webDavPort: 2000,
+  webDavListCache: 40,
+  webDavStrategy: 'redirect',
+
+  // 高级选项
   debugCacheSize: '',
   debugDirSize: '',
   debugFileListMax: 3000,
-  debugFavorListMax: 100,
+  debugFavorListMax: 500,
   debugDowningListMax: 1000,
   debugDownedListMax: 5000,
   debugFolderSizeCacheHour: 72,
-
+  // 自动填写 分享链接提取码
   yinsiLinkPassword: false,
   yinsiZipPassword: false,
 
+  // 网络代理
   proxyUseProxy: false,
   proxyType: 'none',
   proxyHost: '',
   proxyPort: 0,
   proxyUserName: '',
-  proxyPassword: ''
+  proxyPassword: '',
+
+  // 远程Aria
+  ariaSavePath: '',
+  ariaUrl: '',
+  ariaPwd: '',
+  ariaHttps: false,
+  ariaState: 'local',
+  ariaLoading: false
 }
 
 function _loadSetting(val: any) {
-
-  setting.uiTheme = defaultValue(val.uiTheme, ['system', 'light', 'dark'])
   console.log('_loadSetting', val)
+  // 应用设置
+  setting.uiTheme = defaultValue(val.uiTheme, ['system', 'light', 'dark'])
   setting.uiImageMode = defaultValue(val.uiImageMode, ['fill', 'width', 'web'])
+  setting.uiExitOnClose = defaultBool(val.uiExitOnClose, false)
+  setting.uiLaunchAutoCheckUpdate = defaultBool(val.uiLaunchAutoCheckUpdate, false)
+  setting.uiLaunchAutoSign = defaultBool(val.uiLaunchAutoSign, false)
+  setting.uiLaunchStart = defaultBool(val.uiLaunchStart, false)
+  setting.uiLaunchStartShow = defaultBool(val.uiLaunchStartShow, false)
+  setting.uiUpdateProxyUrl = defaultString(val.uiUpdateProxyUrl, 'https://mirror.ghproxy.com')
+
+  // 账户设置
+  setting.uiEnableOpenApi = defaultBool(val.uiEnableOpenApi, false)
+  setting.uiOpenApi = defaultValue(val.uiOpenApi, ['inputToken', 'qrCode'])
+  setting.uiOpenApiClientId = defaultString(val.uiOpenApiClientId, '')
+  setting.uiOpenApiClientSecret = defaultString(val.uiOpenApiClientSecret, '')
+  setting.uiOpenApiOauthUrl = defaultString(val.uiOpenApiOauthUrl, 'https://api.xhofe.top/alist/ali_open/token')
+  setting.uiOpenApiAccessToken = defaultString(val.uiOpenApiAccessToken, '')
+  setting.uiOpenApiRefreshToken = defaultString(val.uiOpenApiRefreshToken, '')
+
+  // 安全设置
+  setting.securityEncType = defaultValue(val.securityEncType, ['aesctr', 'rc4md5'])
+  setting.securityPassword = defaultString(val.securityPassword, '')
+  setting.securityPasswordConfirm = defaultBool(val.securityPasswordConfirm, false)
+  setting.securityEncFileName = defaultBool(val.securityEncFileName, true)
+  setting.securityEncFileNameHideExt = defaultBool(val.securityEncFileNameHideExt, false)
+  setting.securityFileNameAutoDecrypt = defaultBool(val.securityFileNameAutoDecrypt, true)
+  setting.securityPreviewAutoDecrypt = defaultBool(val.securityPreviewAutoDecrypt, true)
+  setting.securityHideBackupDrive = defaultBool(val.securityHideBackupDrive, false)
+  setting.securityHideResourceDrive = defaultBool(val.securityHideResourceDrive, false)
+  setting.securityHidePicDrive = defaultBool(val.securityHidePicDrive, false)
+
+  // 在线预览
   setting.uiVideoPlayer = defaultValue(val.uiVideoPlayer, ['web', 'other'])
   setting.uiVideoEnablePlayerList = defaultBool(val.uiVideoEnablePlayerList, false)
   setting.uiVideoPlayerExit = defaultBool(val.uiVideoPlayerExit, false)
@@ -283,23 +305,13 @@ function _loadSetting(val: any) {
   setting.uiVideoPlayerPath = defaultString(val.uiVideoPlayerPath, '')
   setting.uiAutoPlaycursorVideo = defaultBool(val.uiAutoPlaycursorVideo, true)
   setting.uiAutoColorVideo = defaultBool(val.uiAutoColorVideo, true)
+
+  setting.uiXBTNumber = defaultValue(val.uiXBTNumber, [36, 24, 36, 48, 60, 72])
+  setting.uiXBTWidth = defaultValue(val.uiXBTWidth, [960, 720, 960, 1080, 1280])
+
+  // 网盘设置
   setting.uiShowPanPath = defaultBool(val.uiShowPanPath, true)
   setting.uiShowPanMedia = defaultBool(val.uiShowPanMedia, false)
-  setting.uiExitOnClose = defaultBool(val.uiExitOnClose, false)
-  setting.uiLaunchAutoCheckUpdate = defaultBool(val.uiLaunchAutoCheckUpdate, false)
-  setting.uiUpdateProxyUrl = defaultString(val.uiUpdateProxyUrl, 'https://mirror.ghproxy.com')
-  setting.uiLaunchAutoSign = defaultBool(val.uiLaunchAutoSign, false)
-  setting.uiLaunchStart = defaultBool(val.uiLaunchStart, false)
-  setting.uiLaunchStartShow = defaultBool(val.uiLaunchStartShow, false)
-
-  setting.uiEnableOpenApi = defaultBool(val.uiEnableOpenApi, false)
-  setting.uiOpenApi = defaultValue(val.uiOpenApi, ['inputToken', 'qrCode'])
-  setting.uiOpenApiOauthUrl = defaultString(val.uiOpenApiOauthUrl, 'https://api.xhofe.top/alist/ali_open/token')
-  setting.uiOpenApiAccessToken = defaultString(val.uiOpenApiAccessToken, '')
-  setting.uiOpenApiRefreshToken = defaultString(val.uiOpenApiRefreshToken, '')
-  setting.uiOpenApiClientId = defaultString(val.uiOpenApiClientId, '')
-  setting.uiOpenApiClientSecret = defaultString(val.uiOpenApiClientSecret, '')
-
   setting.uiFolderSize = defaultBool(val.uiFolderSize, true)
   setting.uiFileOrderDuli = defaultString(val.uiFileOrderDuli, 'null')
   setting.uiTimeFolderFormate = defaultString(val.uiTimeFolderFormate, 'yyyy-MM-dd HH-mm-ss').replace('mm-dd', 'MM-dd').replace('HH-MM', 'HH-mm')
@@ -307,36 +319,62 @@ function _loadSetting(val: any) {
   setting.uiShareDays = defaultValue(val.uiShareDays, ['always', 'week', 'month'])
   setting.uiSharePassword = defaultValue(val.uiSharePassword, ['random', 'last', 'nopassword'])
   setting.uiShareFormate = defaultString(val.uiShareFormate, 'NAME URL 提取码：PWD')
-
-  setting.uiXBTNumber = defaultValue(val.uiXBTNumber, [36, 24, 36, 48, 60, 72])
-  setting.uiXBTWidth = defaultValue(val.uiXBTWidth, [960, 720, 960, 1080, 1280])
   setting.uiFileListOrder = defaultValue(val.uiFileListOrder, ['updated_at desc', 'name asc', 'name desc', 'updated_at asc', 'updated_at desc', 'size asc', 'size desc'])
   setting.uiFileListMode = defaultValue(val.uiFileListMode, ['list', 'image', 'bigimage'])
   if (val.uiFileColorArray && val.uiFileColorArray.length >= 6) setting.uiFileColorArray = val.uiFileColorArray
 
-  setting.webDavHost = defaultString(val.webDavHost, '127.0.0.1')
-  setting.webDavPort = defaultNumber(val.webDavPort, 2000)
-  setting.webDavListCache = defaultNumber(val.webDavListCache, 40)
-  setting.webDavStrategy = defaultValue(val.webDavStrategy, ['redirect', 'proxy'])
-
+  // 下载文件
   setting.downSavePath = defaultString(val.downSavePath, '')
   setting.downSavePathDefault = defaultBool(val.downSavePathDefault, true)
   setting.downSavePathFull = defaultBool(val.downSavePathFull, true)
   setting.downSaveBreakWeiGui = defaultBool(val.downSaveBreakWeiGui, true)
-  setting.uploadFileMax = defaultValue(val.uploadFileMax, [5, 1, 3, 5, 10, 20, 30, 50])
   setting.downFileMax = defaultValue(val.downFileMax, [5, 1, 2, 3, 4, 5])
   setting.downThreadMax = defaultValue(val.downThreadMax, [4, 1, 2, 4, 8, 16, 24, 32])
-  setting.uploadGlobalSpeed = defaultNumberSub(val.uploadGlobalSpeed, 0, 0, 999)
-  setting.uploadGlobalSpeedM = defaultValue(val.uploadGlobalSpeedM, ['MB', 'KB'])
   setting.downGlobalSpeed = defaultNumberSub(val.downGlobalSpeed, 0, 0, 999)
   setting.downGlobalSpeedM = defaultValue(val.downGlobalSpeedM, ['MB', 'KB'])
+
+  // 上传文件
+  setting.uploadFileMax = defaultValue(val.uploadFileMax, [5, 1, 3, 5, 10, 20, 30, 50])
+  setting.uploadGlobalSpeed = defaultNumberSub(val.uploadGlobalSpeed, 0, 0, 999)
+  setting.uploadGlobalSpeedM = defaultValue(val.uploadGlobalSpeedM, ['MB', 'KB'])
+
+  // 上传下载综合设置
   setting.downAutoShutDown = 0
   setting.downSaveShowPro = defaultBool(val.downSaveShowPro, true)
   setting.downSmallFileFirst = defaultBool(val.downSmallFileFirst, false)
   setting.downUploadBreakFile = defaultBool(val.downUploadBreakFile, false)
   setting.downUploadWhatExist = defaultValue(val.downUploadWhatExist, ['ignore', 'overwrite', 'auto_rename', 'refuse'])
   setting.downIngoredList = val.downIngoredList && val.downIngoredList.length > 0 ? val.downIngoredList : ['thumbs.db', 'desktop.ini', '.ds_store', '.td', '~', '.downloading']
+  setting.downFinishAudio = defaultBool(val.downFinishAudio, true)
+  setting.downAutoStart = defaultBool(val.downAutoStart, true)
 
+  // webdav
+  setting.webDavHost = defaultString(val.webDavHost, '127.0.0.1')
+  setting.webDavPort = defaultNumber(val.webDavPort, 2000)
+  setting.webDavListCache = defaultNumber(val.webDavListCache, 40)
+  setting.webDavStrategy = defaultValue(val.webDavStrategy, ['redirect', 'proxy'])
+
+  // 高级选项
+  setting.debugDirSize = defaultString(val.debugDirSize, '')
+  setting.debugCacheSize = defaultString(val.debugCacheSize, '')
+  setting.debugFileListMax = defaultNumberSub(val.debugFileListMax, 3000, 3000, 10000)
+  setting.debugFavorListMax = defaultNumberSub(val.debugFavorListMax, 500, 100, 3000)
+  setting.debugDowningListMax = 1000
+  setting.debugDownedListMax = defaultNumberSub(val.debugDownedListMax, 5000, 1000, 50000)
+  setting.debugFolderSizeCacheHour = defaultValue(val.debugFolderSizeCacheHour, [72, 2, 8, 24, 48, 72])
+  // 自动填写 分享链接提取码
+  setting.yinsiLinkPassword = defaultBool(val.yinsiLinkPassword, false)
+  setting.yinsiZipPassword = defaultBool(val.yinsiZipPassword, false)
+
+  // 网络代理
+  setting.proxyUseProxy = defaultBool(val.proxyUseProxy, false)
+  setting.proxyType = defaultValue(val.proxyType, ['none', 'http', 'https', 'socks5', 'socks5h'])
+  setting.proxyHost = defaultString(val.proxyHost, '')
+  setting.proxyPort = defaultNumber(val.proxyPort, 0)
+  setting.proxyUserName = defaultString(val.proxyUserName, '')
+  setting.proxyPassword = defaultString(val.proxyPassword, '')
+
+  // 远程Aria
   setting.ariaSavePath = defaultString(val.ariaSavePath, '')
   if (setting.ariaSavePath.indexOf('/') < 0 && setting.ariaSavePath.indexOf('\\') < 0) setting.ariaSavePath = ''
   setting.ariaUrl = defaultString(val.ariaUrl, '')
@@ -345,26 +383,6 @@ function _loadSetting(val: any) {
   setting.ariaHttps = defaultBool(val.ariaHttps, false)
   setting.ariaState = defaultValue(val.ariaState, ['local', 'remote'])
   setting.ariaLoading = false
-  setting.downFinishAudio = defaultBool(val.downFinishAudio, true)
-  setting.downAutoStart = defaultBool(val.downAutoStart, true)
-
-  setting.debugDirSize = defaultString(val.debugDirSize, '')
-  setting.debugCacheSize = defaultString(val.debugCacheSize, '')
-  setting.debugFileListMax = defaultNumberSub(val.debugFileListMax, 3000, 3000, 10000)
-  setting.debugFavorListMax = defaultNumberSub(val.debugFavorListMax, 100, 100, 3000)
-  setting.debugDowningListMax = 1000
-  setting.debugDownedListMax = defaultNumberSub(val.debugDownedListMax, 5000, 1000, 50000)
-  setting.debugFolderSizeCacheHour = defaultValue(val.debugFolderSizeCacheHour, [72, 2, 8, 24, 48, 72])
-
-  setting.yinsiLinkPassword = defaultBool(val.yinsiLinkPassword, false)
-  setting.yinsiZipPassword = defaultBool(val.yinsiZipPassword, false)
-
-  setting.proxyUseProxy = defaultBool(val.proxyUseProxy, false)
-  setting.proxyType = defaultValue(val.proxyType, ['none', 'http', 'https', 'socks5', 'socks5h'])
-  setting.proxyHost = defaultString(val.proxyHost, '')
-  setting.proxyPort = defaultNumber(val.proxyPort, 0)
-  setting.proxyUserName = defaultString(val.proxyUserName, '')
-  setting.proxyPassword = defaultString(val.proxyPassword, '')
 }
 
 let settingstr = ''

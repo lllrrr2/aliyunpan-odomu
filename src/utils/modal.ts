@@ -96,8 +96,8 @@ export function modalArchivePassword(user_id: string, drive_id: string, file_id:
   })
 }
 
-export function modalUpload(file_id: string, filelist: string[], ispic: boolean = false) {
-  useModalStore().showModal('upload', { file_id, filelist, ispic })
+export function modalUpload(file_id: string, filelist: string[], ispic: boolean = false, encType: string = '') {
+  useModalStore().showModal('upload', { file_id, filelist, ispic, encType })
 }
 
 export function modalDownload(istree: boolean) {
@@ -110,4 +110,8 @@ export function modalUpdateLog() {
 
 export function modalShowPost(msg: string, msgid: string) {
   useModalStore().showModal('showpostmodal', { msg, msgid })
+}
+
+export function modalPassword(optType: string, callback?: (success: boolean) => void) {
+  useModalStore().showModal('showpassword', { optType, callback })
 }

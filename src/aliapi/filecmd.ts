@@ -2,25 +2,27 @@ import DebugLog from '../utils/debuglog'
 import AliHttp from './alihttp'
 import { IAliFileItem, IAliGetFileModel } from './alimodels'
 import AliDirFileList from './dirfilelist'
-import { ApiBatch, ApiBatchMaker, ApiBatchMaker2, ApiBatchSuccess } from './utils'
+import { ApiBatch, ApiBatchMaker, ApiBatchMaker2, ApiBatchSuccess, EncodeEncName } from './utils'
 import { IDownloadUrl } from './models'
 
 export default class AliFileCmd {
-
-  static async ApiCreatNewForder(user_id: string, drive_id: string, parent_file_id: string, creatDirName: string, check_name_mode: string = 'refuse'): Promise<{
-    file_id: string;
-    error: string
-  }> {
+  static async ApiCreatNewForder(
+    user_id: string, drive_id: string,
+    parent_file_id: string, creatDirName: string,
+    encType: string = '', check_name_mode: string = 'refuse'
+  ): Promise<{ file_id: string; error: string }> {
     const result = { file_id: '', error: '新建文件夹失败' }
     if (!user_id || !drive_id || !parent_file_id) return result
     if (parent_file_id.includes('root')) parent_file_id = 'root'
     const url = 'adrive/v2/file/createWithFolders'
+    const name = EncodeEncName(user_id, creatDirName, true, encType)
     const postData = JSON.stringify({
       drive_id: drive_id,
       parent_file_id: parent_file_id,
-      name: creatDirName,
+      name: name,
       check_name_mode: check_name_mode,
-      type: 'folder'
+      type: 'folder',
+      description: encType
     })
     const resp = await AliHttp.Post(url, postData, user_id, '')
     if (AliHttp.IsSuccess(resp.code)) {
@@ -102,7 +104,7 @@ export default class AliFileCmd {
     const batchList = ApiBatchMaker('/file/update', file_idList, (file_id: string) => {
       return { drive_id: drive_id, file_id: file_id, description: color }
     })
-    return ApiBatchSuccess(color == '' ? '清除文件标记' : color == 'ce74c3c' ? '' : '标记文件', batchList, user_id, '')
+    return ApiBatchSuccess(color == '' ? '清除文件标记' : color.includes('ce74c3c') ? '' : '标记文件', batchList, user_id, '')
   }
 
 
@@ -208,7 +210,7 @@ export default class AliFileCmd {
     const successList: IAliGetFileModel[] = []
     const result = await ApiBatch('', batchList, user_id, '')
     result.reslut.map((t) => {
-      if (t.body) successList.push(AliDirFileList.getFileInfo(t.body as IAliFileItem, 'download_url'))
+      if (t.body) successList.push(AliDirFileList.getFileInfo(user_id, t.body as IAliFileItem, 'download_url'))
       return true
     })
     return successList

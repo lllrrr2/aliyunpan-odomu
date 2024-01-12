@@ -340,8 +340,8 @@ export default defineComponent({
       <div v-if="fileInfo?.category == 'audio'">
         <div class='h16'></div>
         <div width='100%'>
-          <audio controls style='width: 100%; height: 32px' :src='fileInfo?.thumbnail' @play='handleAudioPlay'>您的浏览器不支持
-            audio 元素
+          <audio controls style='width: 100%; height: 32px' :src='fileInfo?.thumbnail' @play='handleAudioPlay'>
+            您的浏览器不支持 audio 元素
           </audio>
         </div>
       </div>
@@ -352,12 +352,14 @@ export default defineComponent({
     <div class='modalfoot'>
       <a-button type='outline' size='small' @click='handleCopyJson'>复制JSON</a-button>
       <div style='flex-grow: 1'></div>
-      <a-button v-if="fileInfo?.category == 'video'" type='outline' size='small' @click='handleCopyThumbnail'>
-        复制M3U8链接
-      </a-button>
-      <a-button v-if="fileInfo?.category == 'audio'" type='outline' size='small' @click='handleCopyThumbnail'>
-        复制M3U8链接
-      </a-button>
+      <template v-if="fileInfo?.description && !fileInfo?.description.includes('xbyEncrypt')">
+        <a-button v-if="fileInfo?.category == 'video'" type='outline' size='small' @click='handleCopyThumbnail'>
+          复制M3U8链接
+        </a-button>
+        <a-button v-if="fileInfo?.category == 'audio'" type='outline' size='small' @click='handleCopyThumbnail'>
+          复制M3U8链接
+        </a-button>
+      </template>
       <a-button v-if="fileInfo?.type !== 'folder'" type='outline' size='small' @click='handleCopyDownload'>
         复制下载链接
       </a-button>

@@ -6,7 +6,7 @@ import AliHttp from './alihttp'
 import { IAliFileItem, IAliGetDirModel, IAliGetFileModel, IAliGetForderSizeModel } from './alimodels'
 import AliDirFileList from './dirfilelist'
 import { ICompilationList, IDownloadUrl, IOfficePreViewUrl, IVideoPreviewUrl, IVideoXBTUrl } from './models'
-import { GetDriveType } from './utils'
+import { DecodeEncName, GetDriveType } from './utils'
 
 export default class AliFile {
 
@@ -46,6 +46,8 @@ export default class AliFile {
         fileInfo.name = '资源盘'
       } else if (fileInfo.name.toLowerCase() === 'alibum') {
         fileInfo.name = '相册'
+      } else {
+        fileInfo.name = DecodeEncName(user_id, fileInfo).name
       }
       return fileInfo
     } else if (AliHttp.HttpCodeBreak(resp.code)) {
@@ -73,7 +75,9 @@ export default class AliFile {
     const resp = await AliHttp.Post(url, postData, user_id, '')
 
     if (AliHttp.IsSuccess(resp.code)) {
-      return resp.body as IAliFileItem
+      let fileInfo = resp.body as IAliFileItem
+      fileInfo.name = DecodeEncName(user_id, fileInfo).name
+      return fileInfo
     } else if (!AliHttp.HttpCodeBreak(resp.code)) {
       DebugLog.mSaveWarning('ApiFileInfoByPath err=' + file_path + ' ' + (resp.code || ''), resp.body)
     }
@@ -309,7 +313,7 @@ export default class AliFile {
     const resp = await AliHttp.Post(url, postData, user_id, '')
 
     if (AliHttp.IsSuccess(resp.code)) {
-      return AliDirFileList.getFileInfo(resp.body as IAliFileItem, '')
+      return AliDirFileList.getFileInfo(user_id, resp.body as IAliFileItem, '')
     } else if (!AliHttp.HttpCodeBreak(resp.code)) {
       DebugLog.mSaveWarning('ApiGetFile err=' + file_id + ' ' + (resp.code || ''), resp.body)
     }
@@ -331,14 +335,13 @@ export default class AliFile {
       const list: IAliGetDirModel[] = []
       for (let i = items.length - 1; i >= 0; i--) {
         const item = items[i]
-        console.log('item', item)
         if (item.name === 'Default' || item.name === 'resource') continue
         list.push({
           __v_skip: true,
           drive_id: item.drive_id,
           file_id: item.file_id,
           parent_file_id: item.parent_file_id || '',
-          name: item.name,
+          name: DecodeEncName(user_id, item).name,
           namesearch: HanToPin(item.name),
           size: item.size || 0,
           time: new Date(item.updated_at).getTime(),
@@ -386,7 +389,7 @@ export default class AliFile {
       const list: string[] = []
       for (let i = resp.body.items.length - 1; i >= 0; i--) {
         const item = resp.body.items[i]
-        list.push(item.name)
+        list.push(DecodeEncName(user_id, item).name)
       }
       return list.join(dirsplit)
     } else if (!AliHttp.HttpCodeBreak(resp.code)) {

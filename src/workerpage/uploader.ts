@@ -15,7 +15,6 @@ import path from 'path'
 import fspromises from 'fs/promises'
 
 export async function StartUpload(fileui: IUploadingUI): Promise<void> {
-
   const token = await UserDAL.GetUserTokenFromDB(fileui.user_id)
   if (!token || token.user_id !== fileui.user_id) {
     fileui.Info.uploadState = 'error'
@@ -24,20 +23,17 @@ export async function StartUpload(fileui: IUploadingUI): Promise<void> {
     return
   }
   const expire_time = new Date(token.expire_time).getTime()
-
   if (expire_time - new Date().getTime() < 60000) {
     fileui.Info.uploadState = 'error'
     fileui.Info.failedCode = 402
     fileui.Info.failedMessage = 'token过期失效,无法继续'
     return
   }
-
-
-  if (fileui.File.isDir) return creatDirAndReadChildren(fileui)
-
-
+  // 创建文件夹
+  if (fileui.File.isDir) {
+    return creatDirAndReadChildren(fileui)
+  }
   await checkFileSize(fileui)
-
   const uploadInfo: IUploadInfo = {
     token_type: token.token_type,
     access_token: token.access_token,
@@ -72,21 +68,17 @@ export async function StartUpload(fileui: IUploadingUI): Promise<void> {
     }
 
     if (isok == 'error') {
-
       fileui.Info.up_file_id = ''
       fileui.Info.up_upload_id = ''
       uploadInfo.part_info_list = []
     }
   }
-
   if (!fileui.Info.up_upload_id) {
-
     const needupload = await checkPreHashAndGetPartlist(uploadInfo, fileui)
     if (!needupload) return
   }
 
   if (useSettingStore().downUploadBreakFile) {
-
     fileui.Info.uploadState = 'error'
     fileui.Info.failedCode = 505
     fileui.Info.failedMessage = '跳过不能秒传的文件'
@@ -128,6 +120,7 @@ interface ReadConfig {
   parent_file_id: string
   localFilePath: string
   filetime: number
+  encType: string
   ingoredList: string[]
 }
 
@@ -136,9 +129,7 @@ async function creatDirAndReadChildren(fileui: IUploadingUI): Promise<void> {
 
   let uploaded_file_id = ''
   if (fileui.File.IsRoot) {
-
-
-    const data = await AliFileCmd.ApiCreatNewForder(fileui.user_id, fileui.drive_id, fileui.parent_file_id, fileui.File.name)
+    const data = await AliFileCmd.ApiCreatNewForder(fileui.user_id, fileui.drive_id, fileui.parent_file_id, fileui.File.name, fileui.encType)
     if (data.error) {
       fileui.Info.uploadState = 'error'
       fileui.Info.failedCode = 503
@@ -159,6 +150,7 @@ async function creatDirAndReadChildren(fileui: IUploadingUI): Promise<void> {
     parent_file_id: fileui.parent_file_id,
     localFilePath: fileui.localFilePath,
     filetime: fileTime,
+    encType: fileui.encType,
     ingoredList: [...settingStore.downIngoredList]
   }
   const read = await readChildren(fileui.File.partPath, fileui.File.name, readConfig, fileui.Info)
@@ -243,13 +235,13 @@ async function AddFiles(addFileList: IStateUploadTaskFile[], fileList: string[],
     )
 
     if (plist.length >= 10) {
-      await Promise.all(plist).catch(() => {
-      })
+      await Promise.all(plist).catch()
       plist = []
     }
   }
-  if (plist.length > 0) await Promise.all(plist).catch(() => {
-  })
+  if (plist.length > 0) {
+    await Promise.all(plist).catch()
+  }
 }
 
 async function AddDirs(addFileList: IStateUploadTaskFile[], addDirList: IStateUploadTaskFile[], dirList: string[], parentDirPartPath: string, parentDirName: string, readConfig: ReadConfig, Info: IStateUploadInfo): Promise<void> {
@@ -273,8 +265,7 @@ async function AddDirs(addFileList: IStateUploadTaskFile[], addDirList: IStateUp
     await readChildrenDiGui(addFileList, addDirList, dirItem, readConfig, Info, plist)
     Info.failedMessage = '读取中 ' + addFileList.length + '个'
     if (plist.length >= 10) {
-      await Promise.all(plist).catch(() => {
-      })
+      await Promise.all(plist).catch()
       plist.splice(0, plist.length)
     }
   }
@@ -289,19 +280,16 @@ async function readChildrenDiGui(addFileList: IStateUploadTaskFile[], addDirList
   file_id: string;
   error: string
 }>[]): Promise<void> {
-
-
   const localDirPath = path.join(readConfig.localFilePath, diritem.partPath, path.sep)
   const dirFiles = await readDir(localDirPath, readConfig.ingoredList)
   if (dirFiles.error) {
-    plist.push(AliFileCmd.ApiCreatNewForder(readConfig.user_id, readConfig.drive_id, readConfig.parent_file_id, diritem.name))
+    plist.push(AliFileCmd.ApiCreatNewForder(readConfig.user_id, readConfig.drive_id, readConfig.parent_file_id, diritem.name, readConfig.encType))
     addDirList.push(diritem)
     return
   }
-
   if (dirFiles.fileList.length == 0) {
     if (dirFiles.dirList.length == 0) {
-      plist.push(AliFileCmd.ApiCreatNewForder(readConfig.user_id, readConfig.drive_id, readConfig.parent_file_id, diritem.name))
+      plist.push(AliFileCmd.ApiCreatNewForder(readConfig.user_id, readConfig.drive_id, readConfig.parent_file_id, diritem.name, readConfig.encType))
       return
     } else if (dirFiles.dirList.length <= MAXDIR) {
       await AddDirs(addFileList, addDirList, dirFiles.dirList, diritem.partPath, diritem.name, readConfig, Info)
@@ -328,19 +316,19 @@ async function readChildrenDiGui(addFileList: IStateUploadTaskFile[], addDirList
 
   if (dirFiles.fileList.length <= MAXFILE) {
     if (dirFiles.dirList.length == 0) {
-      plist.push(AliFileCmd.ApiCreatNewForder(readConfig.user_id, readConfig.drive_id, readConfig.parent_file_id, diritem.name))
+      plist.push(AliFileCmd.ApiCreatNewForder(readConfig.user_id, readConfig.drive_id, readConfig.parent_file_id, diritem.name, readConfig.encType))
       await AddFiles(addFileList, dirFiles.fileList, diritem.partPath, diritem.name, readConfig)
     } else if (dirFiles.dirList.length <= MAXDIR) {
-      plist.push(AliFileCmd.ApiCreatNewForder(readConfig.user_id, readConfig.drive_id, readConfig.parent_file_id, diritem.name))
+      plist.push(AliFileCmd.ApiCreatNewForder(readConfig.user_id, readConfig.drive_id, readConfig.parent_file_id, diritem.name, readConfig.encType))
       await AddFiles(addFileList, dirFiles.fileList, diritem.partPath, diritem.name, readConfig)
       await AddDirs(addFileList, addDirList, dirFiles.dirList, diritem.partPath, diritem.name, readConfig, Info)
     } else {
-      plist.push(AliFileCmd.ApiCreatNewForder(readConfig.user_id, readConfig.drive_id, readConfig.parent_file_id, diritem.name))
+      plist.push(AliFileCmd.ApiCreatNewForder(readConfig.user_id, readConfig.drive_id, readConfig.parent_file_id, diritem.name, readConfig.encType))
       addDirList.push(diritem)
     }
   } else {
     if (dirFiles.dirList.length == 0) {
-      plist.push(AliFileCmd.ApiCreatNewForder(readConfig.user_id, readConfig.drive_id, readConfig.parent_file_id, diritem.name))
+      plist.push(AliFileCmd.ApiCreatNewForder(readConfig.user_id, readConfig.drive_id, readConfig.parent_file_id, diritem.name, readConfig.encType))
       addDirList.push(diritem)
     } else if (dirFiles.dirList.length <= MAXDIR) {
       addDirList.push(diritem)
@@ -453,60 +441,70 @@ async function reloadUploadUrl(uploadInfo: IUploadInfo, fileui: IUploadingUI): P
 
 
 async function checkPreHashAndGetPartlist(uploadInfo: IUploadInfo, fileui: IUploadingUI): Promise<boolean> {
-  let prehash = ''
-  if (fileui.File.size >= 1024000) {
-
-    prehash = await AliUploadHashPool.GetFilePreHash(path.join(fileui.localFilePath, fileui.File.partPath))
-    if (prehash.startsWith('error')) {
-      fileui.Info.uploadState = 'error'
-      fileui.Info.failedCode = 504
-      fileui.Info.failedMessage = prehash.substring('error'.length)
-      return false
-    } else {
-      const matched = await AliUpload.UploadCreatFileWithPreHash(fileui.user_id, fileui.drive_id, fileui.parent_file_id, fileui.File.name, fileui.File.size, prehash, fileui.check_name_mode)
-      if (!matched.errormsg) {
-
-        fileui.Info.up_upload_id = matched.upload_id
-        fileui.Info.up_file_id = matched.file_id
-        uploadInfo.part_info_list = matched.part_info_list
-        uploadInfo.israpid = false
-        return true
-      } else if (matched.errormsg != 'PreHashMatched') {
+  // 加密文件不秒传，不计算hash
+  let proof: { sha1: string; proof_code: string; error: string } = { sha1: '', proof_code: '', error: '' }
+  if (!fileui.encType) {
+    let prehash = ''
+    if (fileui.File.size >= 1024000) {
+      prehash = await AliUploadHashPool.GetFilePreHash(path.join(fileui.localFilePath, fileui.File.partPath))
+      if (prehash.startsWith('error')) {
         fileui.Info.uploadState = 'error'
         fileui.Info.failedCode = 504
-        fileui.Info.failedMessage = matched.errormsg
+        fileui.Info.failedMessage = prehash.substring('error'.length)
         return false
+      } else {
+        const matched = await AliUpload.UploadCreatFileWithPreHash(fileui.user_id, fileui.drive_id, fileui.parent_file_id, fileui.File.name, fileui.File.size, prehash, fileui.check_name_mode, fileui.encType)
+        if (!matched.errormsg) {
+          fileui.Info.up_upload_id = matched.upload_id
+          fileui.Info.up_file_id = matched.file_id
+          uploadInfo.part_info_list = matched.part_info_list
+          uploadInfo.israpid = false
+          return true
+        } else if (matched.errormsg != 'PreHashMatched') {
+          fileui.Info.uploadState = 'error'
+          fileui.Info.failedCode = 504
+          fileui.Info.failedMessage = matched.errormsg
+          return false
+        }
       }
     }
+    fileui.Info.uploadState = 'hashing'
+    proof = await AliUploadHashPool.GetFileHashProofWorker(prehash, uploadInfo.access_token, fileui)
+    fileui.Info.uploadState = 'running'
+    if (!fileui.IsRunning) {
+      fileui.Info.uploadState = '已暂停'
+      fileui.Info.failedCode = 0
+      fileui.Info.failedMessage = ''
+      return false
+    }
+    if (proof.sha1 == 'error') {
+      fileui.Info.uploadState = 'error'
+      fileui.Info.failedCode = 503
+      fileui.Info.failedMessage = '计算sha1出错' + proof.error
+      return false
+    }
+    uploadInfo.sha1 = proof.sha1
+  } else {
+    fileui.Info.uploadState = 'running'
+    if (!fileui.IsRunning) {
+      fileui.Info.uploadState = '已暂停'
+      fileui.Info.failedCode = 0
+      fileui.Info.failedMessage = ''
+      return false
+    }
   }
-
-
-  fileui.Info.uploadState = 'hashing'
-  const proof = await AliUploadHashPool.GetFileHashProofWorker(prehash, uploadInfo.access_token, fileui)
-  fileui.Info.uploadState = 'running'
-  if (!fileui.IsRunning) {
-    fileui.Info.uploadState = '已暂停'
-    fileui.Info.failedCode = 0
-    fileui.Info.failedMessage = ''
-    return false
-  }
-  if (proof.sha1 == 'error') {
-
-    fileui.Info.uploadState = 'error'
-    fileui.Info.failedCode = 503
-    fileui.Info.failedMessage = '计算sha1出错' + proof.error
-    return false
-  }
-
-  uploadInfo.sha1 = proof.sha1
-
-  const miaoChuan = await AliUpload.UploadCreatFileWithFolders(fileui.user_id, fileui.drive_id, fileui.parent_file_id, fileui.File.name, fileui.File.size, proof.sha1, proof.proof_code, fileui.check_name_mode)
+  const miaoChuan = await AliUpload.UploadCreatFileWithFolders(
+    fileui.user_id, fileui.drive_id,
+    fileui.parent_file_id, fileui.File.name,
+    fileui.File.size, proof.sha1, proof.proof_code,
+    fileui.check_name_mode, fileui.encType
+  )
   if (miaoChuan.errormsg != '') {
     fileui.Info.uploadState = 'error'
     fileui.Info.failedCode = 504
     fileui.Info.failedMessage = miaoChuan.errormsg
     return false
-  } else if (miaoChuan.israpid || miaoChuan.isexist) {
+  } else if (miaoChuan.israpid || miaoChuan.isexist) { // 秒传逻辑
     fileui.Info.uploadState = 'success'
     fileui.File.uploaded_file_id = miaoChuan.file_id
     fileui.File.uploaded_is_rapid = true
@@ -514,7 +512,6 @@ async function checkPreHashAndGetPartlist(uploadInfo: IUploadInfo, fileui: IUplo
     fileui.Info.up_upload_id = ''
     return false
   } else {
-
     fileui.Info.up_upload_id = miaoChuan.upload_id
     fileui.Info.up_file_id = miaoChuan.file_id
     uploadInfo.part_info_list = miaoChuan.part_info_list

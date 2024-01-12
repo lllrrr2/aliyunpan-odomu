@@ -315,6 +315,7 @@ export interface IAliGetFileModel {
   namesearch: string
   ext: string
   mime_type: string
+  mime_extension: string
   category: string
   icon: string
   file_count?: number
@@ -335,4 +336,5 @@ export interface IAliGetFileModel {
   media_duration?: string
   media_play_cursor?: string
   media_time?: string
+  user_meta?: string
 }

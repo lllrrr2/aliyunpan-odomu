@@ -49,16 +49,7 @@ export default class ipcEvent {
           mainWindow = undefined
         }
         try {
-          app.exit()
-        } catch {
-        }
-      } else if (data.cmd && data.cmd === 'quit') {
-        if (mainWindow && !mainWindow.isDestroyed()) {
-          mainWindow.destroy()
-          mainWindow = undefined
-        }
-        try {
-          app.quit()
+          app.exit(0)
         } catch {
         }
       } else if (data.cmd && data.cmd === 'minsize') {

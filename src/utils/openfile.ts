@@ -12,8 +12,9 @@ import message from './message'
 import { modalArchive, modalArchivePassword, modalSelectPanDir } from './modal'
 import { humanTime } from './format'
 import { SpawnOptions } from 'child_process'
-import { GetExpiresTime } from './utils'
+import { delTmpFile, GetExpiresTime } from './utils'
 import PlayerUtils from './playerhelper'
+import { getEncType } from './proxyhelper'
 
 
 export async function menuOpenFile(file: IAliGetFileModel): Promise<void> {
@@ -62,18 +63,23 @@ export async function menuOpenFile(file: IAliGetFileModel): Promise<void> {
     const { uiVideoPlayer, uiVideoSubtitleMode } = useSettingStore()
     const listDataRaw = usePanFileStore().ListDataRaw || []
     const subTitlesList = listDataRaw.filter(file => /srt|vtt|ass/.test(file.ext))
-    const isViolation = file.icon == 'iconweifa'
     if (uiVideoPlayer === 'other') {
       if (uiVideoSubtitleMode === 'auto') {
         subTitleFileId = PlayerUtils.filterSubtitleFile(file.name, subTitlesList)
       } else if (uiVideoSubtitleMode === 'select') {
         modalSelectPanDir('select', parent_file_id, async (_user_id: string, _drive_id: string, to_drive_id: string, dirID: string, _dirName: string) => {
-          await Video(token, to_drive_id, file_id, parent_file_id, file.name, isViolation, file.description, dirID, file.compilation_id)
+          await Video(token, to_drive_id, dirID, file)
         }, '', /srt|vtt|ass/)
         return
       }
+    } else {
+      let encType = getEncType(file)
+      if (encType.includes('xbyEncrypt')){
+        message.error('加密文件无法使用网页播放器')
+        return
+      }
     }
-    await Video(token, drive_id, file_id, parent_file_id, file.name, isViolation, file.description, subTitleFileId, file.compilation_id)
+    await Video(token, drive_id, subTitleFileId, file)
     return
   }
   if (file.category.startsWith('audio')) {
@@ -140,21 +146,24 @@ async function Archive(drive_id: string, file_id: string, file_name: string, par
   }
 }
 
-async function Video(token: ITokenInfo, drive_id: string, file_id: string, parent_file_id: string,
-                     name: string, weifa: boolean, dec: string, subTitleFileId: string,
-                     compilation_id?: string): Promise<void> {
-  if (weifa) {
+async function Video(token: ITokenInfo, drive_id: string, subTitleFileId: string, file: IAliGetFileModel): Promise<void> {
+  if (file.icon == 'iconweifa') {
     message.error('在线预览失败 无法预览违规文件')
     return
   }
   message.loading('加载视频中...', 2)
+  let file_id = file.file_id
+  let dec = file.description
+  let parent_file_id = file.parent_file_id
+  let name = file.name
+  let compilation_id = file.compilation_id
   let playCursorInfo = await PlayerUtils.getPlayCursor(token.user_id, drive_id, file_id)
   if (!playCursorInfo) {
     return
   }
   const settingStore = useSettingStore()
-  if (settingStore.uiAutoColorVideo && !dec) {
-    AliFileCmd.ApiFileColorBatch(token.user_id, drive_id, 'ce74c3c', [file_id])
+  if (settingStore.uiAutoColorVideo && !dec.includes('ce74c3c')) {
+    AliFileCmd.ApiFileColorBatch(token.user_id, drive_id, dec ? dec + ',' + 'ce74c3c' : 'ce74c3c', [file_id])
       .then((success) => {
         usePanFileStore().mColorFiles('ce74c3c', success)
       })
@@ -185,6 +194,7 @@ async function Video(token: ITokenInfo, drive_id: string, file_id: string, paren
   let playInfo: any = {
     drive_id: drive_id,
     playUrl: '',
+    playDec: dec,
     playList: [],
     playFileId: file_id,
     playReferer: token.open_api_enable ? 'https://openapi.alipan.com/' : 'https://www.aliyundrive.com/',
@@ -204,7 +214,8 @@ async function Video(token: ITokenInfo, drive_id: string, file_id: string, paren
     return
   }
   if ((!isPotplayer && !isMpv) || ((isPotplayer || isMpv) && !settingStore.uiVideoEnablePlayerList)) {
-    const url = await PlayerUtils.getVideoUrl(token.user_id, drive_id, file_id, weifa)
+    const encType = getEncType(file)
+    const url = await PlayerUtils.getVideoUrl(token.user_id, drive_id, file_id, file.icon == 'iconweifa', encType)
     if (!url) {
       message.error('视频地址解析失败，操作取消')
       return
@@ -249,7 +260,6 @@ async function Video(token: ITokenInfo, drive_id: string, file_id: string, paren
         '--keep-open-pause=no',
         '--alang=[en,eng,zh,chi,chs,sc,zho]',
         '--slang=[zh,chi,chs,sc,zho,en,eng]',
-        // `--input-ipc-server=mpvserver`,
         `--force-media-title=${argsToStr(playInfo.playTitle)}`,
         `--referrer=${argsToStr(playInfo.playReferer)}`,
         `--title=${argsToStr(playInfo.playTitle)}`
@@ -266,20 +276,19 @@ async function Video(token: ITokenInfo, drive_id: string, file_id: string, paren
     playerArgs.otherArgs.push(...settingStore.uiVideoPlayerParams.replaceAll(/\s+/g, '').split(','))
   }
   const playArgs: any[] = [argsToStr(playerArgs.playUrl), ...Array.from(new Set(playerArgs.otherArgs))]
+  console.log('playArgs', playArgs)
   let fileList: IAliGetFileModel[] = []
-  let tmpServer: any
   if (settingStore.uiVideoEnablePlayerList) {
-    const port = await PlayerUtils.portIsOccupied(12000)
     fileList = compilation_id ? await PlayerUtils.getDirFileList(token.user_id, drive_id, parent_file_id) : usePanFileStore().ListDataRaw
-    playInfo.playList = fileList.filter((v: any) => v.category === 'video')
+    console.log('getDirFileList', fileList)
+    playInfo.playList = fileList.filter((v: any) => v.category.includes('video'))
     playInfo.playFileListPath = await PlayerUtils.createPlayListFile(
-      port, file_id,
+      token.user_id, file_id,
       playCursorInfo.play_duration,
       playCursorInfo.play_cursor,
       isPotplayer ? 'dpl' : 'm3u',
       playInfo.playList
     )
-    tmpServer = await PlayerUtils.createTmpServer(port, token.user_id, playInfo)
     // console.log('tmpFile', tmpFile)
     const playIndex = playInfo.playList.findIndex((v: any) => v.file_id == file_id)
     playArgs.shift()
@@ -289,11 +298,11 @@ async function Video(token: ITokenInfo, drive_id: string, file_id: string, paren
       playArgs.unshift(playInfo.playFileListPath)
     }
   }
+  console.log('playInfo', playInfo)
   const otherArgs = { user_id: token.user_id, socketPath, fileList, playInfo }
   await PlayerUtils.startPlayer(playInfo.playCommand, playArgs, otherArgs, options, async () => {
     if (settingStore.uiVideoEnablePlayerList) {
-      PlayerUtils.delTmpFile(playInfo.playFileListPath)
-      await tmpServer.close()
+      delTmpFile(playInfo.playFileListPath)
     }
     playInfo = {}
   })

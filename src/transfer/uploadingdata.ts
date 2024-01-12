@@ -8,8 +8,7 @@ import { MapValueToArray } from '../utils/utils'
 import { throttle } from '../utils/debounce'
 import { SetProgressBar } from '../utils/electronhelper'
 import AliAlbum from '../aliapi/album'
-
-const path = window.require('path')
+import path from 'node:path'
 
 const UploadingTaskList = new Map<number, IStateUploadTask>()
 const UploadingInfoList = new Map<number, IStateUploadInfo>()
@@ -363,7 +362,6 @@ export default class UploadingData {
     }
 
     if (isRunning) {
-
       progress = Math.floor((finishSize / (totalSize + 1)) * 100) / 100
     }
     SetProgressBar(progress, 'upload')
@@ -678,7 +676,9 @@ export default class UploadingData {
       _UploadingSendTime = time
       const settingStore = useSettingStore()
       const uploadFileMax = settingStore.uploadFileMax
-      if (settingStore.downSmallFileFirst) sendList = UploadingData._GetSendList(RunningKeys, LoadingKeys, time, uploadFileMax, true)
+      if (settingStore.downSmallFileFirst) {
+        sendList = UploadingData._GetSendList(RunningKeys, LoadingKeys, time, uploadFileMax, true)
+      }
       sendList = sendList.length > 0 ? sendList.concat(UploadingData._GetSendList(RunningKeys, LoadingKeys, time, uploadFileMax, false)) : UploadingData._GetSendList(RunningKeys, LoadingKeys, time, uploadFileMax, false)
     }
     return sendList
@@ -744,6 +744,7 @@ export default class UploadingData {
               drive_id: task.drive_id,
               check_name_mode: task.check_name_mode,
               localFilePath: task.localFilePath,
+              encType: task.encType,
               File: fileItem,
               Info: info
             } as IUploadingUI)
@@ -798,6 +799,7 @@ export default class UploadingData {
                 drive_id: task.drive_id,
                 check_name_mode: task.check_name_mode,
                 localFilePath: task.localFilePath,
+                encType: task.encType,
                 File: fileItem,
                 Info: info
               } as IUploadingUI)

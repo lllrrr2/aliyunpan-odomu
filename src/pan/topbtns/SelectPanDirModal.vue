@@ -1,7 +1,7 @@
 <script setup lang='ts'>
 import { modalCloseAll } from '../../utils/modal'
 import { computed, h, PropType, reactive, ref } from 'vue'
-import { usePanTreeStore, useWinStore } from '../../store'
+import { usePanTreeStore, useSettingStore, useWinStore } from '../../store'
 import { CheckFileName, ClearFileName } from '../../utils/filehelper'
 import { Tree as AntdTree } from 'ant-design-vue'
 import 'ant-design-vue/es/tree/style/css'
@@ -94,8 +94,14 @@ const handleOpen = async () => {
   treeExpandedKeys.value = expandedKeys
   // 网盘数据
   const flag = props.selecttype === 'select'
-  const backupPan = PanDAL.GetPanTreeAllNode(user_id.value, pantreeStore.backup_drive_id, treeExpandedKeys.value, !flag, flag)
-  const resourcePan = PanDAL.GetPanTreeAllNode(user_id.value, pantreeStore.resource_drive_id, treeExpandedKeys.value, !flag, flag)
+  let backupPan: TreeNodeData[] = []
+  let resourcePan: TreeNodeData[] = []
+  if (!useSettingStore().securityHideBackupDrive) {
+    backupPan = PanDAL.GetPanTreeAllNode(user_id.value, pantreeStore.backup_drive_id, treeExpandedKeys.value, !flag, flag)
+  }
+  if (!useSettingStore().securityHideResourceDrive) {
+    resourcePan = PanDAL.GetPanTreeAllNode(user_id.value, pantreeStore.resource_drive_id, treeExpandedKeys.value, !flag, flag)
+  }
   treeData.value = [...backupPan, ...resourcePan]
   okLoading.value = false
 }
@@ -248,8 +254,14 @@ const handleTreeExpand = (keys: any[], info: {
   } else {
     treeExpandedKeys.value = arr.concat([key])
     if (props.selecttype !== 'select') { // 仅显示文件夹
-      const backupPan = PanDAL.GetPanTreeAllNode(user_id.value, pantreeStore.backup_drive_id, treeExpandedKeys.value)
-      const resourcePan = PanDAL.GetPanTreeAllNode(user_id.value, pantreeStore.resource_drive_id, treeExpandedKeys.value)
+      let backupPan: TreeNodeData[] = []
+      let resourcePan: TreeNodeData[] = []
+      if (!useSettingStore().securityHideBackupDrive) {
+        backupPan = PanDAL.GetPanTreeAllNode(user_id.value, pantreeStore.backup_drive_id, treeExpandedKeys.value)
+      }
+      if (!useSettingStore().securityHideResourceDrive) {
+        resourcePan = PanDAL.GetPanTreeAllNode(user_id.value, pantreeStore.resource_drive_id, treeExpandedKeys.value)
+      }
       treeData.value = [...backupPan, ...resourcePan]
     }
   }
@@ -323,8 +335,14 @@ const handleOKNewDir = () => {
         await Sleep(200)
         selectDir.value = { dirID: newdirid, dirName: newName, isLeaf: false }
         treeExpandedKeys.value = treeExpandedKeys.value.concat([selectDir.value.dirID, newdirid])
-        const backupPan = PanDAL.GetPanTreeAllNode(user_id.value, pantreeStore.backup_drive_id, treeExpandedKeys.value)
-        const resourcePan = PanDAL.GetPanTreeAllNode(user_id.value, pantreeStore.resource_drive_id, treeExpandedKeys.value)
+        let backupPan: TreeNodeData[] = []
+        let resourcePan: TreeNodeData[] = []
+        if (!useSettingStore().securityHideBackupDrive) {
+          backupPan = PanDAL.GetPanTreeAllNode(user_id.value, pantreeStore.backup_drive_id, treeExpandedKeys.value)
+        }
+        if (!useSettingStore().securityHideResourceDrive) {
+          resourcePan = PanDAL.GetPanTreeAllNode(user_id.value, pantreeStore.resource_drive_id, treeExpandedKeys.value)
+        }
         treeData.value = [...backupPan, ...resourcePan]
         treeSelectedKeys.value = [newdirid]
         okLoading.value = false

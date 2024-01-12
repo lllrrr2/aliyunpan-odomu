@@ -13,6 +13,7 @@ import AliTrash from '../aliapi/trash'
 
 import path from 'path'
 import fs from 'fs'
+import { getProxyUrl } from './proxyhelper'
 
 const localPwd = 'S4znWTaZYQi3cpRNb'
 
@@ -52,7 +53,8 @@ function CloseRemote() {
     if (Aria2EngineRemote) {
       try {
         Aria2EngineRemote.close().catch().then()
-      } catch {}
+      } catch {
+      }
       Aria2EngineRemote = undefined
     }
   }
@@ -291,7 +293,6 @@ export function AriaShoutDown() {
   }
 }
 
-
 export async function AriaAddUrl(file: IStateDownFile): Promise<string> {
   try {
     const info = file.Info
@@ -388,6 +389,16 @@ export async function AriaAddUrl(file: IStateDownFile): Promise<string> {
         } else if (!durl.url) {
           DebugLog.mSaveLog('danger', `${info.file_id} 生成下载链接失败, ${JSON.stringify(durl)}`, null)
           return `生成下载链接失败,${JSON.stringify(durl)}`
+        }
+        // 通过代理服务，下载文件并且自动解密
+        if (file.Info.encType) {
+          durl.url = getProxyUrl({
+            user_id: file.Info.user_id,
+            encType: file.Info.encType,
+            file_size: file.Info.size,
+            lastUrl: durl.url
+          })
+          // console.warn('durl.url', durl.url)
         }
         downloadUrl = durl.url
         file.Down.DownUrl = downloadUrl

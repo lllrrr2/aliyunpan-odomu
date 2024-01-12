@@ -4,6 +4,7 @@ import message from '../utils/message'
 import AliHttp, { IUrlRespData } from './alihttp'
 import { IAliShareBottleFishItem, IAliShareItem, IAliShareRecentItem } from './alimodels'
 import AliDirFileList from './dirfilelist'
+import { useSettingStore } from '../store'
 
 export interface IAliShareResp {
   items: IAliShareItem[]
@@ -78,7 +79,7 @@ export default class AliShareList {
           let icon = 'iconwenjian'
           let first_file
           if (item.first_file) {
-            first_file = AliDirFileList.getFileInfo(item.first_file, downUrl)
+            first_file = AliDirFileList.getFileInfo(dir.m_user_id, item.first_file, downUrl)
             icon = first_file.icon || 'iconwenjian'
           }
           const add = Object.assign({}, item, { first_file, icon }) as IAliShareItem
@@ -129,9 +130,14 @@ export default class AliShareList {
       m_time: 0,
       m_user_id: user_id
     }
+    let max: number = useSettingStore().debugFavorListMax
     do {
       const isGet = await AliShareList.ApiShareRecentListOnePage(dir)
       if (!isGet) {
+        break
+      }
+      if (dir.items.length >= max && max > 0) {
+        dir.next_marker = ''
         break
       }
     } while (dir.next_marker)

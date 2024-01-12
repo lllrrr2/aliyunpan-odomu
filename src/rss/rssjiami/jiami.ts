@@ -7,7 +7,7 @@ import { decodeName, encodeName } from '../../module/flow-enc/utils'
 import fs from 'fs'
 import FlowEnc from '../../module/flow-enc'
 
-export async function DoJiaMi(mode: 'enc' | 'dec',
+export async function DoJiaMi(mode: string,
                               encType: string,
                               encName: boolean,
                               password: string,

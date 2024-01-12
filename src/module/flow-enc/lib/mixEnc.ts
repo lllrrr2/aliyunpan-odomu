@@ -60,7 +60,7 @@ class MixEnc {
     return new Transform({
       // 匿名函数确保this是指向 FlowEnc
       transform: (chunk, encoding, next) => {
-        next(null, this.encodeData(chunk))
+        next(null, this.encrypt(chunk))
       }
     })
   }
@@ -70,13 +70,13 @@ class MixEnc {
     return new Transform({
       transform: (chunk, encoding, next) => {
         // this.push()  用push也可以
-        next(null, this.decodeData(chunk))
+        next(null, this.decrypt(chunk))
       }
     })
   }
 
   // 加密方法
-  encodeData(data: Buffer): Buffer {
+  encrypt(data: Buffer): Buffer {
     data = Buffer.from(data)
     for (let i = data.length; i--;) {
       data[i] ^= this.encode[data[i] % 32]
@@ -85,7 +85,7 @@ class MixEnc {
   }
 
   // 解密方法
-  decodeData(data: Buffer): Buffer {
+  decrypt(data: Buffer): Buffer {
     for (let i = data.length; i--;) {
       data[i] ^= this.decode[data[i] % 32]
     }

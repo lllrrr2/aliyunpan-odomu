@@ -178,12 +178,7 @@ export default class UserDAL {
       open_api_access_token: token.open_api_access_token,
       login: true
     })
-    // 刷新网盘数据
-    await PanDAL.aReLoadBackupDrive(token)
-    await PanDAL.aReLoadResourceDrive(token)
-    // 展开文件夹
-    await PanDAL.aReLoadOneDirToShow(token.resource_drive_id, 'resource_root', true)
-    await PanDAL.aReLoadOneDirToShow(token.backup_drive_id, 'backup_root', true)
+    await UserDAL.LoadPanData(token)
     PanDAL.aReLoadQuickFile(token.user_id)
     // 刷新所有状态
     useAppStore().resetTab()
@@ -194,6 +189,17 @@ export default class UserDAL {
     message.success('加载用户成功!', 2, loadingKey)
   }
 
+  static async LoadPanData(token: ITokenInfo) {
+    // 刷新网盘数据
+    if (!useSettingStore().securityHideResourceDrive) {
+      await PanDAL.aReLoadResourceDrive(token)
+      await PanDAL.aReLoadOneDirToShow(token.resource_drive_id, 'resource_root', true)
+    }
+    if (!useSettingStore().securityHideBackupDrive) {
+      await PanDAL.aReLoadBackupDrive(token)
+      await PanDAL.aReLoadOneDirToShow(token.backup_drive_id, 'backup_root', true)
+    }
+  }
 
   static async UserLogOff(user_id: string): Promise<boolean> {
     await DB.deleteUser(user_id)

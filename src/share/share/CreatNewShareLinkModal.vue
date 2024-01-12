@@ -14,7 +14,6 @@ import { GetShareUrlFormate } from '../../utils/shareurl'
 import AliTransferShare from '../../aliapi/transfershare'
 
 const formRef = ref()
-const invalid_file = ref('')
 const okLoading = ref(false)
 const okBatchLoading = ref(false)
 const settingStore = useSettingStore()
@@ -63,23 +62,11 @@ const handleOpen = async () => {
   else expiration += 30 * 24 * 60 * 60 * 1000
 
   form.expiration = expiration > 0 ? humanDateTime(expiration) : ''
-  // 检查文件
-  const pantreeStore = usePanTreeStore()
-  const user_id = pantreeStore.user_id
-  const drive_id = pantreeStore.drive_id
-  const file_id_list = ArrayKeyList<string>('file_id', props.filelist)
-  if (shareType.value.type == 's') {
-    let invalidList = await AliShare.ApiShareFileCheckAvailable(user_id, drive_id, file_id_list)
-    if (invalidList.length > 0) {
-      invalid_file.value = invalidList.map(v=> v.name).join(',')
-    }
-  }
 }
 
 const handleClose = () => {
   if (okLoading.value) okLoading.value = false
   if (okBatchLoading.value) okBatchLoading.value = false
-  invalid_file.value = ''
   formRef.value.resetFields()
 }
 
@@ -226,9 +213,6 @@ const handleOK = async (multi: boolean) => {
             <span class='opblue' style='margin-left: 0; font-size: 12px' v-else> 🎉快传支持发送所有格式的文件 </span>
           </template>
           <a-input v-model.trim='form.share_name' :placeholder='form.share_name' />
-          <template #extra v-if='shareType.type === "s"'>
-            <span class='opred'> 无法分享的文件：{{ invalid_file }} </span>
-          </template>
         </a-form-item>
 
         <template v-if='shareType.type === "s"'>

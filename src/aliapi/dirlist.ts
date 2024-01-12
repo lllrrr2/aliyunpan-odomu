@@ -197,7 +197,7 @@ export default class AliDirList {
                 dir.next_marker = respi.body.next_marker
                 const items = respi.body.items
                 for (let i = 0, maxi = items.length; i < maxi; i++) {
-                  const add = AliDirFileList.getFileInfo(items[i], '')
+                  const add = AliDirFileList.getFileInfo(user_id, items[i], '')
                   dir.items.push(add)
                 }
                 break

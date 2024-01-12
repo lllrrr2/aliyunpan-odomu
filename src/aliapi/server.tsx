@@ -291,7 +291,7 @@ export default class ServerHttp {
                             } else {
                               message.info('热更新完毕，请重新打开应用...', 0, msgKey)
                               await this.Sleep(2000)
-                              window.WebToElectron({ cmd: 'quit' })
+                              window.WebToElectron({ cmd: 'exit' })
                               return true
                             }
                           })
@@ -359,7 +359,7 @@ export default class ServerHttp {
     const subProcess = await execFile(`${resourcesPath}`, options)
     if (subProcess.pid && process.kill(subProcess.pid, 0)) {
       await this.Sleep(2000)
-      window.WebToElectron({ cmd: 'quit' })
+      window.WebToElectron({ cmd: 'exit' })
     } else {
       message.info('安装失败，请前往文件夹手动安装', 5, msgKey)
       const resources = getResourcesPath('')

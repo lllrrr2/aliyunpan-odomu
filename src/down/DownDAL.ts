@@ -17,6 +17,8 @@ import { humanSize, humanSizeSpeed } from '../utils/format'
 import { Howl } from 'howler'
 import DBDown from '../utils/dbdown'
 import fsPromises from 'fs/promises'
+import { DecodeEncName } from '../aliapi/utils'
+import { getEncType } from '../utils/proxyhelper'
 
 export interface IStateDownFile {
   DownID: string
@@ -59,6 +61,7 @@ export interface IStateDownInfo {
   sizestr: string
   icon: string
   isDir: boolean
+  encType: string
 
   sha1: string
 
@@ -77,11 +80,6 @@ export interface IAriaDownProgress {
 
 /** 存盘的时机：默认 10 时进行 */
 let SaveTimeWait = 0
-/** 下载正在执行中的数据 */
-export let DownInExeMap = new Map<string, IStateDownFile>()
-/** 下载正在队列中的数据 */
-export let DownInQueues: IStateDownFile[] = []
-
 const sound = new Howl({
   src: ['./audio/download_finished.mp3'], // 音频文件路径
   autoplay: false, // 是否自动播放
@@ -159,7 +157,7 @@ export default class DownDAL {
     const sep = settingStore.ariaSavePath.indexOf('/') >= 0 ? '/' : '\\'
     for (let f = 0; f < fileList.length; f++) {
       const file = fileList[f]
-      const name = ClearFileName(file.name)
+      const name = ClearFileName(DecodeEncName(userID, file).name)
       let fullPath = savePath
       if (needPanPath) {
         if (cPath != '' && cPid == file.parent_file_id) fullPath = cPath
@@ -188,7 +186,6 @@ export default class DownDAL {
 
       let downloadurl = ''
       let crc64 = ''
-
       const downitem: IStateDownFile = {
         DownID: userID + '|' + file.file_id,
         Info: {
@@ -203,6 +200,7 @@ export default class DownDAL {
           sizestr: file.sizeStr,
           isDir: file.isDir,
           icon: file.icon,
+          encType: getEncType(file),
           sha1: '',
           crc64: crc64
         },
@@ -240,7 +238,6 @@ export default class DownDAL {
     const isOnline = await AriaConnect()
     if (isOnline && downingStore.ListDataRaw.length) {
       await AriaGetDowningList()
-
       const ariaRemote = IsAria2cRemote()
       const DowningList: IStateDownFile[] = downingStore.ListDataRaw
       const timeThreshold = Date.now() - 60 * 1000

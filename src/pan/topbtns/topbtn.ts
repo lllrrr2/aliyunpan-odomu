@@ -13,6 +13,7 @@ import {
   modalDownload,
   modalM3U8Download,
   modalMoveToAlbum,
+  modalPassword,
   modalSearchPan,
   modalSelectPanDir,
   modalUpload
@@ -33,21 +34,38 @@ import AliAlbum from '../../aliapi/album'
 const topbtnLock = new Set()
 
 
-export function handleUpload(uploadType: string, isPic: boolean = false) {
+export function handleUpload(uploadType: string, encType: string = '') {
   const pantreeStore = usePanTreeStore()
   if (!pantreeStore.user_id || !pantreeStore.drive_id || !pantreeStore.selectDir.file_id) {
     message.error('上传操作失败 父文件夹错误')
     return
   }
-
+  if (encType == 'xbyEncrypt1') {
+    if (!useSettingStore().securityPassword) {
+      modalPassword('input', (success) => {
+        success && handleUpload(uploadType, encType)
+      })
+      return
+    }
+  }
   if (uploadType == 'file') {
     window.WebShowOpenDialogSync({
       title: '选择多个文件上传到网盘',
-      buttonLabel: '上传选中的文件',
+      buttonLabel: `${encType == 'xbyEncrypt1' ? '加密' : encType == 'xbyEncrypt2' ? '私密' : ''}上传选中的文件`,
       properties: ['openFile', 'multiSelections', 'showHiddenFiles', 'noResolveAliases', 'treatPackageAsDirectory', 'dontAddToRecent']
     }, (files: string[] | undefined) => {
       if (files && files.length > 0) {
-        modalUpload(pantreeStore.selectDir.file_id, files)
+        modalUpload(pantreeStore.selectDir.file_id, files, false, encType)
+      }
+    })
+  } else if (uploadType == 'folder') {
+    window.WebShowOpenDialogSync({
+      title: '选择多个文件夹上传到网盘',
+      buttonLabel: `${encType == 'xbyEncrypt1' ? '加密' : encType == 'xbyEncrypt2' ? '私密' : ''}上传文件夹`,
+      properties: ['openDirectory', 'multiSelections', 'showHiddenFiles', 'noResolveAliases', 'treatPackageAsDirectory', 'dontAddToRecent']
+    }, (files: string[] | undefined) => {
+      if (files && files.length > 0) {
+        modalUpload(pantreeStore.selectDir.file_id, files, false, encType)
       }
     })
   } else if (uploadType == 'pic_file') {
@@ -61,17 +79,7 @@ export function handleUpload(uploadType: string, isPic: boolean = false) {
       properties: ['openFile', 'multiSelections', 'showHiddenFiles', 'noResolveAliases', 'treatPackageAsDirectory', 'dontAddToRecent']
     }, (files: string[] | undefined) => {
       if (files && files.length > 0) {
-        modalUpload(pantreeStore.selectDir.file_id, files, isPic)
-      }
-    })
-  } else {
-    window.WebShowOpenDialogSync({
-      title: '选择多个文件夹上传到网盘',
-      buttonLabel: '上传文件夹',
-      properties: ['openDirectory', 'multiSelections', 'showHiddenFiles', 'noResolveAliases', 'treatPackageAsDirectory', 'dontAddToRecent']
-    }, (files: string[] | undefined) => {
-      if (files && files.length > 0) {
-        modalUpload(pantreeStore.selectDir.file_id, files)
+        modalUpload(pantreeStore.selectDir.file_id, files, true)
       }
     })
   }
@@ -105,6 +113,7 @@ export function menuDownload(istree: boolean, tips: boolean = true) {
       ...usePanTreeStore().selectDir,
       isDir: true,
       ext: '',
+      mime_extension: '',
       mime_type: '',
       category: '',
       icon: '',
@@ -444,6 +453,8 @@ export function dropMoveSelectedFile(movetodirid: string, istree: boolean) {
 
 export async function menuFileColorChange(istree: boolean, color: string) {
   const selectedData = PanDAL.GetPanSelectedData(istree)
+  const description = selectedData.fileDescription || selectedData.parentDirDescription
+  color = color.toLowerCase().replace('#', 'c')
   if (selectedData.isError) {
     message.error('标记文件操作失败 父文件夹错误')
     return
@@ -452,9 +463,14 @@ export async function menuFileColorChange(istree: boolean, color: string) {
     message.error('没有可以标记的文件')
     return
   }
-
-  color = color.toLowerCase().replace('#', 'c')
-
+  if (color && description.includes(color)) {
+    message.error('不能标记相同的颜色')
+    return
+  }
+  let parts = description.split(',')
+  let encryptPart = parts.find(part => part.includes('xbyEncrypt')) || ''
+  let colorPart = color || parts.find(part => /c.{6}$/.test(part)) || ''
+  color = color ? [encryptPart, colorPart].filter(Boolean).join(',') : encryptPart
   if (topbtnLock.has('menuFileColorChange')) return
   topbtnLock.add('menuFileColorChange')
   try {
@@ -488,6 +504,7 @@ export function menuCreatShare(istree: boolean, shareby: string, driveType: stri
         namesearch: dir.namesearch,
         ext: '',
         mime_type: '',
+        mime_extension: '',
         category: '',
         icon: 'iconfile-folder',
         size: 0,
@@ -497,7 +514,7 @@ export function menuCreatShare(istree: boolean, shareby: string, driveType: stri
         starred: false,
         isDir: true,
         thumbnail: '',
-        description: ''
+        description: dir.description
       }
     ]
   } else {

@@ -2,6 +2,7 @@
 import useSettingStore from './settingstore'
 import MySwitch from '../layout/MySwitch.vue'
 import MyTags from '../layout/MyTags.vue'
+
 const settingStore = useSettingStore()
 const cb = (val: any) => {
   settingStore.updateStore(val)
@@ -100,9 +101,7 @@ const cb = (val: any) => {
     <div class="settingrow">
       <MySwitch :value="settingStore.downFinishAudio" @update:value="cb({ downFinishAudio: $event })"> 下载中/上传中 的任务全部完成后声音提示</MySwitch>
     </div>
-  </div>
-
-  <div class="settingcard">
+    <div class="settingspace"></div>
     <div class="settinghead">:上传下载时 优先传输小文件</div>
     <div class="settingrow">
       <MySwitch :value="settingStore.downSmallFileFirst" @update:value="cb({ downSmallFileFirst: $event })"> 下载中/上传中 优先传输小于100MB的文件</MySwitch>

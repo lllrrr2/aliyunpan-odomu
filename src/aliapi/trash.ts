@@ -99,7 +99,7 @@ export default class AliTrash {
         for (let i = 0, maxi = resp.body.items.length; i < maxi; i++) {
           const item = resp.body.items[i] as IAliFileItem
           if (dir.itemsKey.has(item.file_id)) continue
-          const add = AliDirFileList.getFileInfo(item, downurl)
+          const add = AliDirFileList.getFileInfo(dir.m_user_id, item, downurl)
           if (isrecover) add.description = item.content_hash
           dir.items.push(add)
           dir.itemsKey.add(item.file_id)

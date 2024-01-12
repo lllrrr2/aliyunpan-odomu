@@ -101,7 +101,7 @@ const onRowItemDragOver = (ev: any) => {
 
 const onRowItemDrop = (ev: any, movetodirid: string) => {
   ev.stopPropagation()
-  ev.preventDefault() 
+  ev.preventDefault()
   ev.target.style.outline = 'none'
   ev.target.style.background = ''
   const filesList = ev.dataTransfer.files
@@ -152,6 +152,20 @@ const handleQuickSelect = (index: number) => {
     PanDAL.aReLoadOneDirToShow(drive_id, key, true)
   }
 }
+const filterTreeData = computed(() => {
+  return pantreeStore.treeData.filter((item) => {
+    if (useSettingStore().securityHideBackupDrive && item.key === 'backup_root') {
+      return false
+    }
+    if (useSettingStore().securityHideResourceDrive && item.key === 'resource_root') {
+      return false
+    }
+    if (useSettingStore().securityHidePicDrive && item.key === 'pic_root') {
+      return false
+    }
+    return true
+  })
+})
 </script>
 
 <template>
@@ -184,13 +198,13 @@ const handleQuickSelect = (index: number) => {
             :open-animation='{}'
             :expanded-keys='pantreeStore.treeExpandedKeys'
             :selected-keys='pantreeStore.treeSelectedKeys'
-            :tree-data='pantreeStore.treeData'
+            :tree-data='filterTreeData'
             @select='(_:any[],e:any)=>pantreeStore.mTreeSelected(e, false)'
             @expand='(_:any[],e:any)=>pantreeStore.mTreeExpand(e.node.key)'
             @right-click='handleTreeRightClick'
             @scroll='onHideRightMenuScroll'>
             <template #switcherIcon>
-              <i class='ant-tree-switcher-icon iconfont Arrow'/>
+              <i class='ant-tree-switcher-icon iconfont Arrow' />
             </template>
             <template #icon>
               <i class='iconfont iconfile-folder' />

@@ -29,18 +29,18 @@ class ChaCha20Poly {
     const position = parseInt((_position / 1024).toString())
     const mod = _position % 1024
     for (let i = 0; i < position; i++) {
-      this.decChaPoly(buf)
+      this.decrypt(buf)
     }
     const modBuf = Buffer.alloc(mod)
     for (let i = 0; i < mod; i++) {
-      this.decChaPoly(modBuf)
+      this.decrypt(modBuf)
     }
   }
 
   encryptTransform(): Transform {
     return new Transform({
       transform: (chunk, encoding, next) => {
-        next(null, this.encChaPoly(chunk))
+        next(null, this.encrypt(chunk))
       }
     })
   }
@@ -48,12 +48,12 @@ class ChaCha20Poly {
   decryptTransform(): Transform {
     return new Transform({
       transform: (chunk, encoding, next) => {
-        next(null, this.decChaPoly(chunk, false))
+        next(null, this.decrypt(chunk, false))
       }
     })
   }
 
-  encChaPoly(data: Buffer | string): Buffer | undefined {
+  encrypt(data: Buffer | string): Buffer | undefined {
     if (typeof data === 'string') {
       data = Buffer.from(data, 'utf8')
     }
@@ -64,15 +64,7 @@ class ChaCha20Poly {
     }
   }
 
-  encChaPolyFinal(): Buffer {
-    return this.cipher.final()
-  }
-
-  getAuthTag(): Buffer {
-    return this.cipher.getAuthTag()
-  }
-
-  decChaPoly(bufferData: Buffer, authTag?: Buffer | string | boolean): Buffer | undefined {
+  decrypt(bufferData: Buffer, authTag?: Buffer | string | boolean): Buffer | undefined {
     try {
       if (authTag) {
         this.decipher.setAuthTag(authTag as Buffer)
@@ -88,6 +80,14 @@ class ChaCha20Poly {
     } catch (err) {
       console.log(err)
     }
+  }
+
+  encChaPolyFinal(): Buffer {
+    return this.cipher.final()
+  }
+
+  getAuthTag(): Buffer {
+    return this.cipher.getAuthTag()
   }
 
   decChaPolyFinal(): void {

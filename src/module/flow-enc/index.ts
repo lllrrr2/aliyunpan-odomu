@@ -16,8 +16,8 @@ class FlowEnc {
       encryptFlow = new MixEnc(password, sizeSalt)
       this.passwdOutward = encryptFlow.passwdOutward
     }
-    if (encryptType === 'rc4') {
-      console.log('@@rc4', encryptType, sizeSalt)
+    if (encryptType === 'rc4md5') {
+      console.log('@@rc4md5', encryptType, sizeSalt)
       encryptFlow = new Rc4Md5(password, sizeSalt)
       this.passwdOutward = encryptFlow.passwdOutward
     }
@@ -40,6 +40,15 @@ class FlowEnc {
 
   async setPosition(position: number) {
     await this.encryptFlow.setPositionAsync(position)
+  }
+
+  // 加密buff
+  encryptBuff(data: Buffer) {
+    return this.encryptFlow.encrypt(data)
+  }
+
+  decryptBuff(data: Buffer) {
+    return this.encryptFlow.decrypt(data)
   }
 
   // 加密流转换

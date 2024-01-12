@@ -19,7 +19,7 @@ export default defineComponent({
 
     const loadCode = () => {
       const pageCode = appStore.pageCode!
-      AliFile.ApiFileDownText(pageCode.user_id, pageCode.drive_id, pageCode.file_id, pageCode.file_size, 512 * 1024).then((data: string) => {
+      AliFile.ApiFileDownText(pageCode.user_id, pageCode.drive_id, pageCode.file_id, pageCode.file_size, 512 * 1024).then((data: any) => {
         if (pageCode.file_size > 512 * 1024) {
           message.info('文件较大，只显示了前 512KB 的内容')
         }

@@ -6,7 +6,7 @@ import message from '../utils/message'
 /*import HttpsProxyAgent from 'https-proxy-agent'
 import { SocksProxyAgent } from 'socks-proxy-agent'*/
 import AliHttp from '../aliapi/alihttp'
-const nodehttps = window.require('https')
+import nodehttps from 'node:https'
 
 const settingStore = useSettingStore()
 const cb = (val: any) => {

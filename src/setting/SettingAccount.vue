@@ -144,7 +144,7 @@ const closeQrCode = () => {
             官方文档：<span class='opblue' @click="openWebUrl('developer')">开发者门户</span>
             <br />
             <div class='hrspace'></div>
-            <span class='opred'>注意</span>：手机扫码功能未测试，需要申请OpenApi
+            <span class='opred'>注意</span>：需要申请OpenApi开发者账户
             <div class='hrspace'></div>
           </div>
         </template>
