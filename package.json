@@ -1,12 +1,13 @@
 {
   "name": "alixby",
   "description": "阿里云盘小白羊",
-  "version": "3.24.11217",
+  "version": "3.24.11220",
   "main": "dist/electron/main/index.js",
   "author": {
     "name": "Odomu",
     "email": "xxx@xx.com"
   },
+  "homepage": "https://github.com/odomu/aliyunpan",
   "license": "GPL-3.0",
   "scripts": {
     "dev": "vite",
