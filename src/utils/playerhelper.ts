@@ -144,7 +144,7 @@ const PlayerUtils = {
   async mpvPlayer(binary: string, playArgs: any, otherArgs: any, options: SpawnOptions, exitCallBack: any) {
     let { user_id, socketPath, fileList, playInfo } = otherArgs
     let currentTime = 0
-    let currentFileId = playInfo.file_id
+    let currentFileId = playInfo.playFileId
     let mpv: mpvAPI = new mpvAPI({
       debug: false,
       verbose: false,

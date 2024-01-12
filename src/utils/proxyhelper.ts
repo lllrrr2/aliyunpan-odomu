@@ -89,6 +89,7 @@ export async function createProxyServer(port: number) {
     if (pathname === '/proxy') {
       let decryptTransform: any = null
       // 需要解密
+      console.warn('proxy.range', clientReq.headers.range)
       if (encType) {
         // 要定位请求文件的位置 bytes=xxx-
         const range = clientReq.headers.range
@@ -110,7 +111,7 @@ export async function createProxyServer(port: number) {
             expires_time: GetExpiresTime(url), proxy_url: url
           }
           console.info('proxy.info', info)
-          Db.saveValueObject('ProxyInfo', info)
+          await Db.saveValueObject('ProxyInfo', info)
           proxyUrl = url
         }
       }
