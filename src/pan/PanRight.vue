@@ -263,14 +263,14 @@ const handleOpenFile = (event: Event, file: IAliGetFileModel | undefined) => {
   if (!panfileStore.ListSelected.has(file.file_id)) {
     panfileStore.mMouseSelect(file.file_id, false, false)
   }
-  let isShare = file.mime_extension == 'unknown' && !file.user_meta
+  let isShare = !file.user_meta || (file.user_meta && !file.user_meta.includes('file_upload'))
   let isEncrypt = file.description.includes('xbyEncrypt')
   if (isEncrypt && !file.category.startsWith('video')) {
     message.error('当前仅支持预览视频文件')
     return
   }
   // 确认密码
-  if (isShare
+  if ((isShare && isEncrypt)
     || (!useSettingStore().securityPassword && isEncrypt)
     || (useSettingStore().securityPassword && useSettingStore().securityPasswordConfirm)) {
     modalPassword('confirm', (success) => {

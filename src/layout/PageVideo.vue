@@ -406,13 +406,12 @@ const getVideoInfo = async (art: Artplayer) => {
   if (data) {
     // 画质
     const qualitySelector: selectorItem[] = []
-    qualitySelector.push({ url: '', html: '原画' })
     if (data.urlQHD) qualitySelector.push({ url: data.urlQHD, html: '2k高清 2560p' })
     if (data.urlFHD) qualitySelector.push({ url: data.urlFHD, html: '全高清 1080P' })
     if (data.urlHD) qualitySelector.push({ url: data.urlHD, html: '高清 720P' })
     if (data.urlSD) qualitySelector.push({ url: data.urlSD, html: '标清 540P' })
     if (data.urlLD) qualitySelector.push({ url: data.urlLD, html: '流畅 480P' })
-    const qualityDefault = qualitySelector.find((item) => item.default) || qualitySelector[1]
+    const qualityDefault = qualitySelector.find((item) => item.default) || qualitySelector[0]
     qualityDefault.default = true
     art.url = qualityDefault.url
     pageVideo.expire_time = data.expire_time
@@ -424,15 +423,6 @@ const getVideoInfo = async (art: Artplayer) => {
       html: qualityDefault ? qualityDefault.html : '',
       selector: qualitySelector,
       onSelect: async (item: selectorItem) => {
-        if (item.html === '原画') {
-          let data = await AliFile.ApiFileDownloadUrl(pageVideo.user_id, pageVideo.drive_id, pageVideo.file_id, 14400)
-          if (typeof data == 'string' || !data.url) {
-            art.notice.show = '获取原画链接失败，请切换到其他画质'
-            return
-          }
-          item.url = data.url
-          pageVideo.expire_time = data.expire_time
-        }
         await art.switchQuality(item.url)
       }
     })

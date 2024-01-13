@@ -120,13 +120,13 @@ export function DecodeEncName(user_id: string, item: IAliFileItem | IAliGetFileM
     let filename = item.name.replace(ext ? '.' + ext : '', '')
     let password = getEncPassword(user_id, encType)
     let realName = decodeName(password, securityEncType, filename) || item.name
-    // 修复加密后的扩展
-    if (path.extname(realName)) {
+    if (ext) {
+      name = realName + '.' + ext
+    } else if (path.extname(realName)) {
+      // 修复加密后的扩展
       name = realName
       ext = path.extname(realName).replace('.', '')
       mine_type = mime.lookup(ext) || 'application/oct-stream'
-    } else if (ext) {
-      name = realName + '.' + ext
     } else {
       name = realName
     }

@@ -15,7 +15,7 @@ import path from 'path'
 import fs from 'fs'
 import { getProxyUrl } from './proxyhelper'
 
-const localPwd = 'S4znWTaZYQi3cpRNb'
+export const localPwd = 'S4znWTaZYQi3cpRNb'
 
 let Aria2cChangeing: boolean = false
 let Aria2EngineLocal: Aria2 | undefined = undefined

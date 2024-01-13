@@ -29,8 +29,7 @@ export default class UserDAL {
         if (token.user_id && await AliUser.ApiTokenRefreshAccount(token, false)) {
           if (token.user_id === defaultUser) {
             defaultUserAdd = true
-            await this.UserLogin(token).catch(() => {
-            })
+            await this.UserLogin(token).catch()
           } else {
             await this.UserAutoSign(token)
           }

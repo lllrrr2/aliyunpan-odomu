@@ -174,6 +174,10 @@ export default class AliFile {
       }
       const taskList = resp.body.video_preview_play_info?.live_transcoding_task_list || []
       for (let i = 0, maxi = taskList.length; i < maxi; i++) {
+        if (taskList[i].url.indexOf('pdsapi.aliyundrive.com') > 0) {
+          // 非OpenApi无法播放
+          continue
+        }
         if (taskList[i].template_id && taskList[i].template_id == 'QHD' && taskList[i].status == 'finished') {
           data.urlQHD = taskList[i].url
         } else if (taskList[i].template_id && taskList[i].template_id == 'FHD' && taskList[i].status == 'finished') {
