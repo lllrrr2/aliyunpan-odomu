@@ -75,6 +75,7 @@
       "owner": "odomu",
       "repo": "aliyunpan",
       "provider": "github",
+      "publishAutoUpdate": false,
       "releaseType": "draft"
     }
   ]
