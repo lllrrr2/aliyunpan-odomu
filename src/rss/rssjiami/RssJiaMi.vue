@@ -6,7 +6,6 @@ import MySwitch from '../../layout/MySwitch.vue'
 import message from '../../utils/message'
 import { DoJiaMi } from './jiami'
 import { decodeName } from '../../module/flow-enc/utils'
-import { getEncPassword } from '../../utils/proxyhelper'
 
 const Loading = ref(false)
 const encPath = ref('')
@@ -58,7 +57,7 @@ const handleSelectDir = (inout: boolean) => {
 }
 
 const handleDecType = () => {
-  password.value = getEncPassword(usePanTreeStore().user_id, encDecType.value)
+  password.value = encDecType.value === 'xbyEncrypt1' ? '' : usePanTreeStore().user_id
 }
 
 const handleClickJiaMi = async () => {
@@ -221,20 +220,30 @@ const handleClickJiaMi = async () => {
       <div class="settingspace"></div>
       <div class="settinghead">:我直接打压缩包不就好了吗？</div>
       <div class="settingrow">
-        1.<a-typography-text type="success">加密的文件，使用小白羊下载时会自动解密</a-typography-text> <br />
-        2.<a-typography-text type="success">加密的视频文件，小白羊支持直接在线播放</a-typography-text> <br />
-        3.<a-typography-text type="success">加密的文件，无法通过其他软件解密查看原始数据</a-typography-text><br />
+        1.
+        <a-typography-text type="success">加密的文件，使用小白羊下载时会自动解密</a-typography-text>
+        <br />
+        2.
+        <a-typography-text type="success">加密的视频文件，小白羊支持直接在线播放</a-typography-text>
+        <br />
+        3.
+        <a-typography-text type="success">加密的文件，无法通过其他软件解密查看原始数据</a-typography-text>
+        <br />
       </div>
       <div class="settingspace"></div>
       <div class="settinghead">:文件加密方式说明</div>
       <div class="settingrow">
         1.AES-CTR 更加安全，速度最快。推荐 armV8 以上的 cpu 使用，X86 架构的也推荐在支持 AES 指令的机器使用<br />
         2.RC4-MD5 由于使用 nodejs 进行实现，性能会稍微差一些。适合在 CPU 不支持 AES 指令的设备中使用<br />
-        3.<a-typography-text type="danger">加密上传的文件需要设置安全密码解密，私密上传的文件仅加密上传的用户可以解密（和用户相关，无需输入密码）</a-typography-text><br />
+        3.
+        <a-typography-text type="danger">
+          加密上传的文件需要设置安全密码解密，私密上传的文件仅加密上传的用户可以解密（和用户相关，无需输入密码）
+        </a-typography-text>
+        <br />
         4.被加密的文件可以认为是全世界独一无二的<br />
         <div class="hrspace"></div>
         <span class="oporg"> AES-CTR 可以跑满 800Mpbs+的带宽，RC4 测试理论是可以跑满 300Mbps 带宽的</span>
-         ，所以你完全不用担心的它的性能会出现瓶颈<br />
+        ，所以你完全不用担心的它的性能会出现瓶颈<br />
       </div>
     </div>
   </div>
