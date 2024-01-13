@@ -9,7 +9,7 @@ import { decodeName } from '../module/flow-enc/utils'
 import { IAliFileItem, IAliGetFileModel } from '../aliapi/alimodels'
 
 
-interface ProxyInfo {
+interface PlayInfo {
   user_id: string
   drive_id?: string
   file_id?: string
@@ -46,14 +46,14 @@ export function getFlowEnc(user_id: string, fileSize: number, encType: string) {
   return new FlowEnc(securityPassword, securityEncType, fileSize)
 }
 
-export function getProxyUrl(info: ProxyInfo) {
+export function getProxyUrl(info: PlayInfo) {
   let proxyUrl = `http://127.0.0.1:${window.MainProxyPort}/proxy`
   let params = Object.keys(info).filter(v=> info[v])
     .map((key: string) => `${encodeURIComponent(key)}=${encodeURIComponent(info[key]!!)}`)
   return `${proxyUrl}?${params.join('&')}`
 }
 
-export function getRedirectUrl(info: ProxyInfo) {
+export function getRedirectUrl(info: PlayInfo) {
   let redirectUrl = `http://127.0.0.1:${window.MainProxyPort}/redirect`
   let params = Object.keys(info).filter(v=> info[v])
     .map((key: string) => `${encodeURIComponent(key)}=${encodeURIComponent(info[key]!!)}`)
@@ -69,20 +69,18 @@ export async function createProxyServer(port: number) {
     // console.log('proxy request: ', clientReq.url)
     console.info('proxy request query: ', query)
     if (pathname === '/redirect') {
-      let proxyInfo: any = await Db.getValueObject('ProxyInfo')
-      let redirectUrl = proxyInfo && proxyInfo.proxy_url || ''
-      if (file_id && drive_id) {
-        if (!redirectUrl || file_id != proxyInfo.file_id || proxyInfo.expires_time <= Date.now()) {
-          // 获取地址
-          let url = await PlayerUtils.getVideoUrl(user_id, drive_id, file_id, false, true)
-          let info: ProxyInfo = {
-            user_id, drive_id, file_id, file_size, encType,
-            expires_time: GetExpiresTime(url), proxy_url: url
-          }
-          console.info('redirect.info', info)
-          Db.saveValueObject('ProxyInfo', info)
-          redirectUrl = url
+      let redirectInfo: any = await Db.getValueObject('RedirectInfo')
+      let redirectUrl = redirectInfo && redirectInfo.redirect_url || ''
+      if (!redirectUrl || redirectInfo && (file_id != redirectInfo.file_id || redirectInfo.expires_time <= Date.now())) {
+        // 获取地址
+        let url = await PlayerUtils.getVideoUrl(user_id, drive_id, file_id, false, true)
+        let info: PlayInfo = {
+          user_id, drive_id, file_id, file_size, encType,
+          expires_time: GetExpiresTime(url), redirect_url: url
         }
+        console.info('redirectInfo.info', info)
+        await Db.saveValueObject('redirectInfo', info)
+        redirectUrl = url
       }
       clientRes.writeHead(302, { location: redirectUrl })
     }
@@ -101,19 +99,17 @@ export async function createProxyServer(port: number) {
         }
       }
       let proxyInfo: any = await Db.getValueObject('ProxyInfo')
+      console.warn('proxyInfo', proxyInfo)
       let proxyUrl = (proxyInfo && proxyInfo.proxy_url || '') || lastUrl || ''
-      if (file_id && drive_id) {
-        if (!proxyUrl || file_id != proxyInfo.file_id || proxyInfo.expires_time <= Date.now()) {
-          // 获取地址
-          let url = await PlayerUtils.getVideoUrl(user_id, drive_id, file_id, false, true)
-          let info: ProxyInfo = {
-            user_id, drive_id, file_id, file_size, encType,
-            expires_time: GetExpiresTime(url), proxy_url: url
-          }
-          console.info('proxy.info', info)
-          await Db.saveValueObject('ProxyInfo', info)
-          proxyUrl = url
+      if (!proxyUrl || proxyInfo && (file_id != proxyInfo.file_id || proxyInfo.expires_time <= Date.now())) {
+        // 获取地址
+        let url = await PlayerUtils.getVideoUrl(user_id, drive_id, file_id, false, true)
+        let info: PlayInfo = {
+          user_id, drive_id, file_id, file_size, encType,
+          expires_time: GetExpiresTime(url), proxy_url: url
         }
+        await Db.saveValueObject('ProxyInfo', info)
+        proxyUrl = url
       }
       console.warn('proxyUrl', proxyUrl)
       delete clientReq.headers.host
@@ -135,12 +131,8 @@ export async function createProxyServer(port: number) {
             if (decryptTransform) {
               // Referer
               httpResp.headers.location = getProxyUrl({
-                user_id: query.user_id,
-                drive_id: query.drive_id,
-                file_id: query.file_id,
-                file_size: query.file_size,
-                encType: query.encType,
-                proxy_url: proxyUrl
+                user_id, drive_id, file_id,
+                file_size, encType, proxy_url: proxyUrl
               })
             }
             console.log('302 redirectUrl:', redirectUrl)
@@ -156,12 +148,10 @@ export async function createProxyServer(port: number) {
         clientReq.pipe(proxyServer)
         // 关闭解密流
         proxyServer.on('close', async () => {
-          await Db.deleteValueObject('fileInfo')
           decryptTransform && decryptTransform.destroy()
         })
         // 重定向的请求 关闭时 关闭被重定向的请求
         clientRes.on('close', async () => {
-          await Db.deleteValueObject('fileInfo')
           proxyServer.destroy()
         })
       })

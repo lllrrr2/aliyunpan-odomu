@@ -74,7 +74,10 @@ const PlayerUtils = {
     }
     // 代理播放
     if (typeof encType == 'string') {
-      url = getProxyUrl({ user_id, drive_id, file_id, encType, file_size: size, lastUrl: url })
+      url = getProxyUrl({
+        user_id, drive_id, file_id, encType,
+        file_size: size, lastUrl: url
+      })
     }
     return url
   },

@@ -4,11 +4,14 @@ import useSettingStore from './settingstore'
 import MySwitch from '../layout/MySwitch.vue'
 import ServerHttp from '../aliapi/server'
 import os from 'os'
-import { getResourcesPath } from '../utils/electronhelper'
+import { getAppNewPath, getResourcesPath } from '../utils/electronhelper'
 import { existsSync, readFileSync } from 'fs'
 import { getPkgVersion } from '../utils/utils'
 import { modalUpdateLog } from '../utils/modal'
+import fs from 'node:fs'
+import message from '../utils/message'
 
+const platform = window.platform
 const settingStore = useSettingStore()
 const cb = (val: any) => {
   settingStore.updateStore(val)
@@ -32,12 +35,28 @@ const getAppVersion = computed(() => {
 const verLoading = ref(false)
 const handleCheckVer = () => {
   verLoading.value = true
-  ServerHttp.CheckUpgrade().then(() => {
+  setTimeout(() => {
+    ServerHttp.CheckUpgrade()
     verLoading.value = false
-  })
+  }, 200)
 }
 const handleUpdateLog = () => {
   modalUpdateLog()
+}
+
+const handleImportAsar = () => {
+  window.WebShowOpenDialogSync({
+    title: '选择需要导入的Asar文件',
+    buttonLabel: '导入更新文件',
+    filters: [{ name: 'app.asar', extensions: ['asar'] }],
+    properties: ['openFile', 'showHiddenFiles', 'noResolveAliases', 'treatPackageAsDirectory', 'dontAddToRecent']
+  }, async (files: string[] | undefined) => {
+    if (files && files.length > 0) {
+      // 导入到app.new
+      fs.copyFileSync(files[0], getAppNewPath())
+      message.success('导入成功，手动重启软件进行更新')
+    }
+  })
 }
 </script>
 
@@ -51,6 +70,12 @@ const handleUpdateLog = () => {
       <a-button style='margin-left: 10px' type='outline' size='small' tabindex='-1' :loading='verLoading'
                 @click='handleCheckVer'>
         检查更新
+      </a-button>
+      <a-button style='margin-left: 10px'
+                v-if='platform !== "linux"'
+                status='warning' type='outline' size='small' tabindex='-1'
+                @click='handleImportAsar'>
+        手动导入
       </a-button>
     </div>
     <div class='settingspace'></div>
