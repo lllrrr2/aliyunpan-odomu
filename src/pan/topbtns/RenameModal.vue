@@ -171,11 +171,15 @@ const handleOK = () => {
 
 const handleRename = (newName: string, encType: string = '', inputpassword: string = '') => {
   const pantreeStore = usePanTreeStore()
-  newName = EncodeEncName(pantreeStore.user_id, newName, form.isDir, encType, inputpassword)
   if (!props.ispic) {
-    AliFileCmd.ApiRenameBatch(pantreeStore.user_id, pantreeStore.drive_id, [form.file_id], [newName])
+    let encName = newName
+    if (encType) {
+      encName = EncodeEncName(pantreeStore.user_id, newName, form.isDir, encType, inputpassword)
+    }
+    AliFileCmd.ApiRenameBatch(pantreeStore.user_id, pantreeStore.drive_id, [form.file_id], [encName])
       .then((data) => {
         if (data.length == 1) {
+          if (encType) data[0].name = newName
           usePanTreeStore().mRenameFiles(data)
           if (!props.istree) usePanFileStore().mRenameFiles(data)
           PanDAL.RefreshPanTreeAllNode(pantreeStore.drive_id)

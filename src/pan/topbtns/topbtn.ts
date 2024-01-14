@@ -370,19 +370,16 @@ export function menuCopySelectedFile(istree: boolean, copyby: string) {
     if (copyby == 'copy') {
       successList = await AliFileCmd.ApiCopyBatch(user_id, drive_id, file_idList, selectFile.drive_id, selectFile.file_id)
       await PanDAL.aReLoadOneDirToRefreshTree(selectedData.user_id, selectFile.drive_id, selectFile.file_id)
-      await PanDAL.aReLoadOneDirToShow(selectFile.drive_id, selectFile.file_id, false)
       TreeStore.ClearDirSize(selectedData.drive_id, [selectFile.file_id])
     } else {
       successList = await AliFileCmd.ApiMoveBatch(user_id, drive_id, file_idList, selectFile.drive_id, selectFile.file_id)
-      if (!istree) {
+      if (istree) {
+        await PanDAL.aReLoadOneDirToShow(selectedData.drive_id, selectedData.parentDirID, false)
+      } else {
         usePanFileStore().mDeleteFiles(selectedData.dirID, successList, true)
       }
-      await PanDAL.aReLoadOneDirToRefreshTree(selectedData.user_id, selectedData.drive_id, parent_file_id)
-      if (selectedData.drive_id != selectFile.drive_id) {
-        await PanDAL.aReLoadOneDirToRefreshTree(selectedData.user_id, selectFile.drive_id, selectFile.file_id)
-      }
-      await PanDAL.aReLoadOneDirToShow(selectFile.drive_id, selectFile.file_id, false)
-      TreeStore.ClearDirSize(selectedData.drive_id, [selectFile.file_id, ...selectedData.selectedParentKeys])
+      await PanDAL.aReLoadOneDirToRefreshTree(selectedData.user_id, selectFile.drive_id, selectFile.file_id)
+      TreeStore.ClearDirSize(drive_id, [selectFile.file_id, ...selectedData.selectedParentKeys])
     }
   })
 }
