@@ -39,7 +39,7 @@ export default defineComponent({
     const loadXBT = async () => {
       const pageVideoXBT = appStore.pageVideoXBT!
 
-      
+
       loading.value = true
       const alifile = await AliFile.ApiFileInfo(pageVideoXBT.user_id, pageVideoXBT.drive_id, pageVideoXBT.file_id)
 
@@ -53,14 +53,14 @@ export default defineComponent({
         message.error('错误的文件(视频时长错误)')
         error.value = '错误的文件(视频时长错误)'
         fileInfo.value = alifile
-        duration = 1800 
+        duration = 1800
       }
 
       const x = Math.max(alifile?.video_media_metadata?.width || 0, alifile?.video_preview_metadata?.width || 0)
       const y = Math.max(alifile?.video_media_metadata?.height || 0, alifile?.video_preview_metadata?.height || 0)
 
       const uiXBTNumber = settingStore.uiXBTNumber || 36
-      
+
       AliFile.ApiBiXueTuBatch(pageVideoXBT.user_id, pageVideoXBT.drive_id, pageVideoXBT.file_id, duration, uiXBTNumber, 720).then((data) => {
         fileInfo.value = alifile
         rowNum.value = x > y ? 3 : 4
@@ -81,7 +81,9 @@ export default defineComponent({
     const handleCopyM3U8Click = () => {
       const pageVideoXBT = appStore.pageVideoXBT!
       AliFile.ApiVideoPreviewUrl(pageVideoXBT.user_id, pageVideoXBT.drive_id, pageVideoXBT.file_id).then((data) => {
-        if (data && data.url) {
+        if (typeof data == 'string') {
+          message.error(data)
+        } else if (data && data.url) {
           copyToClipboard(data.url)
           message.success('视频的M3U8链接已复制，4小时内有效')
         } else {
@@ -293,7 +295,8 @@ export default defineComponent({
     <a-layout-content style="height: calc(100vh - 42px); padding: 12px 6px 12px 16px">
       <div id="doc-preview" class="doc-preview" style="width: 100%; height: 100%; overflow: auto; text-align: center">
         <div id="docxbttop" class="xbtbtns settingbody" style="text-align: left">
-          <a-radio-group type="button" size="small" tabindex="-1" :model-value="settingStore.uiXBTWidth" @update:model-value="handleWinSizeClick($event as number)">
+          <a-radio-group type="button" size="small" tabindex="-1" :model-value="settingStore.uiXBTWidth"
+                         @update:model-value="handleWinSizeClick($event as number)">
             <a-radio tabindex="-1" :value="720">720P</a-radio>
             <a-radio tabindex="-1" :value="960">960P</a-radio>
             <a-radio tabindex="-1" :value="1080">1080P</a-radio>
@@ -302,20 +305,28 @@ export default defineComponent({
 
           <div style="margin-right: 12px"></div>
 
-          <a-button type="outline" size="small" tabindex="-1" :loading="loading" title="下载雪碧图到本地" @click="handleSaveImageClick"> <i class="iconfont icondownload"></i>保存雪碧图 </a-button>
+          <a-button type="outline" size="small" tabindex="-1" :loading="loading" title="下载雪碧图到本地"
+                    @click="handleSaveImageClick"><i class="iconfont icondownload"></i>保存雪碧图
+          </a-button>
 
           <div style="flex-grow: 1"></div>
-          <a-button v-if="false" type="outline" size="small" tabindex="-1" title="复制M3U8链接" @click="handleCopyM3U8Click"> <i class="iconfont iconlink2"></i>M3U8链接 </a-button>
+          <a-button v-if="false" type="outline" size="small" tabindex="-1" title="复制M3U8链接"
+                    @click="handleCopyM3U8Click"><i class="iconfont iconlink2"></i>M3U8链接
+          </a-button>
 
           <div style="margin-right: 12px"></div>
-          <a-button v-if="false" type="outline" size="small" tabindex="-1" title="复制原文件链接" @click="handleCopyDownClick"> <i class="iconfont iconlink2"></i>下载链接 </a-button>
+          <a-button v-if="false" type="outline" size="small" tabindex="-1" title="复制原文件链接"
+                    @click="handleCopyDownClick"><i class="iconfont iconlink2"></i>下载链接
+          </a-button>
 
           <div style="margin-right: 12px"></div>
         </div>
 
         <div id="docxbt" style="margin: 0 auto; text-align: left">
-          <div class="xbtinfo" style="color: #ffffffd9; padding: 24px 8px 16px 16px; background: #17171f; border-radius: 4px; white-space: pre-wrap; margin-bottom: 2px">
-            <h3 style="color: #fffffff2; font-size: 18px; font-weight: 500; line-height: 1.40625">{{ fileinfo?.name }}</h3>
+          <div class="xbtinfo"
+               style="color: #ffffffd9; padding: 24px 8px 16px 16px; background: #17171f; border-radius: 4px; white-space: pre-wrap; margin-bottom: 2px">
+            <h3 style="color: #fffffff2; font-size: 18px; font-weight: 500; line-height: 1.40625">{{ fileinfo?.name
+              }}</h3>
             <div>
               <span class="xinfo" style="display: inline-block; width: 66px; text-align: right"> 文件大小 </span>
               ：{{ humanSize(fileinfo?.size || 0) }}
@@ -326,7 +337,8 @@ export default defineComponent({
             </div>
             <div>
               <span class="xinfo" style="display: inline-block; width: 66px; text-align: right"> 播放时长 </span>
-              ：{{ humanTime(fileinfo?.video_media_metadata?.duration || fileinfo?.video_preview_metadata?.duration || 0) }}
+              ：{{ humanTime(fileinfo?.video_media_metadata?.duration || fileinfo?.video_preview_metadata?.duration || 0)
+              }}
             </div>
 
             <div v-if="getVideoInfo">
@@ -348,9 +360,11 @@ export default defineComponent({
               ：{{ fileinfo?.video_media_metadata?.time }}
             </div>
           </div>
-          <div class="xbtvideo" style="display: flex; flex-wrap: wrap; border: 2px solid #17171f; border-bottom: 24px solid #17171f; padding: 16px; border-radius: 4px; background: #17171f">
+          <div class="xbtvideo"
+               style="display: flex; flex-wrap: wrap; border: 2px solid #17171f; border-bottom: 24px solid #17171f; padding: 16px; border-radius: 4px; background: #17171f">
             <a-image-preview-group @visible-change="(val:boolean)=>{preview=val}">
-              <div v-for="(item, index) in imagelist" :key="'xbt-' + index.toString()" class="xbtimage" :style="{ width: rowNum == 4 ? '25%' : '33.333%' }">
+              <div v-for="(item, index) in imagelist" :key="'xbt-' + index.toString()" class="xbtimage"
+                   :style="{ width: rowNum == 4 ? '25%' : '33.333%' }">
                 <a-image width="100%" :src="item.url" />
                 <div class="xbttime" style="text-align: center; color: #ffffffa6">
                   {{ item.time }}

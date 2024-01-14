@@ -12,10 +12,10 @@ import message from '../../utils/message'
 import CustomRootFileSystem from './manager/AliFileSystem'
 import UserManager from './user/UserManager'
 import BasicAuthentication from './user/authentication/BasicAuthentication'
-import AliFile from '../../aliapi/file'
 import { usePanTreeStore, useSettingStore } from '../../store'
 import * as http from 'http'
 import { promisify } from 'util'
+import { getEncType, getRawUrl } from '../../utils/proxyhelper'
 
 class WebDavServer {
   private options: WebDAVServerOptions
@@ -81,7 +81,7 @@ class WebDavServer {
         if (useSettingStore().webDavStrategy === 'redirect') {
           console.log('beforeRequest.file', file)
           if (!this.fileInfo || this.fileInfo.file_id != file.file_id) {
-            const data = await AliFile.ApiFileDownloadUrl(usePanTreeStore().user_id, file.drive_id, file.file_id, 14400)
+            const data = await getRawUrl(usePanTreeStore().user_id, file.drive_id, file.file_id, getEncType({ description: file.description }))
             if (typeof data !== 'string' && data.url && data.url != '') {
               this.fileInfo = {
                 url: data.url,

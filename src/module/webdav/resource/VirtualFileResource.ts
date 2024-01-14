@@ -191,9 +191,10 @@ class VirtualFileResources {
       }
       virtualRootFolder = {
         files: [],
-        current: { name: 'webdav', file_id: '-1', parent_file_id: '', drive_id: '', ext: '' },
+        current: { name: 'webdav', description: '', file_id: '-1', parent_file_id: '', drive_id: '', ext: '' },
         folders: [{
           name: 'webdav',
+          description: '',
           drive_id: '',
           file_id: '0',
           parent_file_id: '-1',

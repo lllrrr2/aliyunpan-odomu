@@ -12,6 +12,7 @@ export interface IVideoPreviewUrl {
   file_id: string
   expire_time: number
   url: string
+  size: number
   duration: number
   width: number
   height: number

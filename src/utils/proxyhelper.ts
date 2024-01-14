@@ -8,6 +8,8 @@ import { decodeName } from '../module/flow-enc/utils'
 import { IAliFileItem, IAliGetFileModel } from '../aliapi/alimodels'
 import { MainProxyPort } from '../layout/PageMain'
 import AliFile from '../aliapi/file'
+import { IDownloadUrl, IVideoPreviewUrl } from '../aliapi/models'
+import path from 'path'
 
 
 interface FileInfo {
@@ -66,7 +68,15 @@ export function getRedirectUrl(info: FileInfo) {
   return `${redirectUrl}?${params.join('&')}`
 }
 
-export async function getRawUrl(user_id: string, drive_id: string, file_id: string, encType: string = '', password: string = '', weifa: boolean = false, preview: boolean = false) {
+export async function getRawUrl(
+  user_id: string,
+  drive_id: string,
+  file_id: string,
+  encType: string = '',
+  password: string = '',
+  weifa: boolean = false,
+  preview: boolean = false
+): Promise<string | IVideoPreviewUrl | IDownloadUrl> {
   let data: any = { url: '' }
   if (preview && useSettingStore().uiVideoMode == 'online') {
     data = await AliFile.ApiVideoPreviewUrl(user_id, drive_id, file_id)
@@ -78,7 +88,7 @@ export async function getRawUrl(user_id: string, drive_id: string, file_id: stri
   if (encType) {
     data.url = getProxyUrl({
       user_id, drive_id, file_id, encType, password,
-      file_size: data.size, lastUrl: data.url
+      file_size: data.size, proxy_url: data.url
     })
   }
   return data
@@ -89,7 +99,7 @@ export async function createProxyServer(port: number) {
   const url = require('url')
   const proxyServer: Server = http.createServer(async (clientReq: IncomingMessage, clientRes: ServerResponse) => {
     const { pathname, query } = url.parse(clientReq.url, true)
-    const { user_id, drive_id, file_id, file_size, encType, password, lastUrl } = query
+    const { user_id, drive_id, file_id, file_size, encType, password, proxy_url } = query
     // console.log('proxy request: ', clientReq.url)
     console.info('proxy request query: ', query)
     if (pathname === '/proxy') {
@@ -108,13 +118,13 @@ export async function createProxyServer(port: number) {
       }
       let proxyInfo: any = await Db.getValueObject('ProxyInfo')
       // console.warn('proxyInfo', proxyInfo)
-      let proxyUrl = (proxyInfo && proxyInfo.proxy_url || '') || lastUrl || ''
+      let proxyUrl = (proxyInfo && proxyInfo.proxy_url || '') || proxy_url || ''
       if (!proxyUrl || proxyInfo && (file_id != proxyInfo.file_id || proxyInfo.expires_time <= Date.now())) {
         // 获取地址
         let data = await getRawUrl(user_id, drive_id, file_id)
-        if (data && data.url) {
+        if (typeof data != 'string' && data.url) {
           let info: FileInfo = {
-            user_id, drive_id, file_id, file_size, encType, password,
+            user_id, drive_id, file_id, file_size, encType,
             expires_time: GetExpiresTime(data.url), proxy_url: data.url
           }
           await Db.saveValueObject('ProxyInfo', info)
@@ -147,7 +157,7 @@ export async function createProxyServer(port: number) {
               if (decryptTransform) {
                 // Referer
                 httpResp.headers.location = getProxyUrl({
-                  user_id, drive_id, file_id,
+                  user_id, drive_id, file_id, password,
                   file_size, encType, proxy_url: proxyUrl
                 })
               }
@@ -156,7 +166,20 @@ export async function createProxyServer(port: number) {
               // 文件断点续传下载
               clientRes.statusCode = 206
             }
-            clientRes.writeHead(httpResp.statusCode, httpResp.headers)
+            for (const key in httpResp.headers) {
+              clientRes.setHeader(key, httpResp.headers[key])
+            }
+            // 解密文件名
+            if (clientReq.method === 'GET' && clientRes.statusCode === 200 && encType && useSettingStore().securityFileNameAutoDecrypt) {
+              let fileName = decodeURIComponent(path.basename(proxyUrl)).match(/filename\*?=[^=;]*;?''([^&]+)/)
+              if (fileName && fileName[1]) {
+                let ext = path.extname(fileName[1])
+                let securityPassword = getEncPassword(user_id, encType, password)
+                let securityEncType = useSettingStore().securityEncType
+                let decName = decodeName(securityPassword, securityEncType, fileName[1].replace(ext, '')) || ''
+                clientRes.setHeader('content-disposition', `attachment; filename*=UTF-8''${encodeURIComponent(decName + ext)};`)
+              }
+            }
             httpResp.on('end', () => resolve(true))
             // 是否解密
             decryptTransform ? httpResp.pipe(decryptTransform).pipe(clientRes) : httpResp.pipe(clientRes)

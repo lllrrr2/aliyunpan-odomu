@@ -360,29 +360,29 @@ export function menuCopySelectedFile(istree: boolean, copyby: string) {
     message.error('没有可以复制移动的文件')
     return
   }
-  modalSelectPanDir(copyby, parent_file_id, async function(user_id: string, drive_id: string, to_drive_id: string, dirID: string) {
-    if (!drive_id || !to_drive_id || !dirID) return
-    if (parent_file_id == dirID) {
+  modalSelectPanDir(copyby, parent_file_id, async function(user_id: string, drive_id: string, selectFile: any) {
+    if (!drive_id || !selectFile.drive_id || !selectFile.file_id) return
+    if (parent_file_id == selectFile.file_id) {
       message.error('不能移动复制到原位置！')
       return
     }
     let successList: string[]
     if (copyby == 'copy') {
-      successList = await AliFileCmd.ApiCopyBatch(user_id, drive_id, file_idList, to_drive_id, dirID)
-      await PanDAL.aReLoadOneDirToRefreshTree(selectedData.user_id, to_drive_id, dirID)
-      await PanDAL.aReLoadOneDirToShow(to_drive_id, dirID, false)
-      TreeStore.ClearDirSize(selectedData.drive_id, [dirID])
+      successList = await AliFileCmd.ApiCopyBatch(user_id, drive_id, file_idList, selectFile.drive_id, selectFile.file_id)
+      await PanDAL.aReLoadOneDirToRefreshTree(selectedData.user_id, selectFile.drive_id, selectFile.file_id)
+      await PanDAL.aReLoadOneDirToShow(selectFile.drive_id, selectFile.file_id, false)
+      TreeStore.ClearDirSize(selectedData.drive_id, [selectFile.file_id])
     } else {
-      successList = await AliFileCmd.ApiMoveBatch(user_id, drive_id, file_idList, to_drive_id, dirID)
+      successList = await AliFileCmd.ApiMoveBatch(user_id, drive_id, file_idList, selectFile.drive_id, selectFile.file_id)
       if (!istree) {
         usePanFileStore().mDeleteFiles(selectedData.dirID, successList, true)
       }
       await PanDAL.aReLoadOneDirToRefreshTree(selectedData.user_id, selectedData.drive_id, parent_file_id)
-      if (selectedData.drive_id != to_drive_id) {
-        await PanDAL.aReLoadOneDirToRefreshTree(selectedData.user_id, to_drive_id, dirID)
+      if (selectedData.drive_id != selectFile.drive_id) {
+        await PanDAL.aReLoadOneDirToRefreshTree(selectedData.user_id, selectFile.drive_id, selectFile.file_id)
       }
-      await PanDAL.aReLoadOneDirToShow(to_drive_id, dirID, false)
-      TreeStore.ClearDirSize(selectedData.drive_id, [dirID, ...selectedData.selectedParentKeys])
+      await PanDAL.aReLoadOneDirToShow(selectFile.drive_id, selectFile.file_id, false)
+      TreeStore.ClearDirSize(selectedData.drive_id, [selectFile.file_id, ...selectedData.selectedParentKeys])
     }
   })
 }

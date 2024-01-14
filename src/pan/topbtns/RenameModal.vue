@@ -234,7 +234,7 @@ const handleRename = (newName: string, encType: string = '', inputpassword: stri
         </a-form-item>
         <a-form-item v-if='ispic' field='description' label='相册描述：' class='textareafill'>
           <a-textarea v-model='form.description' placeholder='修改相册描述' show-word-limit
-                      @keydown='(e:any) => e.stopPropagation()' :disabled="encType" />
+                      @keydown='(e:any) => e.stopPropagation()' :disabled="encType!=''" />
         </a-form-item>
       </a-form>
       <br />

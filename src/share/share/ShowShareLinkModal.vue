@@ -259,12 +259,12 @@ const handleOK = (saveType: string) => {
   console.log('selectNodes', selectNodes)
   const this_share_id = props.share_id
   const this_share_token = share_token.value
-  modalSelectPanDir('share', '', async function(user_id: string, drive_id: string, to_drive_id: string, dirID: string) {
-    if (!drive_id || !to_drive_id || !dirID) return
-    const result = await SaveLink(saveType, this_share_id, this_share_token, user_id, to_drive_id, dirID, selectNodes)
+  modalSelectPanDir('share', '', async function(user_id: string, drive_id: string, selectFile: any) {
+    if (!drive_id || !selectFile.drive_id || !selectFile.file_id) return
+    const result = await SaveLink(saveType, this_share_id, this_share_token, user_id, selectFile.drive_id, selectFile.file_id, selectNodes)
     if (result) message.error('保存文件出错,' + result)
     else message.success('保存文件成功,请稍后手动刷新保存到的文件夹')
-    await PanDAL.aReLoadOneDirToRefreshTree(user_id, to_drive_id, dirID)
+    await PanDAL.aReLoadOneDirToRefreshTree(user_id, selectFile.drive_id, selectFile.file_id)
   })
 }
 

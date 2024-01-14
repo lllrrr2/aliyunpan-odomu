@@ -163,7 +163,7 @@ async function GetAllDir(user_id: string, drive_id: string, drive_root: string) 
             namesearch: '',
             size: 0,
             time: 0,
-            description: ''
+            description: item.description
           } as IAliGetDirModel)
         }
         DB.saveValueObject('AllDir_' + drive_id, data.items)

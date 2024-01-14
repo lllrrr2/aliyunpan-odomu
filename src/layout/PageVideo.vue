@@ -404,8 +404,8 @@ const defaultControls = async (art: Artplayer) => {
 
 const getVideoInfo = async (art: Artplayer) => {
   // 获取视频链接
-  const data: IVideoPreviewUrl | undefined = await AliFile.ApiVideoPreviewUrl(pageVideo.user_id, pageVideo.drive_id, pageVideo.file_id)
-  if (data) {
+  const data: IVideoPreviewUrl | string = await AliFile.ApiVideoPreviewUrl(pageVideo.user_id, pageVideo.drive_id, pageVideo.file_id)
+  if (typeof data != 'string') {
     // 画质
     const qualitySelector: selectorItem[] = []
     if (data.urlQHD) qualitySelector.push({ url: data.urlQHD, html: '2k高清 2560p' })
@@ -740,7 +740,7 @@ onBeforeUnmount(() => {
         <a-button type='text' tabindex='-1'>
           <i class='iconfont iconfile_video'></i>
         </a-button>
-        <div class='title'>{{ appStore.pageVideo?.file_name || '视频在线预览' }}</div>
+        <div class='title'>{{ pageVideo?.file_name || '视频在线预览' }}</div>
         <div class='flexauto'></div>
         <a-button type='text' tabindex='-1' @click='handleHideClick()'>
           <i class='iconfont iconclose'></i>

@@ -55,7 +55,7 @@ export function modalShowShareLink(share_id: string, share_pwd: string, share_to
 }
 
 export function modalSelectPanDir(selecttype: string, selectid: string,
-                                  callback: (user_id: string, drive_id: string, to_drive_id: string, dirID: string, dirName: string) => void,
+                                  callback: (user_id: string, drive_id: string, selectFile: any) => void,
                                   category?: string,
                                   extFilter?: RegExp) {
   useModalStore().showModal('selectpandir', { selecttype, selectid, category, extFilter, callback })

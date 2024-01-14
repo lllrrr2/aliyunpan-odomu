@@ -9,6 +9,7 @@ import { humanDateTimeDateStr, humanSize, humanTime } from '../../utils/format'
 import { defineComponent, ref } from 'vue'
 import DebugLog from '../../utils/debuglog'
 import { GetDriveID } from '../../aliapi/utils'
+import { getEncType, getRawUrl } from '../../utils/proxyhelper'
 
 export default defineComponent({
   props: {
@@ -65,7 +66,11 @@ export default defineComponent({
           if (audio && audio.url) fileInfo.value.thumbnail = audio.url
         } else if (fileInfo.value?.category == 'video') {
           const video = await AliFile.ApiVideoPreviewUrl(pantreeStore.user_id, drive_id, file_id)
-          if (video && video.url) fileInfo.value.thumbnail = video.url
+          if (typeof video == 'string') {
+            message.error(video)
+          } else if(video && video.url) {
+            fileInfo.value.thumbnail = video.url
+          }
         }
 
         if (fileInfo.value?.type == 'folder') {
@@ -168,14 +173,18 @@ export default defineComponent({
     },
     handleCopyDownload() {
       const pantreeStore = usePanTreeStore()
-      AliFile.ApiFileDownloadUrl(pantreeStore.user_id, pantreeStore.drive_id, this.fileInfo?.file_id || '', 14400).then((data) => {
-        if (data && typeof data !== 'string' && data.url) {
-          copyToClipboard(data.url)
-          message.success('下载链接已复制到剪切板，4小时内有效')
-        } else {
-          message.error('下载链接获取失败，请稍后重试')
-        }
-      })
+      if (this.fileInfo) {
+        getRawUrl(pantreeStore.user_id, pantreeStore.drive_id, this.fileInfo.file_id || '', getEncType(this.fileInfo)).then(data => {
+          if (data && typeof data !== 'string' && data.url) {
+            copyToClipboard(data.url)
+            message.success('下载链接已复制到剪切板，4小时内有效')
+          } else {
+            message.error('下载链接获取失败，请稍后重试')
+          }
+        })
+      } else {
+        message.error('下载链接获取失败，请稍后重试')
+      }
     },
     handleCopyThumbnail() {
       if (this.fileInfo?.thumbnail) {

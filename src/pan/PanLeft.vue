@@ -59,6 +59,7 @@ watchEffect(() => {
     nodeList.push({
       __v_skip: true,
       key: 'color' + list[i].key.replace('#', 'c') + ' ' + (list[i].title || list[i].key),
+      parent_file_id: '',
       title: list[i].title || list[i].key,
       namesearch: list[i].key.replace('#', 'c'),
       children: [],

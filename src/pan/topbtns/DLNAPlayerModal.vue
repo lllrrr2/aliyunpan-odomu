@@ -71,7 +71,7 @@ export default defineComponent({
       } else {
         
         const preview = await AliFile.ApiVideoPreviewUrl(user_id, first.drive_id, first.file_id)
-        if (preview) {
+        if (typeof preview != 'string') {
           const subtitles: string[] = []
           if (preview.subtitles.length > 0) {
             for (let i = 0; i < preview.subtitles.length; i++) {
@@ -93,6 +93,8 @@ export default defineComponent({
               console.log('cb2', e)
             }
           )
+        } else {
+          message.error(preview)
         }
       }
     }

@@ -40,7 +40,7 @@ export default defineComponent({
       }
 
       const preview = await AliFile.ApiVideoPreviewUrl(user_id.value, first.drive_id, first.file_id)
-      if (preview) {
+      if (typeof preview != 'string') {
         videoPreview.value = preview
         let info = ''
         if (preview.urlFHD) {
@@ -59,8 +59,9 @@ export default defineComponent({
           m3u8List.value.push('480P')
           if (!info) info = '480P'
         }
-
         m3u8Info.value = '时长：' + humanTime(preview.duration) + '  分辨率：' + preview.width + ' x ' + preview.height + '  清晰度：' + info
+      } else {
+        message.error(preview)
       }
     }
 
@@ -83,7 +84,7 @@ export default defineComponent({
     }
 
     const handleClose = () => {
-      
+
       m3u8List.value = []
       user_id.value = ''
       drive_id.value = ''
@@ -97,13 +98,15 @@ export default defineComponent({
     handleHide() {
       modalCloseAll()
     },
-    handleOK() {}
+    handleOK() {
+    }
   }
 })
 </script>
 
 <template>
-  <a-modal :visible="visible" modal-class="modalclass" :footer="false" :unmount-on-close="true" :mask-closable="false" @cancel="handleHide" @before-open="handleOpen" @close="handleClose">
+  <a-modal :visible="visible" modal-class="modalclass" :footer="false" :unmount-on-close="true" :mask-closable="false"
+           @cancel="handleHide" @before-open="handleOpen" @close="handleClose">
     <template #title>
       <span class="modaltitle">下载转码后的视频</span>
     </template>

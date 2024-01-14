@@ -130,8 +130,8 @@ export default class AliFile {
     return '网络错误'
   }
 
-  static async ApiVideoPreviewUrl(user_id: string, drive_id: string, file_id: string): Promise<IVideoPreviewUrl | undefined> {
-    if (!user_id || !drive_id || !file_id) return undefined
+  static async ApiVideoPreviewUrl(user_id: string, drive_id: string, file_id: string): Promise<IVideoPreviewUrl | string> {
+    if (!user_id || !drive_id || !file_id) return '参数错误'
     let url = ''
     if (useSettingStore().uiEnableOpenApi) {
       url = 'adrive/v1.0/openFile/getVideoPreviewPlayInfo'
@@ -149,16 +149,15 @@ export default class AliFile {
     const resp = await AliHttp.Post(url, postData, user_id, '', true)
 
     if (resp.body.code == 'VideoPreviewWaitAndRetry') {
-      message.warning('视频正在转码中，稍后重试')
-      return undefined
+      return '视频正在转码中，稍后重试'
     }
     if (resp.body.code == 'ExceedCapacityForbidden') {
-      message.warning('容量超限限制播放，需要扩容或者删除不必要的文件释放空间')
-      return undefined
+      return '容量超限限制播放，需要扩容或者删除不必要的文件释放空间'
     }
     const data: IVideoPreviewUrl = {
       drive_id: drive_id,
       file_id: file_id,
+      size: 0,
       expire_time: 0,
       width: 0,
       height: 0,
@@ -205,7 +204,7 @@ export default class AliFile {
     } else if (!AliHttp.HttpCodeBreak(resp.code)) {
       DebugLog.mSaveWarning('ApiVideoPreviewUrl err=' + file_id + ' ' + (resp.code || ''), resp.body)
     }
-    return undefined
+    return '网络错误'
   }
 
   static async ApiListByFileInfo(user_id: string, drive_id: string, file_id: string, limit?: number): Promise<ICompilationList[] | undefined> {

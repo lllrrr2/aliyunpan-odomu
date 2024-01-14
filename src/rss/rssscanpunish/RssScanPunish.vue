@@ -135,11 +135,11 @@ const handleMove = () => {
     message.error('账号错误')
     return
   }
-  modalSelectPanDir('cut', '', function(user_id: string, _drive_id: string, to_drive_id: string, dirID: string) {
-    if (!dirID) return
+  modalSelectPanDir('cut', '', function(user_id: string, _drive_id: string, selectFile: any) {
+    if (!selectFile.file_id) return
     delLoading.value = true
     let drive_id = GetDriveID(user.user_id, panType.value)
-    AliFileCmd.ApiMoveBatch(user.user_id, drive_id, checkedKeys.value, to_drive_id, dirID).then((success: string[]) => {
+    AliFileCmd.ApiMoveBatch(user.user_id, drive_id, checkedKeys.value, selectFile.drive_id, selectFile.file_id).then((success: string[]) => {
       delLoading.value = false
       if (checkedKeys.value.length == checkedKeysBak.length) {
         handleReset()

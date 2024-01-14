@@ -90,9 +90,10 @@ export default class PanDAL {
     const driveType = GetDriveType(usePanTreeStore().user_id, drive_id)
     const dir: TreeNodeData = {
       __v_skip: true,
+      key: driveType.key,
+      parent_file_id: '',
       title: driveType.title,
       namesearch: '',
-      key: driveType.key,
       children: []
     }
     const expandedKeys = new Set(usePanTreeStore().treeExpandedKeys)
@@ -107,6 +108,7 @@ export default class PanDAL {
     const dir: TreeNodeData = {
       __v_skip: true,
       title: driveType.title,
+      parent_file_id: '',
       namesearch: '',
       key: driveType.key,
       children: []

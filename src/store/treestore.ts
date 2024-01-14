@@ -10,8 +10,10 @@ import { GetDriveType } from '../aliapi/utils'
 export interface TreeNodeData {
   __v_skip: true
   key: string
+  parent_file_id?: string
   title: string
   namesearch?: string
+  description?: string
   children: TreeNodeData[]
   icon?: any
   isLeaf?: boolean
@@ -20,6 +22,7 @@ export interface TreeNodeData {
 export interface DirData {
   file_id: string
   parent_file_id: string
+  description: string
   name: string
   time: number
   size: number
@@ -73,7 +76,14 @@ export default class TreeStore {
     const jsonOrder = await DB.getValueObject('DirFileOrder_' + drive_id)
     OneDriver.FileOrderMap = jsonOrder ? (jsonOrder as { [key: string]: string }) : {}
     const driveType = GetDriveType(user_id, drive_id)
-    const root: DirData = { file_id: driveType.key, parent_file_id: '', name: driveType.title, time: 0, size: 0 }
+    const root: DirData = {
+      file_id: driveType.key,
+      parent_file_id: '',
+      name: driveType.title,
+      description: '',
+      time: 0,
+      size: 0
+    }
     OneDriver.DirMap.set(root.file_id, root)
     const childrenMap = new Map<string, DirData[]>()
     childrenMap.set(root.file_id, [])
@@ -174,6 +184,7 @@ export default class TreeStore {
         parent_file_id: item.parent_file_id,
         name: item.name,
         time: item.time,
+        description: item.description,
         size: 0
       }
       dirList.push(dirItem)
@@ -242,7 +253,14 @@ export default class TreeStore {
     const children: TreeNodeData[] = []
     for (let i = 0, maxi = childDirList.length; i < maxi; i++) {
       const item = childDirList[i]
-      const itemNode: TreeNodeData = { __v_skip: true, key: item.file_id, title: item.name, children: [] }
+      const itemNode: TreeNodeData = {
+        __v_skip: true,
+        key: item.file_id,
+        parent_file_id: item.parent_file_id,
+        title: item.name,
+        description: item.description,
+        children: []
+      }
       if (expandedKeys.has(itemNode.key) || getChildren) {
         TreeStore.GetTreeDataToShow(driverData, itemNode, expandedKeys, map, true, order, isLeafForce)
       }
@@ -396,7 +414,7 @@ export default class TreeStore {
     const driveType = GetDriveType(usePanTreeStore().user_id, drive_id)
     if (dir.parent_file_id === 'root') dir.parent_file_id = driveType.key
     if (dir.file_id === 'root') dir.file_id = driveType.key
-    return { __v_skip: true, drive_id, namesearch: '', description: '', ...dir }
+    return { __v_skip: true, drive_id, namesearch: '', ...dir }
   }
 
 
@@ -581,7 +599,7 @@ export default class TreeStore {
       if (!dir) break
       if (dir.parent_file_id === 'root') dir.parent_file_id = driveType.key
       if (dir.file_id === 'root') dir.file_id = driveType.key
-      dirPath.push({ __v_skip: true, drive_id, namesearch: '', description: '', ...dir } as IAliGetDirModel)
+      dirPath.push({ __v_skip: true, drive_id, namesearch: '', ...dir } as IAliGetDirModel)
       file_id = dir.parent_file_id
     }
     dirPath.reverse()

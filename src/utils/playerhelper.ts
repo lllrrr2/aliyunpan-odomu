@@ -10,10 +10,10 @@ import AliDirFileList from '../aliapi/dirfilelist'
 import { usePanFileStore, useSettingStore } from '../store'
 import { createTmpFile } from './utils'
 import { IAliGetFileModel } from '../aliapi/alimodels'
-import { getEncType, getProxyUrl } from './proxyhelper'
+import { getEncType, getProxyUrl, getRawUrl } from './proxyhelper'
 
 const PlayerUtils = {
-  filterSubtitleFile(name: string, subTitlesList: any[]) {
+  filterSubtitleFile(name: string, subTitlesList: IAliGetFileModel[]) {
     // 自动加载同名字幕
     const similarity: any = subTitlesList.reduce((min: any, item, index) => {
       // 莱文斯坦距离算法(计算相似度)
@@ -24,7 +24,7 @@ const PlayerUtils = {
       }
       return min
     }, { distance: Infinity, index: -1 })
-    return (similarity.index !== -1) ? subTitlesList[similarity.index].file_id : ''
+    return (similarity.index !== -1) ? subTitlesList[similarity.index] : undefined
   },
 
   async getPlayCursor(user_id: string, drive_id: string, file_id: string) {
@@ -159,9 +159,9 @@ const PlayerUtils = {
                 let filename = item.name
                 let subTitlesList = fileList.filter((file: any) => /srt|vtt|ass/.test(file.ext))
                 if (subTitlesList.length > 0) {
-                  let subTitleFileId = this.filterSubtitleFile(filename, subTitlesList)
-                  if (subTitleFileId.length > 0) {
-                    const data = await AliFile.ApiFileDownloadUrl(user_id, playInfo.drive_id, subTitleFileId, 14400)
+                  let subTitleFile = this.filterSubtitleFile(filename, subTitlesList)
+                  if (subTitleFile) {
+                    const data = await getRawUrl(user_id, playInfo.drive_id, subTitleFile.file_id, getEncType(subTitleFile))
                     if (typeof data !== 'string' && data.url && data.url != '') {
                       await mpv.addSubtitles(data.url, 'select', filename)
                     }

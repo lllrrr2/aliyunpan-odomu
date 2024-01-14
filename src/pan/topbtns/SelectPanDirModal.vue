@@ -40,7 +40,7 @@ const props = defineProps({
     required: false
   },
   callback: {
-    type: Function as PropType<(user_id: string, drive_id: string, to_drive_id: string, dirID: string, dirName: string) => void>
+    type: Function as PropType<(user_id: string, drive_id: string, selectFile: any) => void>
   }
 })
 
@@ -52,9 +52,14 @@ const treeHeight = computed(() => (winStore.height * 8) / 10 - 126)
 const title = ref('')
 const user_id = ref('')
 const drive_id = ref('')
-let to_drive_id = ref('')
-const selectDir = ref({ dirID: 'backup_root', dirName: '备份盘', isLeaf: false })
-
+const selectFile = ref({
+  drive_id: pantreeStore.backup_drive_id,
+  name: '备份盘',
+  file_id: 'backup_root',
+  parent_file_id: '',
+  description: '',
+  isLeaf: false
+})
 
 const handleOpen = async () => {
   if (props.selecttype == 'copy') title.value = '复制文件到. . .  '
@@ -77,8 +82,14 @@ const handleOpen = async () => {
         expandedKeys.push(item.file_id)
         if (item.file_id == selectid) {
           props.selecttype == 'select' && expandedKeys.pop()
-          selectDir.value = { dirID: item.file_id, dirName: item.name, isLeaf: false }
-          to_drive_id.value = item.drive_id
+          selectFile.value = {
+            drive_id: item.drive_id,
+            name: item.name,
+            file_id: item.file_id,
+            parent_file_id: item.parent_file_id,
+            description: item.description,
+            isLeaf: false
+          }
         }
       }
     }
@@ -87,9 +98,15 @@ const handleOpen = async () => {
       treeref.value?.treeRef?.scrollTo({ key: selectid, offset: 100, align: 'top' })
     }, 400)
   } else {
-    selectDir.value = { dirID: 'backup_root', dirName: '备份盘', isLeaf: false }
+    selectFile.value = {
+      drive_id: pantreeStore.backup_drive_id,
+      name: '备份盘',
+      file_id: 'backup_root',
+      parent_file_id: '',
+      description: '',
+      isLeaf: false
+    }
     treeSelectedKeys.value = ['backup_root']
-    to_drive_id.value = pantreeStore.backup_drive_id
   }
   treeExpandedKeys.value = expandedKeys
   // 网盘数据
@@ -110,10 +127,18 @@ const handleClose = () => {
   if (okLoading.value) okLoading.value = false
   user_id.value = ''
   drive_id.value = ''
-  selectDir.value = { dirID: 'backup_root', dirName: '备份盘', isLeaf: false }
+  selectFile.value = {
+    drive_id: pantreeStore.backup_drive_id,
+    name: '备份盘',
+    file_id: 'backup_root',
+    parent_file_id: '',
+    description: '',
+    isLeaf: false
+  }
   treeData.value = [{
     __v_skip: true,
     key: 'backup_root',
+    parent_file_id: '',
     title: '备份盘',
     namesearch: '',
     isLeaf: false,
@@ -122,6 +147,7 @@ const handleClose = () => {
   }, {
     __v_skip: true,
     key: 'resource_root',
+    parent_file_id: '',
     title: '资源盘',
     namesearch: '',
     isLeaf: false,
@@ -136,6 +162,7 @@ const treeref = ref()
 const treeData = ref<TreeNodeData[]>([{
   __v_skip: true,
   key: 'backup_root',
+  parent_file_id: '',
   title: '备份盘',
   namesearch: '',
   isLeaf: false,
@@ -144,6 +171,7 @@ const treeData = ref<TreeNodeData[]>([{
 }, {
   __v_skip: true,
   key: 'resource_root',
+  parent_file_id: '',
   title: '资源盘',
   namesearch: '',
   isLeaf: false,
@@ -159,20 +187,27 @@ const handleTreeSelect = (keys: any[], info: {
   nativeEvent: MouseEvent;
   node: any
 }) => {
-  let { key, title, isLeaf } = info.node
+  let { key, title, isLeaf, description, parent_file_id } = info.node
   const getParentNode = (node: any): any => {
     return node.parent ? getParentNode(node.parent) : node
   }
   const parentNode = getParentNode(info.node)
-  to_drive_id.value = GetDriveID(user_id.value, parentNode.key || key)
-  localStorage.setItem('selectpandir-' + to_drive_id.value, key)
-  selectDir.value = { dirID: key, dirName: title, isLeaf: isLeaf || false }
+  const drive_id = GetDriveID(user_id.value, parentNode.key || key)
+  localStorage.setItem('selectpandir-' + drive_id, key)
+  selectFile.value = {
+    drive_id: drive_id,
+    name: title,
+    file_id: key,
+    parent_file_id: parent_file_id,
+    description: description,
+    isLeaf: isLeaf || false
+  }
   treeSelectedKeys.value = [key]
   treeSelectToExpand(keys, info)
 }
 
 const apiLoad = (key: any) => {
-  return AliTrash.ApiDirFileListNoLock(user_id.value, to_drive_id.value, key, '', 'name ASC')
+  return AliTrash.ApiDirFileListNoLock(user_id.value, selectFile.value.drive_id, key, '', 'name ASC')
     .then((resp) => {
       const addList: TreeNodeData[] = []
       if (resp.next_marker == '') {
@@ -185,10 +220,12 @@ const apiLoad = (key: any) => {
           addList.push({
             __v_skip: true,
             key: item.file_id,
+            parent_file_id: item.parent_file_id,
             title: item.name,
             children: [],
             isDir: item.isDir,
             isLeaf: !item.isDir,
+            description: item.description,
             icon: item.isDir ? foldericonfn : () => fileiconfn(item.icon)
           } as TreeNodeData)
         }
@@ -243,12 +280,6 @@ const handleTreeExpand = (keys: any[], info: {
 }) => {
   const arr = treeExpandedKeys.value
   let { key } = info.node
-  const getParentNode = (node: any): any => {
-    return node.parent ? getParentNode(node.parent) : node
-  }
-  const parentNode = getParentNode(info.node)
-  console.log('handleTreeExpand', parentNode)
-  to_drive_id.value = GetDriveID(user_id.value, parentNode.key || key)
   if (arr.includes(key)) {
     treeExpandedKeys.value = arr.filter((t) => t != key)
   } else {
@@ -291,7 +322,7 @@ const handleHide = () => {
   modalCloseAll()
   if (props.selecttype === 'select') {
     if (props.callback) {
-      props.callback(user_id.value, drive_id.value, to_drive_id.value, '', '')
+      props.callback(user_id.value, drive_id.value, selectFile.value)
     }
   }
 }
@@ -316,25 +347,33 @@ const handleOKNewDir = () => {
 
     okLoading.value = true
     let newdirid = ''
-    AliFileCmd.ApiCreatNewForder(user_id.value, drive_id.value, selectDir.value.dirID, newName)
+    let selectFileId = selectFile.value.file_id
+    AliFileCmd.ApiCreatNewForder(user_id.value, drive_id.value, selectFileId, newName)
       .then((data) => {
         if (data.error) message.error('新建文件夹 失败' + data.error)
         else {
           newdirid = data.file_id
           message.success('新建文件夹 成功')
-          return PanDAL.GetDirFileList(user_id.value, drive_id.value, selectDir.value.dirID, '', '', false)
+          return PanDAL.GetDirFileList(user_id.value, drive_id.value, selectFileId, '', '', false)
         }
       })
       .catch((err: any) => {
         message.error('新建文件夹 失败', err)
       })
       .then(async () => {
-        if (selectDir.value.dirID == pantreeStore.selectDir.file_id) {
+        if (selectFileId == pantreeStore.selectDir.file_id) {
           await PanDAL.aReLoadOneDirToShow('', 'refresh', false)
         }
         await Sleep(200)
-        selectDir.value = { dirID: newdirid, dirName: newName, isLeaf: false }
-        treeExpandedKeys.value = treeExpandedKeys.value.concat([selectDir.value.dirID, newdirid])
+        selectFile.value = {
+          drive_id: drive_id.value,
+          name: newName,
+          file_id: newdirid,
+          parent_file_id: selectFile.value.parent_file_id,
+          description: '',
+          isLeaf: false
+        }
+        treeExpandedKeys.value = treeExpandedKeys.value.concat([selectFile.value.file_id, newdirid])
         let backupPan: TreeNodeData[] = []
         let resourcePan: TreeNodeData[] = []
         if (!useSettingStore().securityHideBackupDrive) {
@@ -351,14 +390,14 @@ const handleOKNewDir = () => {
   })
 }
 const handleOK = () => {
-  if (props.selecttype === 'select' && !selectDir.value.isLeaf) {
+  if (props.selecttype === 'select' && !selectFile.value.isLeaf) {
     message.error('请选择一个文件')
     return
   }
   modalCloseAll()
   if (props.callback) {
-    console.warn('SelectPanDirModal', to_drive_id.value)
-    props.callback(user_id.value, drive_id.value, to_drive_id.value, selectDir.value.dirID, selectDir.value.dirName)
+    console.warn('SelectPanDirModal.selectFile', selectFile.value)
+    props.callback(user_id.value, drive_id.value, selectFile.value)
   }
 }
 
@@ -406,7 +445,7 @@ const handleOK = () => {
         </template>
       </AntdTree>
     </div>
-    <div id='selectdir'>已选择：{{ selectDir.dirName }}</div>
+    <div id='selectdir'>已选择：{{ selectFile.name }}</div>
     <div class='modalfoot'>
       <a-button v-if="selecttype !== 'select'" type='outline' size='small' @click='handleCreatNew'>新建文件夹</a-button>
       <div style='flex-grow: 1'></div>

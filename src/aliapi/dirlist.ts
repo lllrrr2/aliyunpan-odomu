@@ -396,6 +396,7 @@ export default class AliDirList {
         parent_file_id: item.parent_file_id,
         name: item.name,
         time: item.time,
+        description: item.description,
         size: 0
       }
       allMap.set(add.file_id, add)
@@ -485,6 +486,7 @@ export default class AliDirList {
                       parent_file_id: item.parent_file_id,
                       name: item.name,
                       time: new Date(item.updated_at).getTime(),
+                      description: item.description,
                       size: 0
                     }
                     allMap.set(add.file_id, add)

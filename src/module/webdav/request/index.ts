@@ -18,6 +18,7 @@ import AliUpload from '../../../aliapi/upload'
 import AliUploadHashPool from '../../../aliapi/uploadhashpool'
 import UserDAL from '../../../user/userdal'
 import { Readable } from 'node:stream'
+import { getEncType, getRawUrl } from '../../../utils/proxyhelper'
 
 class Request {
   private static fileInfo: any
@@ -37,6 +38,7 @@ class Request {
           current: {
             name: '备份盘',
             drive_id: usePanTreeStore().backup_drive_id,
+            description: '',
             parent_file_id: '',
             file_id: 'backup_root',
             ext: '',
@@ -49,6 +51,7 @@ class Request {
             name: '资源盘',
             drive_id: usePanTreeStore().resource_drive_id,
             parent_file_id: '',
+            description: '',
             file_id: 'resource_root',
             ext: '',
             rootFolderType: 0
@@ -87,7 +90,7 @@ class Request {
     try {
       // 获取下载地址
       if (!this.fileInfo || this.fileInfo.file_id != file.file_id) {
-        const data = await AliFile.ApiFileDownloadUrl(usePanTreeStore().user_id, file.drive_id, file.file_id, 14400)
+        const data = await getRawUrl(usePanTreeStore().user_id, file.drive_id, file.file_id, getEncType({ description: file.description }))
         let url = ''
         if (typeof data !== 'string' && data.url && data.url != '') {
           this.fileInfo = {

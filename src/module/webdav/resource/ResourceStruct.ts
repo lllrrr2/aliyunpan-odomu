@@ -6,6 +6,7 @@ export type FileOrFolder = {
   drive_id: string;
   file_id: string;
   parent_file_id: string;
+  description: string;
   content_hash?: string;
   content_hash_name?: string;
   proof_code?: string;
