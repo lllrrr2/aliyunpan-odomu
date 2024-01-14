@@ -19,7 +19,7 @@ export default defineComponent({
 
     const loadCode = () => {
       const pageCode = appStore.pageCode!
-      AliFile.ApiFileDownText(pageCode.user_id, pageCode.drive_id, pageCode.file_id, pageCode.file_size, 512 * 1024).then((data: any) => {
+      AliFile.ApiFileDownText(pageCode.user_id, pageCode.drive_id, pageCode.file_id, pageCode.file_size, 512 * 1024, pageCode.encType, pageCode.password).then((data: any) => {
         if (pageCode.file_size > 512 * 1024) {
           message.info('文件较大，只显示了前 512KB 的内容')
         }
@@ -42,7 +42,8 @@ export default defineComponent({
         setTimeout(() => {
           try {
             if (codeBlock.value) window.Prism.highlightAllUnder(codeBlock.value)
-          } catch {}
+          } catch {
+          }
         }, 500)
       })
     }
@@ -83,7 +84,7 @@ export default defineComponent({
       <div id="doc-preview" class="doc-preview" style="width: 100%; height: 100%; overflow: auto">
         <div ref="codeBlock" class="fullwidthcode">
           <pre v-if="format" :class="'line-numbers ' + lang + ' format'">
-            <code>{{codeString}}</code>
+            <code>{{ codeString }}</code>
           </pre>
           <p v-else class="noformat">{{ codeString }}</p>
         </div>
@@ -107,6 +108,7 @@ export default defineComponent({
   white-space: pre-wrap;
   min-width: 100%;
 }
+
 .fullwidthcode .noformat {
   font-size: 14px;
   color: rgb(217, 217, 217);
@@ -124,6 +126,7 @@ export default defineComponent({
 .fullwidthcode pre:focus {
   outline: none;
 }
+
 .fullwidthcode pre * {
   user-select: text;
   -webkit-user-drag: auto;

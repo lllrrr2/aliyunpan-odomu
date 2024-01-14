@@ -73,19 +73,18 @@ export function GetSignature(nonce: number, user_id: string, deviceId: string) {
   return { signature, publicKey }
 }
 
-export function EncodeEncName(user_id: string, name: string, isDir: boolean, encType: string) {
+export function EncodeEncName(user_id: string, name: string, isDir: boolean, encType: string, inputpassword: string = '') {
   let settingStore = useSettingStore()
   if (encType && settingStore.securityEncFileName) {
     // 加密名称
     const splitFolder = name.split('/')
-    const securityPassword = getEncPassword(user_id, encType)
+    const securityPassword = getEncPassword(user_id, encType, inputpassword)
     const securityEncType = settingStore.securityEncType
     if (!isDir) {
       return splitFolder.map(name => {
         let plainName = ''
         let basename = path.basename(name)
         let extname = path.extname(name)
-        console.log('settingStore.securityEncFileNameHideExt', settingStore.securityEncFileNameHideExt)
         if (settingStore.securityEncFileNameHideExt) {
           plainName = basename
           extname = ''
@@ -102,7 +101,7 @@ export function EncodeEncName(user_id: string, name: string, isDir: boolean, enc
   }
 }
 
-export function DecodeEncName(user_id: string, item: IAliFileItem | IAliGetFileModel) {
+export function DecodeEncName(user_id: string, item: IAliFileItem | IAliGetFileModel, inputpassword: string = '') {
   // 自动解密文件名
   let settingStore = useSettingStore()
   const securityFileNameAutoDecrypt = settingStore.securityFileNameAutoDecrypt
@@ -118,7 +117,7 @@ export function DecodeEncName(user_id: string, item: IAliFileItem | IAliGetFileM
   if (item.description?.includes('xbyEncrypt') && securityFileNameAutoDecrypt) {
     let encType = getEncType(item)
     let filename = item.name.replace(ext ? '.' + ext : '', '')
-    let password = getEncPassword(user_id, encType)
+    let password = getEncPassword(user_id, encType, inputpassword)
     let realName = decodeName(password, securityEncType, filename) || item.name
     if (ext) {
       name = realName + '.' + ext

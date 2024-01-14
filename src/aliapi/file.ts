@@ -7,6 +7,7 @@ import { IAliFileItem, IAliGetDirModel, IAliGetFileModel, IAliGetForderSizeModel
 import AliDirFileList from './dirfilelist'
 import { ICompilationList, IDownloadUrl, IOfficePreViewUrl, IVideoPreviewUrl, IVideoXBTUrl } from './models'
 import { DecodeEncName, GetDriveType } from './utils'
+import { getRawUrl } from '../utils/proxyhelper'
 
 export default class AliFile {
 
@@ -94,15 +95,20 @@ export default class AliFile {
       size: 0
     }
     let url = ''
-    if (useSettingStore().uiEnableOpenApi) {
+    // 处理OpenApi无法访问相册
+    let isPic = GetDriveType(user_id, drive_id).name === 'pic'
+    if (useSettingStore().uiEnableOpenApi && !isPic) {
       url = 'adrive/v1.0/openFile/getDownloadUrl'
     } else {
       url = 'v2/file/get_download_url'
     }
-    const postData = {
+    const postData: any = {
       drive_id: drive_id,
       file_id: file_id,
       expire_sec: useSettingStore().uiEnableOpenApi ? '14400' : expire_sec
+    }
+    if (isPic) {
+      delete postData.expire_sec
     }
     const resp = await AliHttp.Post(url, postData, user_id, '', true)
     if (AliHttp.IsSuccess(resp.code)) {
@@ -422,9 +428,9 @@ export default class AliFile {
   }
 
 
-  static async ApiFileDownText(user_id: string, drive_id: string, file_id: string, filesize: number, maxsize: number): Promise<string> {
+  static async ApiFileDownText(user_id: string, drive_id: string, file_id: string, filesize: number, maxsize: number, encType: string = '', password: string = ''): Promise<string> {
     if (!user_id || !drive_id || !file_id) return ''
-    const downUrl = await AliFile.ApiFileDownloadUrl(user_id, drive_id, file_id, 14400)
+    const downUrl = await getRawUrl(user_id, drive_id, file_id, encType, password)
     if (typeof downUrl == 'string') return downUrl
     // 原始文件大小
     if (filesize === -1) filesize = downUrl.size

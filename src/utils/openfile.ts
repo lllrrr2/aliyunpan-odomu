@@ -14,10 +14,10 @@ import { humanTime } from './format'
 import { SpawnOptions } from 'child_process'
 import { delTmpFile, GetExpiresTime } from './utils'
 import PlayerUtils from './playerhelper'
-import { getEncType } from './proxyhelper'
+import { getEncType, getRawUrl } from './proxyhelper'
 
 
-export async function menuOpenFile(file: IAliGetFileModel): Promise<void> {
+export async function menuOpenFile(file: IAliGetFileModel, password: string = ''): Promise<void> {
   if (clickWait('menuOpenFile', 500)) return
   const file_id = file.file_id
   let parent_file_id = file.parent_file_id
@@ -44,7 +44,7 @@ export async function menuOpenFile(file: IAliGetFileModel): Promise<void> {
   }
 
   if (file.category == 'image' || file.category == 'image2') {
-    Image(drive_id, file_id, file.name)
+    Image(drive_id, file_id, file.name, password)
     return
   }
   if (file.category == 'image3') {
@@ -68,18 +68,18 @@ export async function menuOpenFile(file: IAliGetFileModel): Promise<void> {
         subTitleFileId = PlayerUtils.filterSubtitleFile(file.name, subTitlesList)
       } else if (uiVideoSubtitleMode === 'select') {
         modalSelectPanDir('select', parent_file_id, async (_user_id: string, _drive_id: string, to_drive_id: string, dirID: string, _dirName: string) => {
-          await Video(token, to_drive_id, dirID, file)
+          await Video(token, to_drive_id, dirID, file, password)
         }, '', /srt|vtt|ass/)
         return
       }
     } else {
       let encType = getEncType(file)
-      if (encType.includes('xbyEncrypt')){
+      if (encType.includes('xbyEncrypt')) {
         message.error('加密文件无法使用网页播放器')
         return
       }
     }
-    await Video(token, drive_id, subTitleFileId, file)
+    await Video(token, drive_id, subTitleFileId, file, password)
     return
   }
   if (file.category.startsWith('audio')) {
@@ -88,7 +88,7 @@ export async function menuOpenFile(file: IAliGetFileModel): Promise<void> {
   }
   const codeExt = PrismExt(file.ext)
   if (file.size < 512 * 1024 || (file.size < 5 * 1024 * 1024 && codeExt)) {
-    Code(drive_id, file_id, file.name, codeExt, file.size)
+    Code(drive_id, file_id, file.name, codeExt, file.size, file.description, password)
     return
   }
   message.info('此格式暂不支持预览')
@@ -105,7 +105,7 @@ async function Archive(drive_id: string, file_id: string, file_name: string, par
     message.error('在线预览失败 账号失效，操作取消')
     return
   }
-  message.loading('Loading...', 2)
+  message.loading('加载中...', 2)
   const info = await AliFile.ApiFileInfo(user_id, drive_id, file_id)
   if (info && typeof info == 'string') {
     message.error('在线预览失败 获取文件信息出错：' + info)
@@ -146,12 +146,12 @@ async function Archive(drive_id: string, file_id: string, file_name: string, par
   }
 }
 
-async function Video(token: ITokenInfo, drive_id: string, subTitleFileId: string, file: IAliGetFileModel): Promise<void> {
+async function Video(token: ITokenInfo, drive_id: string, subTitleFileId: string, file: IAliGetFileModel, password: string = ''): Promise<void> {
   if (file.icon == 'iconweifa') {
     message.error('在线预览失败 无法预览违规文件')
     return
   }
-  message.loading('加载视频中...', 2)
+  message.loading('加载中...', 2)
   let file_id = file.file_id
   let dec = file.description
   let parent_file_id = file.parent_file_id
@@ -215,7 +215,7 @@ async function Video(token: ITokenInfo, drive_id: string, subTitleFileId: string
   }
   if ((!isPotplayer && !isMpv) || ((isPotplayer || isMpv) && !settingStore.uiVideoEnablePlayerList)) {
     const encType = getEncType(file)
-    const url = await PlayerUtils.getVideoUrl(token.user_id, drive_id, file_id, file.icon == 'iconweifa', encType)
+    const url = await getRawUrl(token.user_id, drive_id, file_id, encType, password, file.icon == 'iconweifa')
     if (!url) {
       message.error('视频地址解析失败，操作取消')
       return
@@ -308,25 +308,17 @@ async function Video(token: ITokenInfo, drive_id: string, subTitleFileId: string
   })
 }
 
-async function Image(drive_id: string, file_id: string, name: string): Promise<void> {
+async function Image(drive_id: string, file_id: string, name: string, password: string = ''): Promise<void> {
   const user_id = useUserStore().user_id
   const token = await UserDAL.GetUserTokenFromDB(user_id)
   if (!token || !token.access_token) {
     message.error('在线预览失败 账号失效，操作取消')
     return
   }
-  message.loading('预览中...', 2)
-  const imageidList: string[] = []
-  const imagenameList: string[] = []
-
+  message.loading('加载中...', 2)
   const fileList = usePanFileStore().ListDataRaw
-  for (let i = 0, maxi = fileList.length; i < maxi; i++) {
-    if (fileList[i].category == 'image' || fileList[i].category == 'image2') {
-      imageidList.push(fileList[i].file_id)
-      imagenameList.push(fileList[i].name)
-    }
-  }
-  if (imageidList.length == 0) {
+  const imageList = fileList.filter(v => v.category == 'image' || v.category == 'image2')
+  if (imageList.length == 0) {
     message.error('获取文件预览链接失败，操作取消')
     return
   }
@@ -337,8 +329,8 @@ async function Image(drive_id: string, file_id: string, name: string): Promise<v
     file_id,
     file_name: name,
     mode: useSettingStore().uiImageMode,
-    imageidlist: imageidList,
-    imagenamelist: imagenameList
+    password: password,
+    imageList: imageList
   }
   window.WebOpenWindow({ page: 'PageImage', data: pageImage, theme: 'dark' })
 }
@@ -350,7 +342,7 @@ async function Office(drive_id: string, file_id: string, name: string): Promise<
     message.error('在线预览失败 账号失效，操作取消')
     return
   }
-  message.loading('预览中...', 2)
+  message.loading('加载中...', 2)
   const data = await AliFile.ApiOfficePreViewUrl(user_id, drive_id, file_id)
   if (!data || !data.preview_url) {
     message.error('获取文件预览链接失败，操作取消')
@@ -373,7 +365,7 @@ async function Audio(drive_id: string, file_id: string, name: string, weifa: boo
     return
   }
 
-  message.loading('Loading...', 2)
+  message.loading('加载中...', 2)
   const user_id = useUserStore().user_id
   const token = await UserDAL.GetUserTokenFromDB(user_id)
   if (!token || !token.access_token) {
@@ -386,19 +378,14 @@ async function Audio(drive_id: string, file_id: string, name: string, weifa: boo
   }
 }
 
-async function Code(drive_id: string, file_id: string, name: string, codeExt: string, fileSize: number): Promise<void> {
+async function Code(drive_id: string, file_id: string, name: string, codeExt: string, fileSize: number, description: string, password: string = ''): Promise<void> {
   const user_id = useUserStore().user_id
   const token = await UserDAL.GetUserTokenFromDB(user_id)
   if (!token || !token.access_token) {
     message.error('在线预览失败 账号失效，操作取消')
     return
   }
-  message.loading('Loading...', 2)
-  const data = await AliFile.ApiFileDownloadUrl(user_id, drive_id, file_id, 14400)
-  if (typeof data == 'string') {
-    message.error('获取文件预览链接失败: ' + data)
-    return
-  }
+  message.loading('加载中...', 2)
   const pageCode: IPageCode = {
     user_id: token.user_id,
     drive_id,
@@ -406,7 +393,8 @@ async function Code(drive_id: string, file_id: string, name: string, codeExt: st
     file_name: name,
     code_ext: codeExt,
     file_size: fileSize,
-    download_url: data.url
+    encType: getEncType({ description }),
+    password: password
   }
   window.WebOpenWindow({ page: 'PageCode', data: pageCode, theme: 'dark' })
 }

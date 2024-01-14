@@ -56,31 +56,6 @@ const PlayerUtils = {
     }
     return { play_duration, play_cursor }
   },
-  async getVideoUrl(user_id: string, drive_id: string, file_id: string, weifa: boolean, encType: string | boolean = false) {
-    let url = ''
-    let size = 0
-    if (!encType && useSettingStore().uiVideoMode == 'online') {
-      const data = await AliFile.ApiVideoPreviewUrl(user_id, drive_id, file_id)
-      if (data && data.url != '') {
-        url = data.url
-      }
-    }
-    if (!url && !weifa) {
-      const data = await AliFile.ApiFileDownloadUrl(user_id, drive_id, file_id, 14400)
-      if (typeof data !== 'string' && data.url && data.url != '') {
-        url = data.url
-        size = data.size
-      }
-    }
-    // 代理播放
-    if (typeof encType == 'string') {
-      url = getProxyUrl({
-        user_id, drive_id, file_id, encType,
-        file_size: size, lastUrl: url
-      })
-    }
-    return url
-  },
   async getDirFileList(user_id: string, drive_id: string, parent_file_id: string) {
     const dir = await AliDirFileList.ApiDirFileList(user_id, drive_id, parent_file_id, '', 'name asc', '')
     const curDirFileList: IAliGetFileModel[] = []

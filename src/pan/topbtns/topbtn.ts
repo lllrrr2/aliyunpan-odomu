@@ -30,6 +30,8 @@ import DownDAL from '../../down/DownDAL'
 import { isEmpty } from 'lodash'
 import { GetDriveID } from '../../aliapi/utils'
 import AliAlbum from '../../aliapi/album'
+import { getEncType } from '../../utils/proxyhelper'
+import { Modal } from '@arco-design/web-vue'
 
 const topbtnLock = new Set()
 
@@ -42,7 +44,7 @@ export function handleUpload(uploadType: string, encType: string = '') {
   }
   if (encType == 'xbyEncrypt1') {
     if (!useSettingStore().securityPassword) {
-      modalPassword('input', (success) => {
+      modalPassword('new', (success) => {
         success && handleUpload(uploadType, encType)
       })
       return
@@ -79,7 +81,7 @@ export function handleUpload(uploadType: string, encType: string = '') {
       properties: ['openFile', 'multiSelections', 'showHiddenFiles', 'noResolveAliases', 'treatPackageAsDirectory', 'dontAddToRecent']
     }, (files: string[] | undefined) => {
       if (files && files.length > 0) {
-        modalUpload(pantreeStore.selectDir.file_id, files, true)
+        modalUpload(pantreeStore.selectDir.file_id, files, true, encType)
       }
     })
   }
@@ -524,7 +526,25 @@ export function menuCreatShare(istree: boolean, shareby: string, driveType: stri
     message.error('没有可以分享的文件！')
     return
   }
-  modalCreatNewShareLink(shareby, driveType, list)
+  let encFiles = list.filter(l => getEncType(l) == 'xbyEncrypt2')
+  if (encFiles.length > 0) {
+    Modal.open({
+      title: '存在私密的文件，是否继续分享？',
+      bodyStyle: {
+        minWidth: '340px',
+        minHeight: '100px'
+      },
+      closable: false,
+      content: encFiles.map(v => v.name).join(','),
+      okText: '确认',
+      cancelText: '取消',
+      onOk(e) {
+        modalCreatNewShareLink(shareby, driveType, list)
+      }
+    })
+  } else {
+    modalCreatNewShareLink(shareby, driveType, list)
+  }
 }
 
 

@@ -1,4 +1,3 @@
-import AliFile from '../aliapi/file'
 import { IAliFileResp } from '../aliapi/dirfilelist'
 
 import Aria2 from 'aria2-lib'
@@ -13,7 +12,7 @@ import AliTrash from '../aliapi/trash'
 
 import path from 'path'
 import fs from 'fs'
-import { getProxyUrl } from './proxyhelper'
+import { getRawUrl } from './proxyhelper'
 
 export const localPwd = 'S4znWTaZYQi3cpRNb'
 
@@ -383,22 +382,12 @@ export async function AriaAddUrl(file: IStateDownFile): Promise<string> {
         downloadUrl = ''
       }
       if (!downloadUrl) {
-        const durl = await AliFile.ApiFileDownloadUrl(info.user_id, info.drive_id, info.file_id, 14400)
+        const durl = await getRawUrl(info.user_id, info.drive_id, info.file_id, info.encType)
         if (typeof durl == 'string') {
           return `生成下载链接失败, ${durl}`
         } else if (!durl.url) {
           DebugLog.mSaveLog('danger', `${info.file_id} 生成下载链接失败, ${JSON.stringify(durl)}`, null)
           return `生成下载链接失败,${JSON.stringify(durl)}`
-        }
-        // 通过代理服务，下载文件并且自动解密
-        if (file.Info.encType) {
-          durl.url = getProxyUrl({
-            user_id: file.Info.user_id,
-            encType: file.Info.encType,
-            file_size: file.Info.size,
-            lastUrl: durl.url
-          })
-          // console.warn('durl.url', durl.url)
         }
         downloadUrl = durl.url
         file.Down.DownUrl = downloadUrl

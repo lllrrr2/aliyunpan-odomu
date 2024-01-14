@@ -148,7 +148,7 @@ export default defineComponent({
              :msgid='modalStore.modalData.msgid || ""' />
 
   <PasswordModal :visible="modalStore.modalName == 'showpassword'"
-                 :optType="modalStore.modalData.optType || 'input'"
+                 :optType="modalStore.modalData.optType || 'new'"
                  :callback="modalStore.modalData.callback" />
 
 </template>

@@ -53,7 +53,7 @@ import TrashRightMenu from './menus/TrashRightMenu.vue'
 import TrashTopbtn from './menus/TrashTopbtn.vue'
 import DirTopPath from './menus/DirTopPath.vue'
 import message from '../utils/message'
-import { menuOpenFile } from '../utils/openfile'
+import { menuOpenFile, PrismExt } from '../utils/openfile'
 import { throttle } from '../utils/debounce'
 import { TestButton } from '../utils/mosehelper'
 import usePanTreeStore from './pantreestore'
@@ -263,19 +263,31 @@ const handleOpenFile = (event: Event, file: IAliGetFileModel | undefined) => {
   if (!panfileStore.ListSelected.has(file.file_id)) {
     panfileStore.mMouseSelect(file.file_id, false, false)
   }
-  let isShare = !file.user_meta || (file.user_meta && !file.user_meta.includes('file_upload'))
+  let isShare = (file.user_meta === undefined) || !file.user_meta.includes('file_upload')
   let isEncrypt = file.description.includes('xbyEncrypt')
-  if (isEncrypt && !file.category.startsWith('video')) {
-    message.error('当前仅支持预览视频文件')
+  if (isEncrypt
+    && !file.category.startsWith('video')
+    && !file.category.startsWith('image')
+    && !PrismExt(file.ext)) {
+    message.error('不支持预览该格式的加密文件')
     return
   }
-  // 确认密码
-  if ((isShare && isEncrypt)
-    || (!useSettingStore().securityPassword && isEncrypt)
-    || (useSettingStore().securityPassword && useSettingStore().securityPasswordConfirm)) {
-    modalPassword('confirm', (success) => {
-      success && file && menuOpenFile(file)
-    })
+  if (isEncrypt) {
+    if (isShare) {
+      modalPassword('input', (success, inputpassword) => {
+        success && file && menuOpenFile(file, inputpassword)
+      })
+    } else if (useSettingStore().securityPassword && useSettingStore().securityPasswordConfirm) {
+      modalPassword('confirm', (success) => {
+        success && file && menuOpenFile(file)
+      })
+    } else if (!useSettingStore().securityPassword) {
+      modalPassword('new', (success) => {
+        success && file && menuOpenFile(file)
+      })
+    } else {// 自动解密
+      menuOpenFile(file)
+    }
   } else {
     menuOpenFile(file)
   }
@@ -875,9 +887,15 @@ const onPanDragEnd = (ev: any) => {
                   </div>
                 </template>
               </a-popover>
-              <a-button v-if='item.description.includes("xbyEncrypt")' type='text' tabindex='-1' class='label'
+              <a-button v-if='item.description.includes("xbyEncrypt1")'
+                        type='text' tabindex='-1' class='label'
                         title='加密文件'>
                 <i class='iconfont iconsafebox' style="color: grey" />
+              </a-button>
+              <a-button v-else-if='item.description.includes("xbyEncrypt2")'
+                        type='text' tabindex='-1' class='label'
+                        title='私密文件'>
+                <i class='iconfont iconsafebox' style="color: pink" />
               </a-button>
               <a-button v-else type='text' tabindex='-1' class='gengduo' disabled></a-button>
             </div>
@@ -935,10 +953,15 @@ const onPanDragEnd = (ev: any) => {
                   </div>
                 </template>
               </a-popover>
-              <a-button v-if='item.description.includes("xbyEncrypt")'
+              <a-button v-if='item.description.includes("xbyEncrypt1")'
                         type='text' tabindex='-1' class='label'
                         title='加密文件'>
                 <i class='iconfont iconsafebox' style="color: grey" />
+              </a-button>
+              <a-button v-else-if='item.description.includes("xbyEncrypt2")'
+                        type='text' tabindex='-1' class='label'
+                        title='私密文件'>
+                <i class='iconfont iconsafebox' style="color: pink" />
               </a-button>
               <a-button v-if="false" type='text' tabindex='-1' class='gengduo' disabled></a-button>
             </div>
@@ -1037,9 +1060,15 @@ const onPanDragEnd = (ev: any) => {
                          :class='grid.description.split(",").filter((v: string)=> !v.includes("xbyEncrypt")).join("")' />
                     </a-button>
                   </template>
-                  <a-button v-if='grid.description.includes("xbyEncrypt")' type='text' tabindex='-1' class='label'
+                  <a-button v-if='grid.description.includes("xbyEncrypt1")'
+                            type='text' tabindex='-1' class='label'
                             title='加密文件'>
                     <i class='iconfont iconsafebox' style="color: grey" />
+                  </a-button>
+                  <a-button v-else-if='grid.description.includes("xbyEncrypt2")'
+                            type='text' tabindex='-1' class='label'
+                            title='私密文件'>
+                    <i class='iconfont iconsafebox' style="color: pink" />
                   </a-button>
                 </div>
               </div>
@@ -1093,9 +1122,15 @@ const onPanDragEnd = (ev: any) => {
                          :class='grid.description.split(",").filter((v: string)=> !v.includes("xbyEncrypt")).join("")' />
                     </a-button>
                   </template>
-                  <a-button v-if='grid.description.includes("xbyEncrypt")' type='text' tabindex='-1' class='label'
+                  <a-button v-if='grid.description.includes("xbyEncrypt1")'
+                            type='text' tabindex='-1' class='label'
                             title='加密文件'>
                     <i class='iconfont iconsafebox' style="color: grey" />
+                  </a-button>
+                  <a-button v-else-if='grid.description.includes("xbyEncrypt2")'
+                            type='text' tabindex='-1' class='label'
+                            title='私密文件'>
+                    <i class='iconfont iconsafebox' style="color: pink" />
                   </a-button>
                 </div>
               </div>
@@ -1184,9 +1219,15 @@ const onPanDragEnd = (ev: any) => {
                          :class='grid.description.split(",").filter((v: string)=> !v.includes("xbyEncrypt")).join("")' />
                     </a-button>
                   </template>
-                  <a-button v-if='grid.description.includes("xbyEncrypt")' type='text' tabindex='-1' class='label'
+                  <a-button v-if='grid.description.includes("xbyEncrypt1")'
+                            type='text' tabindex='-1' class='label'
                             title='加密文件'>
                     <i class='iconfont iconsafebox' style="color: grey" />
+                  </a-button>
+                  <a-button v-else-if='grid.description.includes("xbyEncrypt2")'
+                            type='text' tabindex='-1' class='label'
+                            title='私密文件'>
+                    <i class='iconfont iconsafebox' style="color: pink" />
                   </a-button>
                 </div>
               </div>

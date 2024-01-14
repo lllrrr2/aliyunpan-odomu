@@ -42,6 +42,7 @@ export function modalDaoRuShareLinkMulti() {
 }
 
 export function modalRename(istree: boolean, ismulti: boolean, ispic: boolean) {
+
   useModalStore().showModal(ismulti ? 'renamemulti' : 'rename', { istree, ispic })
 }
 
@@ -112,6 +113,6 @@ export function modalShowPost(msg: string, msgid: string) {
   useModalStore().showModal('showpostmodal', { msg, msgid })
 }
 
-export function modalPassword(optType: string, callback?: (success: boolean) => void) {
+export function modalPassword(optType: string, callback?: (success: boolean, inputpassword: string) => void) {
   useModalStore().showModal('showpassword', { optType, callback })
 }

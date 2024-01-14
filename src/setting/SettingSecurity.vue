@@ -132,7 +132,7 @@ const disabled = computed(() => {
       </MySwitch>
     </div>
     <div class='settingspace'></div>
-    <div class='settinghead'>:预览文件二次确认密码</div>
+    <div class='settinghead'>:操作文件二次确认密码</div>
     <a-popover position="bottom">
       <i class="iconfont iconbulb" />
       <template #content>
@@ -140,7 +140,7 @@ const disabled = computed(() => {
           默认：<span class="opred">关闭</span>
           <hr />
           <div class="hrspace"></div>
-          <span class="oporg">注：</span>预览文件时需要确认密码，提高安全性
+          <span class="oporg">注：</span>操作文件时需要确认密码，提高安全性
         </div>
       </template>
     </a-popover>

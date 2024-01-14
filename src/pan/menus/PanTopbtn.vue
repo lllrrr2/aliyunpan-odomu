@@ -128,10 +128,35 @@ const handleClickBottleFish = async () => {
         </a-dgroup>
       </template>
     </a-dropdown>
-    <a-button v-if="isShowBtn && dirtype.includes('pic')" type='text' size='small' tabindex='-1' title='Ctrl+L'
-              @click='handleUpload("pic_file")'>
-      <i class='iconfont iconwenjian' />上传照片/视频
-    </a-button>
+    <a-dropdown v-if="isShowBtn && dirtype.includes('pic')"
+                trigger='hover' class='rightmenu' position='bl'>
+      <a-button type='text' size='small' tabindex='-1'>
+        <i class='iconfont iconupload' />上传照片/视频<i class='iconfont icondown' />
+      </a-button>
+      <template #content>
+        <a-dgroup title="普通上传">
+          <a-doption value='uploadfile'
+                     @click="() => handleUpload('pic_file')">
+            <template #icon><i class='iconfont iconwenjian' /></template>
+            <template #default>上传照片/视频</template>
+          </a-doption>
+        </a-dgroup>
+        <a-dgroup title="加密上传">
+          <a-doption value='uploadfile'
+                     @click="() => handleUpload('pic_file', 'xbyEncrypt1')">
+            <template #icon><i class='iconfont iconwenjian' /></template>
+            <template #default>上传照片/视频（加密）</template>
+          </a-doption>
+        </a-dgroup>
+        <a-dgroup title="私密上传">
+          <a-doption value='uploadfile' title='Ctrl+U'
+                     @click="() => handleUpload('pic_file', 'xbyEncrypt2')">
+            <template #icon><i class='iconfont iconwenjian' /></template>
+            <template #default>上传照片/视频（私密）</template>
+          </a-doption>
+        </a-dgroup>
+      </template>
+    </a-dropdown>
     <a-button v-if="!dirtype.includes('pic')" type='text' size='small' tabindex='-1' title='Ctrl+L'
               @click='modalDaoRuShareLink()'>
       <i class='iconfont iconlink2' />导入分享

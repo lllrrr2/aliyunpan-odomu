@@ -11,6 +11,7 @@ import type { Option } from 'artplayer/types/option'
 import AliFileCmd from '../aliapi/filecmd'
 import ASS from 'ass-html5'
 import { IVideoPreviewUrl } from '../aliapi/models'
+import { getEncType } from '../utils/proxyhelper'
 
 const appStore = useAppStore()
 const pageVideo = appStore.pageVideo!
@@ -239,7 +240,8 @@ const getDirFileList = async (dir_id: string, hasDir: boolean, category: string 
           name: item.name,
           file_id: item.file_id,
           ext: item.ext,
-          isDir: item.isDir
+          isDir: item.isDir,
+          encType: getEncType({ description: item.description })
         }
         if (!hasDir) curDirFileList.push(fileInfo)
         else childDirFileList.push(fileInfo)
@@ -540,7 +542,7 @@ const getVideoCursor = async (art: Artplayer, play_cursor?: number) => {
 
 let onlineSubBlobUrl: string = ''
 const loadOnlineSub = async (art: Artplayer, item: any) => {
-  const data = await AliFile.ApiFileDownText(pageVideo.user_id, pageVideo.drive_id, item.file_id, -1, -1)
+  const data = await AliFile.ApiFileDownText(pageVideo.user_id, pageVideo.drive_id, item.file_id, -1, -1, item.encType)
   if (data) {
     if (item.ext === 'ass') {
       art.subtitle.show = true

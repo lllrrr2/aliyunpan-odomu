@@ -1,6 +1,7 @@
 import DebugLog from '../utils/debuglog'
 import { onHideRightMenu } from '../utils/keyboardhelper'
 import { defineStore } from 'pinia'
+import { IAliGetFileModel } from '../aliapi/alimodels'
 
 export interface IPageOffice {
   user_id: string
@@ -16,9 +17,10 @@ export interface IPageCode {
   drive_id: string
   file_id: string
   file_name: string
-  code_ext: string
   file_size: number
-  download_url: string
+  code_ext: string
+  encType: string
+  password: string
 }
 
 export interface IPageImage {
@@ -27,8 +29,8 @@ export interface IPageImage {
   file_id: string
   file_name: string
   mode: string
-  imageidlist: string[]
-  imagenamelist: string[]
+  password: string
+  imageList: IAliGetFileModel[]
 }
 
 export interface IPageVideoXBT {

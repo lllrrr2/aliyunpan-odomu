@@ -12,6 +12,10 @@ import UploadingDAL from '../transfer/uploadingdal'
 import { Sleep } from '../utils/format'
 import { portIsOccupied } from '../utils/utils'
 import { createProxyServer } from '../utils/proxyhelper'
+import { Server } from 'http'
+
+export let MainProxyPort: number = 8000
+export let MainProxyServer: Server | null
 
 export function PageMain() {
   if (window.WinMsg) return
@@ -19,6 +23,16 @@ export function PageMain() {
   //useSettingStore().WebSetProxy()
   Promise.resolve()
     .then(async () => {
+      // 创建代理server
+      if (!MainProxyServer) {
+        MainProxyPort = await portIsOccupied(8000)
+        MainProxyServer = await createProxyServer(MainProxyPort)
+      } else {
+        MainProxyServer.on('close', () => {
+          MainProxyPort = 0
+          MainProxyServer = null
+        })
+      }
       DebugLog.mSaveSuccess('小白羊启动')
       await ShareDAL.aLoadFromDB().catch((err: any) => {
         DebugLog.mSaveDanger('ShareDALLDB', err)
@@ -27,16 +41,6 @@ export function PageMain() {
       await UserDAL.aLoadFromDB().catch((err: any) => {
         DebugLog.mSaveDanger('UserDALLDB', err)
       })
-      // 创建代理server
-      if (!window.MainProxyServer) {
-        window.MainProxyPort = await portIsOccupied(8000)
-        window.MainProxyServer = await createProxyServer(window.MainProxyPort)
-      } else {
-        window.MainProxyServer.on('close', () => {
-          window.MainProxyPort = 0
-          window.MainProxyServer = null
-        })
-      }
     })
     .then(async () => {
       await Sleep(500)

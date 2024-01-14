@@ -197,6 +197,7 @@ export default class AliDirFileList {
         isGet = await AliDirFileList._ApiAlbumListOnePage(orders[0], orders[1], dir, pageIndex)
       } else if (albumID && albumID.length > 0) {
         isGet = await AliDirFileList._ApiAlbumListFilesOnePage(orders[0], orders[1], dir, pageIndex)
+        dir.itemsTotal = dir.items.length
       } else {
         if (!needTotal) {
           needTotal = AliDirFileList._ApiDirFileListCount(dir, dirID.includes('pic') ? 'file' : type).then((total) => {
@@ -651,9 +652,6 @@ export default class AliDirFileList {
                 item.type = 'folder'
                 item.file_id = item.album_id
               }
-              if (dir.dirID != 'pic_root') {
-                dir.itemsTotal = resp.body.total_count
-              }
             }
             if (dir.itemsKey.has(item.file_id)) continue
             const add = AliDirFileList.getFileInfo(dir.m_user_id, item, downUrl)
@@ -681,10 +679,12 @@ export default class AliDirFileList {
             dir.items.push(...fileList)
           }
         }
-
         dirPart.punished_file_count = resp.body.punished_file_count || 0
         dir.punished_file_count += resp.body.punished_file_count || 0
-
+        // 相册文件数
+        if (isPic && dir.dirID != 'pic_root') {
+          dir.itemsTotal = resp.body.totalCount
+        }
         if (pageIndex >= 0 && type == '' && refresh) {
           const pan = usePanFileStore()
           if (pan.DriveID == dir.m_drive_id) {
