@@ -1,7 +1,7 @@
 {
   "name": "alixby",
   "description": "阿里云盘小白羊",
-  "version": "3.24.11420",
+  "version": "3.24.11522",
   "main": "dist/electron/main/index.js",
   "author": {
     "name": "Odomu",
@@ -28,7 +28,7 @@
     "@types/lodash": "^4.14.202",
     "@types/markdown-it": "^13.0.7",
     "@types/mime-types": "^2.1.4",
-    "@types/node": "^20.11.0",
+    "@types/node": "^20.11.2",
     "@types/secp256k1": "^4.0.6",
     "@types/uuid": "^9.0.7",
     "@vitejs/plugin-vue": "^4.5.2",

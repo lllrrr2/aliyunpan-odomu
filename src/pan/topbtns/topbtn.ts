@@ -737,7 +737,10 @@ export function menuVideoXBT() {
     message.error('没有选中任何文件')
     return
   }
-
+  if (first.description.includes('xbyEncrypt')) {
+    message.error('加密视频无法获取雪碧图')
+    return
+  }
   if (first.icon == 'iconweifa') {
     message.error('违规视频无法预览')
     return

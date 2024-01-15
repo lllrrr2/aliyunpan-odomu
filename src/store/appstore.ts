@@ -47,6 +47,8 @@ export interface IPageVideo {
   parent_file_id: string
   file_name: string
   html: string
+  encType: string
+  password: string
   expire_time: number
   play_cursor: number
 }

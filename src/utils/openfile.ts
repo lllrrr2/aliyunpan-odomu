@@ -24,6 +24,10 @@ export async function menuOpenFile(file: IAliGetFileModel, password: string = ''
   if (parent_file_id.includes('root')) parent_file_id = 'root'
   const drive_id = file.drive_id
   if (file.ext == 'zip' || file.ext == 'rar' || file.ext == '7z') {
+    if (file.description.includes('xbyEncrypt')) {
+      message.error('不支持在线预览该格式的加密文件')
+      return
+    }
     Archive(file.drive_id, file.file_id, file.name, file.parent_file_id, file.icon == 'iconweifa')
     return
   }
@@ -39,6 +43,10 @@ export async function menuOpenFile(file: IAliGetFileModel, password: string = ''
   }
 
   if (file.category.startsWith('doc')) {
+    if (file.description.includes('xbyEncrypt')) {
+      message.error('不支持在线预览该格式的加密文件')
+      return
+    }
     Office(drive_id, file_id, file.name)
     return
   }
@@ -66,17 +74,10 @@ export async function menuOpenFile(file: IAliGetFileModel, password: string = ''
     if (uiVideoPlayer === 'other') {
       if (uiVideoSubtitleMode === 'auto') {
         subTitleFile = PlayerUtils.filterSubtitleFile(file.name, subTitlesList)
-        console.log('subTitleFile', subTitleFile)
       } else if (uiVideoSubtitleMode === 'select') {
         modalSelectPanDir('select', parent_file_id, async (_user_id: string, _drive_id: string, selectFile: any) => {
           await Video(token, drive_id, selectFile, file, password)
         }, '', /srt|vtt|ass/)
-        return
-      }
-    } else {
-      let encType = getEncType(file)
-      if (encType.includes('xbyEncrypt')) {
-        message.error('加密文件无法使用网页播放器')
         return
       }
     }
@@ -84,7 +85,7 @@ export async function menuOpenFile(file: IAliGetFileModel, password: string = ''
     return
   }
   if (file.category.startsWith('audio')) {
-    Audio(drive_id, file_id, file.name, file.icon == 'iconweifa')
+    Audio(drive_id, file_id, file.name, file.icon == 'iconweifa', file.description, password)
     return
   }
   const codeExt = PrismExt(file.ext)
@@ -178,6 +179,8 @@ async function Video(token: ITokenInfo, drive_id: string, subTitleFile: any, fil
       file_id: file_id,
       parent_file_id: parent_file_id,
       expire_time: 0,
+      password: password,
+      encType: getEncType(file),
       play_cursor: playCursorInfo.play_cursor
     }
     window.WebOpenWindow({ page: 'PageVideo', data: pageVideo, theme: 'dark' })
@@ -217,7 +220,7 @@ async function Video(token: ITokenInfo, drive_id: string, subTitleFile: any, fil
   }
   if ((!isPotplayer && !isMpv) || ((isPotplayer || isMpv) && !settingStore.uiVideoEnablePlayerList)) {
     const encType = getEncType(file)
-    const data = await getRawUrl(token.user_id, drive_id, file_id, encType, password, file.icon == 'iconweifa')
+    const data = await getRawUrl(token.user_id, drive_id, file_id, encType, password, file.icon == 'iconweifa', true, 'video')
     if (typeof data == 'string') {
       message.error('视频地址解析失败，操作取消')
       return
@@ -361,7 +364,7 @@ async function Office(drive_id: string, file_id: string, name: string): Promise<
   window.WebOpenWindow({ page: 'PageOffice', data: pageOffice })
 }
 
-async function Audio(drive_id: string, file_id: string, name: string, weifa: boolean): Promise<void> {
+async function Audio(drive_id: string, file_id: string, name: string, weifa: boolean, description: string, password: string = ''): Promise<void> {
   if (weifa) {
     message.error('在线预览失败 无法预览违规文件')
     return
@@ -374,9 +377,11 @@ async function Audio(drive_id: string, file_id: string, name: string, weifa: boo
     message.error('在线预览失败 账号失效，操作取消')
     return
   }
-  const data = await AliFile.ApiAudioPreviewUrl(user_id, drive_id, file_id)
-  if (data && data.url != '') {
+  const data = await getRawUrl(user_id, drive_id, file_id, getEncType({ description }), password, true, true, 'audio')
+  if (typeof data != 'string') {
     useFootStore().mSaveAudioUrl(data.url)
+  } else {
+    message.error(data)
   }
 }
 

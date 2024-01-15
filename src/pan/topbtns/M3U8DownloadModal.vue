@@ -38,7 +38,10 @@ export default defineComponent({
         message.error('读取文件链接失败，请重试')
         return
       }
-
+      if (info.description.includes('xbyEncrypt')) {
+        message.error('加密文件无法获取转码信息，请使用文件的属性获取下载链接')
+        return
+      }
       const preview = await AliFile.ApiVideoPreviewUrl(user_id.value, first.drive_id, first.file_id)
       if (typeof preview != 'string') {
         videoPreview.value = preview

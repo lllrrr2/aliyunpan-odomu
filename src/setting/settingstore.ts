@@ -296,6 +296,7 @@ function _loadSetting(val: any) {
   setting.securityHidePicDrive = defaultBool(val.securityHidePicDrive, false)
 
   // 在线预览
+  setting.uiVideoMode = defaultValue(val.uiVideoMode, ['web', 'online'])
   setting.uiVideoPlayer = defaultValue(val.uiVideoPlayer, ['web', 'other'])
   setting.uiVideoEnablePlayerList = defaultBool(val.uiVideoEnablePlayerList, false)
   setting.uiVideoPlayerExit = defaultBool(val.uiVideoPlayerExit, false)
@@ -388,7 +389,7 @@ function _loadSetting(val: any) {
 let settingstr = ''
 
 
-function LoadSetting() {
+export function LoadSetting() {
   try {
     const settingConfig = getUserDataPath('setting.config')
     if (settingConfig && existsSync(settingConfig)) {

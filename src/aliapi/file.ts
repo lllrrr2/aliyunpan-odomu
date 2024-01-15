@@ -1,6 +1,5 @@
 import { useSettingStore } from '../store'
 import DebugLog from '../utils/debuglog'
-import message from '../utils/message'
 import { GetExpiresTime, HanToPin } from '../utils/utils'
 import AliHttp from './alihttp'
 import { IAliFileItem, IAliGetDirModel, IAliGetFileModel, IAliGetForderSizeModel } from './alimodels'
@@ -239,8 +238,8 @@ export default class AliFile {
     }
   }
 
-  static async ApiAudioPreviewUrl(user_id: string, drive_id: string, file_id: string): Promise<IDownloadUrl | undefined> {
-    if (!user_id || !drive_id || !file_id) return undefined
+  static async ApiAudioPreviewUrl(user_id: string, drive_id: string, file_id: string): Promise<IDownloadUrl | string> {
+    if (!user_id || !drive_id || !file_id) return '参数错误'
 
     const url = 'v2/file/get_audio_play_info'
 
@@ -248,7 +247,7 @@ export default class AliFile {
     const resp = await AliHttp.Post(url, postData, user_id, '')
 
     if (resp.body.code == 'AudioPreviewWaitAndRetry') {
-      message.warning('音频正在转码中，稍后重试')
+      return '音频正在转码中，稍后重试'
     }
 
     const data: IDownloadUrl = {
@@ -283,7 +282,7 @@ export default class AliFile {
     } else if (!AliHttp.HttpCodeBreak(resp.code)) {
       DebugLog.mSaveWarning('ApiAudioPreviewUrl err=' + file_id + ' ' + (resp.code || ''), resp.body)
     }
-    return undefined
+    return '网络错误'
   }
 
   static async ApiOfficePreViewUrl(user_id: string, drive_id: string, file_id: string): Promise<IOfficePreViewUrl | undefined> {

@@ -60,19 +60,20 @@ export default defineComponent({
           dirPath.value = '/' + data + (props.ispic ? '/' + fileName : '')
         })
         fileInfo.value = await AliFile.ApiFileInfo(pantreeStore.user_id, drive_id, file_id, props.ispic)
-
-        if (fileInfo.value?.category == 'audio') {
-          const audio = await AliFile.ApiAudioPreviewUrl(pantreeStore.user_id, drive_id, file_id)
-          if (audio && audio.url) fileInfo.value.thumbnail = audio.url
-        } else if (fileInfo.value?.category == 'video') {
-          const video = await AliFile.ApiVideoPreviewUrl(pantreeStore.user_id, drive_id, file_id)
-          if (typeof video == 'string') {
-            message.error(video)
-          } else if(video && video.url) {
-            fileInfo.value.thumbnail = video.url
+        if (fileInfo.value && ['audio', 'video'].includes(fileInfo.value.category)) {
+          const encType = getEncType(fileInfo.value)
+          const category = fileInfo.value.category
+          const rawUrl = await getRawUrl(
+            pantreeStore.user_id, drive_id, file_id,
+            encType, '',
+            category === 'audio', true, category
+          )
+          if (typeof rawUrl == 'string') {
+            message.error(rawUrl)
+          } else if (rawUrl && rawUrl.url) {
+            fileInfo.value.thumbnail = rawUrl.url
           }
         }
-
         if (fileInfo.value?.type == 'folder') {
           dirInfo.value = await AliFile.ApiFileGetFolderSize(pantreeStore.user_id, drive_id, file_id)
         }

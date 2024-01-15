@@ -53,7 +53,7 @@ import TrashRightMenu from './menus/TrashRightMenu.vue'
 import TrashTopbtn from './menus/TrashTopbtn.vue'
 import DirTopPath from './menus/DirTopPath.vue'
 import message from '../utils/message'
-import { menuOpenFile, PrismExt } from '../utils/openfile'
+import { menuOpenFile } from '../utils/openfile'
 import { throttle } from '../utils/debounce'
 import { TestButton } from '../utils/mosehelper'
 import usePanTreeStore from './pantreestore'
@@ -265,13 +265,6 @@ const handleOpenFile = (event: Event, file: IAliGetFileModel | undefined) => {
   }
   let isShare = (file.user_meta === undefined) || !file.user_meta.includes('file_upload')
   let isEncrypt = file.description.includes('xbyEncrypt')
-  if (isEncrypt
-    && !file.category.startsWith('video')
-    && !file.category.startsWith('image')
-    && !PrismExt(file.ext)) {
-    message.error('不支持预览该格式的加密文件')
-    return
-  }
   if (isEncrypt) {
     if (isShare) {
       modalPassword('input', (success, inputpassword) => {

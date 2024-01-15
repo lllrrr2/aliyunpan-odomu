@@ -75,11 +75,12 @@ const PlayerUtils = {
       for (let item of fileList) {
         const encType = getEncType(item)
         const url = getProxyUrl({
-          user_id,
+          user_id: user_id,
           drive_id: item.drive_id,
           file_id: item.file_id,
-          encType,
-          file_size: item.size
+          file_size: item.size,
+          weifa: item.icon === 'weifa' ? 1 : 0,
+          encType: encType
         })
         list += '#EXTINF:0,' + item.name + '\r\n' + url + '\r\n'
       }
@@ -97,11 +98,12 @@ const PlayerUtils = {
         const start = index + 1
         const encType = getEncType(item)
         const url = getProxyUrl({
-          user_id,
+          user_id: user_id,
           drive_id: item.drive_id,
           file_id: item.file_id,
-          encType,
-          file_size: item.size
+          file_size: item.size,
+          weifa: item.icon === 'weifa' ? 1 : 0,
+          encType: encType
         })
         let listStr = `${start}*file*${url}\r\n${start}*title*${item.name.trim()}\r\n${start}*played*0\r\n`
         if (item.file_id === file_id) {

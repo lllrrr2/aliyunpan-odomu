@@ -10,8 +10,7 @@ import type { SettingOption } from 'artplayer/types/setting'
 import type { Option } from 'artplayer/types/option'
 import AliFileCmd from '../aliapi/filecmd'
 import ASS from 'ass-html5'
-import { IVideoPreviewUrl } from '../aliapi/models'
-import { getEncType } from '../utils/proxyhelper'
+import { getEncType, getRawUrl, IRawUrl } from '../utils/proxyhelper'
 
 const appStore = useAppStore()
 const pageVideo = appStore.pageVideo!
@@ -110,6 +109,7 @@ type selectorItem = {
 
 onMounted(async () => {
   const name = pageVideo.file_name || '视频在线预览'
+  document.body.setAttribute('arco-theme', 'dark')
   setTimeout(() => {
     document.title = name
   }, 1000)
@@ -129,6 +129,7 @@ const createVideo = async (name: string) => {
   ArtPlayerRef.title = name
   Artplayer.SETTING_WIDTH = 300
   Artplayer.SETTING_ITEM_WIDTH = 300
+  Artplayer.NOTICE_TIME = 3000
   Artplayer.LOG_VERSION = false
   // 获取用户配置
   initStorage(ArtPlayerRef)
@@ -404,16 +405,31 @@ const defaultControls = async (art: Artplayer) => {
 
 const getVideoInfo = async (art: Artplayer) => {
   // 获取视频链接
-  const data: IVideoPreviewUrl | string = await AliFile.ApiVideoPreviewUrl(pageVideo.user_id, pageVideo.drive_id, pageVideo.file_id)
+  const data: string | IRawUrl = await getRawUrl(pageVideo.user_id, pageVideo.drive_id, pageVideo.file_id, pageVideo.encType, pageVideo.password, false, true, 'video')
   if (typeof data != 'string') {
     // 画质
     const qualitySelector: selectorItem[] = []
-    if (data.urlQHD) qualitySelector.push({ url: data.urlQHD, html: '2k高清 2560p' })
-    if (data.urlFHD) qualitySelector.push({ url: data.urlFHD, html: '全高清 1080P' })
-    if (data.urlHD) qualitySelector.push({ url: data.urlHD, html: '高清 720P' })
-    if (data.urlSD) qualitySelector.push({ url: data.urlSD, html: '标清 540P' })
-    if (data.urlLD) qualitySelector.push({ url: data.urlLD, html: '流畅 480P' })
-    const qualityDefault = qualitySelector.find((item) => item.default) || qualitySelector[0]
+    const isBigFile = data.size >= 3 * 1024 * 1024 * 1024
+    if (data.url && useSettingStore().uiVideoMode === 'web') {
+      qualitySelector.push({ url: data.url, html: '原画' })
+    }
+    if (!pageVideo.encType) {
+      if (data.urlQHD) qualitySelector.push({ url: data.urlQHD, html: '2k高清 2560p' })
+      if (data.urlFHD) qualitySelector.push({ url: data.urlFHD, html: '全高清 1080P' })
+      if (data.urlHD) qualitySelector.push({ url: data.urlHD, html: '高清 720P' })
+      if (data.urlSD) qualitySelector.push({ url: data.urlSD, html: '标清 540P' })
+      if (data.urlLD) qualitySelector.push({ url: data.urlLD, html: '流畅 480P' })
+    }
+    let qualityDefault = qualitySelector[0]
+    if (isBigFile && qualityDefault.html == '原画') {
+      if (pageVideo.encType) {
+        art.notice.show = '加密文件超过3GB，请使用自定义播放器播放'
+        art.emit('video:ended')
+        return
+      }
+      art.notice.show = '原画文件超过3GB，自动切换到转码画质播放'
+      qualityDefault = qualitySelector[1]
+    }
     qualityDefault.default = true
     art.url = qualityDefault.url
     pageVideo.expire_time = data.expire_time
@@ -425,7 +441,14 @@ const getVideoInfo = async (art: Artplayer) => {
       html: qualityDefault ? qualityDefault.html : '',
       selector: qualitySelector,
       onSelect: async (item: selectorItem) => {
-        await art.switchQuality(item.url)
+        if (item.html === '原画') {
+          art.once('video:canplay', () => {
+            art.switchUrl(item.url)
+            art.play()
+          })
+        } else {
+          await art.switchQuality(item.url)
+        }
       }
     })
     // 内嵌字幕
@@ -445,6 +468,10 @@ const getVideoInfo = async (art: Artplayer) => {
     }
     // 字幕列表
     await getSubTitleList(art)
+  } else {
+    art.url = ''
+    art.notice.show = data
+    art.emit('video:ended')
   }
 }
 
