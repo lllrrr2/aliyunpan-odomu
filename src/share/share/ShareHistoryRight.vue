@@ -18,6 +18,7 @@ import 'ant-design-vue/es/tooltip/style/css'
 import { modalShowShareLink } from '../../utils/modal'
 import { GetShareUrlFormate } from '../../utils/shareurl'
 import useShareHistoryStore from './ShareHistoryStore'
+import AliShare from '../../aliapi/share'
 
 const viewlist = ref()
 const inputsearch = ref()
@@ -61,7 +62,16 @@ const handleOpenLink = (share: any) => {
   if (!share.share_id) {
     message.error('没有选中分享链接！')
   } else {
-    modalShowShareLink(share.share_id, share.share_pwd, '', true, [])
+    modalShowShareLink(share.share_id, share.share_pwd, '', true, [], false)
+  }
+}
+const handleSaveMyImport = () => {
+  const first = shareHistoryStore.GetSelectedFirst()
+  if (!first) return
+  if (first.share_id) {
+    AliShare.ApiGetShareAnonymous(first.share_id).then((info) => {
+      ShareDAL.SaveOtherShare('', info, true)
+    })
   }
 }
 const handleCopySelectedLink = () => {
@@ -127,6 +137,9 @@ const handleRightClick = (e: { event: MouseEvent; node: any }) => {
     <div v-show="shareHistoryStore.IsListSelected" class="toppanbtn">
       <a-button type="text" size="small" tabindex="-1" title="Ctrl+O" @click="handleOpenLink"><i
         class="iconfont iconchakan" />查看
+      </a-button>
+      <a-button type="text" size="small" tabindex="-1" title="保存到我的导入" @click="handleSaveMyImport">
+        <i class="iconfont iconxuanzhuan" />保存导入
       </a-button>
       <a-button type="text" size="small" tabindex="-1" title="Ctrl+C" @click="handleCopySelectedLink"><i
         class="iconfont iconcopy" />复制链接
@@ -253,7 +266,10 @@ const handleRightClick = (e: { event: MouseEvent; node: any }) => {
           <template #icon><i class="iconfont iconchakan" /></template>
           <template #default>查看</template>
         </a-doption>
-
+        <a-doption @click="handleSaveMyImport">
+          <template #icon><i class="iconfont iconxuanzhuan" /></template>
+          <template #default>保存导入</template>
+        </a-doption>
         <a-doption @click="handleCopySelectedLink">
           <template #icon><i class="iconfont iconcopy" /></template>
           <template #default>复制链接</template>

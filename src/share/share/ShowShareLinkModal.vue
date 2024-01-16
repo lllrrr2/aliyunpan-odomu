@@ -14,10 +14,12 @@ import ShareDAL from './ShareDAL'
 import AliFileCmd from '../../aliapi/filecmd'
 import PanDAL from '../../pan/pandal'
 import { treeSelectToExpand } from '../../utils/antdtree'
+import { HanToPin } from '../../utils/utils'
 
 interface TreeNodeData {
   key: string
   title: string
+  titleSearch: string
   isLeaf: boolean
   children: TreeNodeData[]
   icon: any
@@ -78,6 +80,7 @@ const fileList = new Set<string>()
 const dirList = new Set<string>()
 const isAlbum = ref(false)
 const filterKeyword = ref('')
+const filterType = ref('file')
 
 const handleOpen = () => {
   fileList.clear()
@@ -120,6 +123,7 @@ const handleClose = () => {
   dirList.clear()
   treeData.value = []
   treeExpandedKeys.value = []
+  copyTreeExpandedKeys.value = []
   treeSelectedKeys.value = []
   treeCheckedKeys.value = []
 }
@@ -127,6 +131,7 @@ const handleClose = () => {
 const treeref = ref()
 const treeData = ref<TreeNodeData[]>([])
 const treeExpandedKeys = ref<string[]>([])
+const copyTreeExpandedKeys = ref<string[]>([])
 const treeSelectedKeys = ref<string[]>([])
 const treeCheckedKeys = ref<string[]>([])
 
@@ -153,7 +158,10 @@ const autoExpand = (list: TreeNodeData[]) => {
           apiLoad(item.key).then((addList: TreeNodeData[]) => {
             item.children = addList
             if (treeData.value) treeData.value = treeData.value.concat()
-            if (treeExpandedKeys.value) treeExpandedKeys.value.push(item.key)
+            if (treeExpandedKeys.value) {
+              treeExpandedKeys.value.push(item.key)
+              copyTreeExpandedKeys.value.push(item.key)
+            }
           })
         }
       }
@@ -172,6 +180,7 @@ const apiLoad = (key: any) => {
           addList.push({
             key: item.file_id,
             title: item.name,
+            titleSearch: HanToPin(item.name),
             timeStr: item.timeStr,
             sizeStr: item.sizeStr,
             children: [],
@@ -198,25 +207,63 @@ const handleHide = () => {
 const searchData = (keyword: string) => {
   const loop = (data: TreeNodeData[]) => {
     const result: TreeNodeData[] = []
-    data.forEach((item: TreeNodeData) => {
-      if (item.isLeaf && item.title.toLowerCase().indexOf(keyword) > 0) {
-        result.push({ ...item })
-      } else if (item.isDir && item.children) {
+    for (let item of data) {
+      if (filterFn(item, keyword)) {
+        result.push(item)
+      } else if (item.children) {
         const filterData = loop(item.children)
         if (filterData.length) {
           result.push({ ...item, children: filterData })
         }
       }
-    })
+    }
     return result
   }
-
   return loop(treeData.value)
 }
+
+const filterFn = (data: TreeNodeData, filterText: string) => { //过滤函数
+  if (!filterText) {
+    return true
+  }
+  const filter = filterText.toLowerCase()
+  if (data.isLeaf && filterType.value === 'file' || data.isDir && filterType.value === 'folder') {
+    return data.title.toLowerCase().includes(filter) || data.titleSearch.toLowerCase().includes(filter)
+  } else if (filterType.value === 'all') {
+    return data.title.toLowerCase().includes(filter) || data.titleSearch.toLowerCase().includes(filter)
+  } else {
+    return false
+  }
+}
+
+const expandedKeysFun = (treeData: TreeNodeData[]) => { //展开 key函数
+  if (treeData && treeData.length == 0) {
+    return []
+  }
+  let expandKeys: string[] = []
+  const expandedKeysFn = (treeData: TreeNodeData[]) => {
+    treeData.forEach((item, index) => {
+      if (item.isDir) expandKeys.push(item.key)
+      if (item.children) expandedKeysFn(item.children)
+    })
+  }
+  expandedKeysFn(treeData)
+  return expandKeys
+}
 const filteredTreeData = computed(() => {
-  const keyword = filterKeyword.value.trim().toLowerCase()
-  if (!keyword) return treeData.value
-  return searchData(keyword)
+  if (filterKeyword.value == '') {
+    return treeData.value
+  }
+  let filterData = searchData(filterKeyword.value)
+  if (filterType.value !== 'folder' && filterData.length > 0) {
+    let expandKeys = expandedKeysFun(filterData)
+    if (expandKeys.length > 4 && expandKeys[0] == copyTreeExpandedKeys.value[0]) {
+      treeExpandedKeys.value = []
+    } else {
+      treeExpandedKeys.value = expandKeys
+    }
+  }
+  return filterData
 })
 
 const handleFilterChange = (val: any) => {
@@ -417,16 +464,29 @@ async function getNodeAllFiles(share_id: string, share_token: string, file_id: s
 
 <template>
   <a-modal :visible='visible' modal-class='modalclass showsharemodal' title-align='start' :footer='false'
-           :unmount-on-close='true' :mask-closable='false' @cancel='handleHide' @before-open='handleOpen'
+           :unmount-on-close='true' :mask-closable='false' @cancel='handleHide'
+           @before-open='handleOpen'
            @close='handleClose'>
     <template #title>
       <div class='modaltitle'>
         <span class='sharetime'>[{{ expiration }}]</span>
         <span class='sharetitle'>{{ share?.shareinfo.share_name }}</span>
+        <div class='toppanbtn'>
+          <a-dropdown style='width: max-content'>
+            <a-button>筛选范围</a-button>
+            <template #content>
+              <a-radio-group v-model="filterType" direction="vertical">
+                <a-radio value="all">全部</a-radio>
+                <a-radio value="folder">文件夹</a-radio>
+                <a-radio value="file">文件</a-radio>
+              </a-radio-group>
+            </template>
+          </a-dropdown>
+        </div>
         <div class='toppanbtn' style='margin-right: 35px'>
           <a-input-search
             ref='inputsearch'
-            v-model='filterKeyword'
+            v-model.trim='filterKeyword'
             :input-attrs="{ tabindex: '-1' }"
             size='small'
             title='Ctrl+F / F3 / Space'
@@ -463,9 +523,9 @@ async function getNodeAllFiles(share_id: string, share_token: string, file_id: s
         <template #switcherIcon>
           <i class='ant-tree-switcher-icon iconfont Arrow' />
         </template>
-        <template #title='{ dataRef }'>
+        <template #title="{ dataRef }">
           <span :class="'sharetitleleft' + (fileList.has(dataRef.key) ? ' new' : '')">
-             {{ dataRef?.title }}
+            {{ dataRef?.title }}
           </span>
           <span class='sharetitleright'>{{ dataRef.sizeStr }}</span>
           <span class='sharetitleright'>{{ dataRef.timeStr }}</span>

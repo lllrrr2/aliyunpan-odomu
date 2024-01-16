@@ -339,7 +339,7 @@ export default defineComponent({
   -webkit-line-clamp: 2;
 }
 
-.sharetree .sharetitleleft.new {
+.sharetree .new {
   color: rgb(var(--primary-6));
 }
 .sharetree .sharetitleright {
