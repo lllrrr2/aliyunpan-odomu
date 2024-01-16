@@ -66,13 +66,14 @@ const handleOpenLink = (share: any) => {
   }
 }
 const handleSaveMyImport = () => {
-  const first = shareHistoryStore.GetSelectedFirst()
-  if (!first) return
-  if (first.share_id) {
-    AliShare.ApiGetShareAnonymous(first.share_id).then((info) => {
-      ShareDAL.SaveOtherShare('', info, true)
+  const selected = shareHistoryStore.GetSelected()
+  for (let item of selected) {
+    AliShare.ApiGetShareAnonymous(item.share_id).then((info) => {
+      ShareDAL.SaveOtherShare('', info, false)
     })
   }
+  ShareDAL.aReloadOtherShare()
+  message.success('已保存所选分享到我的导入，请手动刷新我的导入数据')
 }
 const handleCopySelectedLink = () => {
   const list = shareHistoryStore.GetSelected()
