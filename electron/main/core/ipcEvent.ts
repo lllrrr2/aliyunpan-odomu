@@ -50,7 +50,15 @@ export default class ipcEvent {
           app.relaunch({ args: process.argv.slice(1).concat(['--relaunch']) })
           app.exit(0)
         } catch {}
-      } else if (data.cmd && data.cmd === 'minsize') {
+      } else if (data.cmd && data.cmd === 'exit') {
+        if (mainWindow && !mainWindow.isDestroyed()) {
+          mainWindow.destroy()
+          mainWindow = undefined
+        }
+        try {
+          app.exit(0)
+        } catch {}
+      }  else if (data.cmd && data.cmd === 'minsize') {
         if (mainWindow && !mainWindow.isDestroyed()) mainWindow.minimize()
       } else if (data.cmd && data.cmd === 'maxsize') {
         if (mainWindow && !mainWindow.isDestroyed()) {

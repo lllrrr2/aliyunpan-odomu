@@ -68,8 +68,8 @@ const handleOK = async () => {
           if (err) {
             message.error('更新本地版本号失败，请检查【Resources文件夹】是否有写入权限', 5)
           } else {
-            message.info('热更新完毕，请重新打开应用...', 0)
-            await Sleep(2000)
+            message.info('热更新完毕，重新打开应用...', 0)
+            await Sleep(500)
             window.WebToElectron({ cmd: 'relaunch' })
           }
         })
@@ -129,7 +129,7 @@ const autoInstallNewVersion = async (resourcesPath: string) => {
   const subProcess = execFile(`${resourcesPath}`, options)
   if (subProcess.pid && process.kill(subProcess.pid, 0)) {
     await Sleep(2000)
-    window.WebToElectron({ cmd: 'relaunch' })
+    window.WebToElectron({ cmd: 'exit' })
   } else {
     message.info('安装失败，请前往文件夹手动安装', 5)
     const resources = getResourcesPath('')
