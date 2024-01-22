@@ -29,9 +29,9 @@ const handleOK = () => {
   <a-modal :visible='visible' modal-class='modalclass postmodal' :mask='false' :footer='false' :unmount-on-close='true'
            :mask-closable='false' @cancel='handleHide'>
     <template #title>
-      <span class='modaltitle'>提示</span>
+      <span class='modaltitle' style="max-width: 540px">公告</span>
     </template>
-    <div class='modalbody' style='width: 320px'>
+    <div class='modalbody' style='max-height: calc(80vh - 100px); overflow-y: scroll'>
       <a-typography>
         <a-typography-title :heading='5' class='posttitle'>公告</a-typography-title>
         <a-typography-paragraph class='postdesc'>

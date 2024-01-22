@@ -1,7 +1,7 @@
 {
   "name": "alixby",
   "description": "阿里云盘小白羊",
-  "version": "3.24.11621",
+  "version": "3.24.12220",
   "main": "dist/electron/main/index.js",
   "author": {
     "name": "Odomu",
@@ -20,7 +20,7 @@
     "node": ">=16.0.0"
   },
   "devDependencies": {
-    "@arco-design/web-vue": "^2.54.2",
+    "@arco-design/web-vue": "^2.54.3",
     "@arco-themes/vue-gi-demo": "^0.0.48",
     "@types/crypto-js": "^4.2.1",
     "@types/fast-levenshtein": "^0.0.4",
@@ -28,13 +28,13 @@
     "@types/lodash": "^4.14.202",
     "@types/markdown-it": "^13.0.7",
     "@types/mime-types": "^2.1.4",
-    "@types/node": "^20.11.2",
+    "@types/node": "^20.11.5",
     "@types/secp256k1": "^4.0.6",
     "@types/uuid": "^9.0.7",
     "@vitejs/plugin-vue": "^4.5.2",
     "@vitejs/plugin-vue-jsx": "^3.1.0",
-    "@vue/runtime-core": "^3.4.13",
-    "@vue/runtime-dom": "^3.4.13",
+    "@vue/runtime-core": "^3.4.15",
+    "@vue/runtime-dom": "^3.4.15",
     "ant-design-vue": "3.2.20",
     "aria2-lib": "1.0.1",
     "artplayer": "^5.1.1",
@@ -65,7 +65,7 @@
     "secp256k1": "^5.0.0",
     "semver": "^7.5.4",
     "socks-proxy-agent": "^8.0.2",
-    "terser": "^5.26.0",
+    "terser": "^5.27.0",
     "tree-kill": "^1.2.2",
     "typescript": "^5.3.3",
     "uuid": "^9.0.1",
@@ -74,7 +74,7 @@
     "vite": "4.5.1",
     "vite-plugin-electron": "0.15.6",
     "vite-plugin-electron-renderer": "0.14.5",
-    "vue": "^3.4.13",
+    "vue": "^3.4.15",
     "vue-tsc": "^1.8.27",
     "webdav-server": "^2.6.2"
   },

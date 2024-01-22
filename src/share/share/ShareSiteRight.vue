@@ -1,6 +1,6 @@
 <script setup lang='ts'>
-import { ref } from 'vue'
-import { IShareSiteModel, useServerStore } from '../../store'
+import { computed, ref } from 'vue'
+import { IShareSiteModel, useServerStore, useWinStore } from '../../store'
 import { B64decode } from '../../utils/format'
 import { modalDaoRuShareLink } from '../../utils/modal'
 import message from '../../utils/message'
@@ -9,6 +9,9 @@ import ServerHttp from '../../aliapi/server'
 import DebugLog from '../../utils/debuglog'
 
 const serverStore = useServerStore()
+const winStore = useWinStore()
+const itemHeight = computed(() => (winStore.height - 24 - 20 - 42 - 77).toString() + 'px')
+
 const onLoading = ref(true)
 const content = ref()
 const webview = ref()
@@ -132,7 +135,8 @@ const handleForward = () => {
         </a-button>
       </template>
       <template v-if='serverStore.shareSiteGroupList.length > 0'>
-        <a-tab-pane v-for='(item, index) in serverStore.shareSiteGroupList' :key='index' :title='item.title'>
+        <a-tab-pane :style="{ height: itemHeight }" v-for='(item, index) in serverStore.shareSiteGroupList' :key='index'
+                    :title='item.title'>
           <a-card :bordered='false' class='site-list'>
             <template v-for='(siteItem, index) in serverStore.shareSiteList' :key='index'>
               <a-card-grid v-if='siteItem.group === item.group' :hoverable='index % 2 === 0' class='site-list-item'>
@@ -219,12 +223,10 @@ const handleForward = () => {
 
   .arco-tabs-content-list .arco-tabs-content-item-active .arco-tabs-pane {
     overflow-y: auto;
-    height: 540px;
   }
 
   .site-list {
     text-align: center;
-    height: calc(100%);
     width: calc(100% - 32px);
     margin: 0 24px 24px 8px;
     box-sizing: border-box;
@@ -234,7 +236,7 @@ const handleForward = () => {
     }
 
     .site-list-item {
-      width: 33.33%;
+      width: 25%;
       padding: 26px 0;
       text-align: center;
       font-size: 16px;

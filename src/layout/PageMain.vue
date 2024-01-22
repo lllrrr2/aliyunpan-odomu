@@ -79,9 +79,13 @@ keyboardStore.$subscribe((_m: any, state: KeyboardState) => {
 
 
 const onResize = throttle(() => {
-  const width = document.body.offsetWidth || 800
-  const height = document.body.offsetHeight || 600
-  if (winStore.width != width || winStore.height != height) winStore.updateStore({ width, height })
+  try {
+    const width = document.body.offsetWidth || 800
+    const height = document.body.offsetHeight || 600
+    if (winStore.width != width || winStore.height != height) {
+      winStore.updateStore({ width, height })
+    }
+  } catch (err) {}
   // let ddsound = document.getElementById('ddsound') as { play: any } | undefined
   // if (ddsound) ddsound.play()
 }, 50)

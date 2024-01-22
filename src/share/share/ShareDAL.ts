@@ -73,18 +73,18 @@ export default class ShareDAL {
   static async aReloadMyShareUntilShareID(user_id: string, share_id: string): Promise<void> {
     if (!user_id) return
     const find = await AliShareList.ApiShareListUntilShareID(user_id, share_id)
-    if (find) ShareDAL.aReloadMyShare(user_id, true)
+    if (find) await ShareDAL.aReloadMyShare(user_id, true)
   }
 
   static async aReloadMyTransferShareUntilShareID(user_id: string, share_id: string): Promise<void> {
     if (!user_id) return
     const find = await AliTransferShareList.ApiTransferShareListUntilShareID(user_id, share_id, 20)
-    if (find) ShareDAL.aReloadMyTransferShare(user_id, true)
+    if (find) await ShareDAL.aReloadMyTransferShare(user_id, true)
   }
 
   static async aReloadOtherShare(): Promise<void> {
     const othershareStore = useOtherShareStore()
-    if (othershareStore.ListLoading == true) return
+    if (othershareStore.ListLoading) return
     othershareStore.ListLoading = true
 
     const shareList = await DB.getOtherShareAll()
@@ -101,7 +101,7 @@ export default class ShareDAL {
       }
     }
     othershareStore.aLoadListData(shareList)
-    await Sleep(1000)
+    await Sleep(200)
     othershareStore.ListLoading = false
   }
 
@@ -138,7 +138,7 @@ export default class ShareDAL {
     }
     await DB.saveOtherShare(share)
     if (!refresh) return
-    ShareDAL.aReloadOtherShare()
+    await ShareDAL.aReloadOtherShare()
   }
 
 
@@ -152,12 +152,13 @@ export default class ShareDAL {
 
     const savefunc = (one: IID) => {
       return AliShare.ApiGetShareAnonymous(one.id).then((info) => {
+        if (info.error == '429') return
         return ShareDAL.SaveOtherShare(one.pwd, info, false)
       })
     }
 
-    await RunBatch('解析分享链接', idList, 10, savefunc)
-    ShareDAL.aReloadOtherShare()
+    await RunBatch('解析分享链接', idList, 3, savefunc)
+    await ShareDAL.aReloadOtherShare()
     return true
   }
 
@@ -170,6 +171,7 @@ export default class ShareDAL {
     }
     const savefunc = (share: IOtherShareLinkModel) => {
       return AliShare.ApiGetShareAnonymous(share.share_id).then((info) => {
+        if (info.error == '429') return
         if (info.error != '') {
           share.expired = false
           share.share_msg = '已失效'
@@ -183,8 +185,8 @@ export default class ShareDAL {
         return DB.saveOtherShare(share)
       })
     }
-    await RunBatch('更新状态', shareList, 10, savefunc)
-    ShareDAL.aReloadOtherShare()
+    await RunBatch('更新状态', shareList, 3, savefunc)
+    await ShareDAL.aReloadOtherShare()
     return true
   }
 
@@ -201,13 +203,12 @@ export default class ShareDAL {
 
 
   static SaveShareSite(list: IShareSiteModel[]) {
-    DB.saveValueObject('shareSiteList', list).catch(() => {})
+    DB.saveValueObject('shareSiteList', list).catch()
     useServerStore().mSaveShareSiteList(list)
   }
 
   static SaveShareSiteGroup(list: IShareSiteGroupModel[]) {
-    DB.saveValueObject('shareSiteGroupList', list).catch(() => {
-    })
+    DB.saveValueObject('shareSiteGroupList', list).catch()
     useServerStore().mSaveShareSiteGroupList(list)
   }
 }

@@ -7,7 +7,7 @@ declare module '@vue/runtime-core' {
   }
 }
 
-let QPS = 0
+let QPS = 5
 // 校准本地和服务端之间的时间差
 let OFFSET = 250
 // 间隔时间
@@ -17,7 +17,6 @@ const qpsMap = new Map()
 const qpsController = () => async (config: any) => {
   if (config.url.indexOf('api.aliyundrive.com') < 0
     && config.url.indexOf('openapi') < 0) return config
-  QPS = config.url.indexOf('openapi') > 0 ? 3 : 30
   const now = Math.trunc(performance.timeOrigin + performance.now())
   let { count, ts } = qpsMap.get(config.url) || { count: 1, ts: now }
   // 通过位运算实现取整，提高效率

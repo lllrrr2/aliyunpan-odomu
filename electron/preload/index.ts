@@ -11,6 +11,14 @@ window.WebToElectron = function(data: any) {
   }
 }
 
+window.WebToWindow = function(data: any, callback: any) {
+  try {
+    const backData = ipcRenderer.sendSync('WebToWindow', data)
+    callback && callback(backData)
+  } catch {
+  }
+}
+
 window.WebToElectronCB = function(data: any, callback: any) {
   try {
     const backData = ipcRenderer.sendSync('WebToElectronCB', data)
@@ -19,9 +27,6 @@ window.WebToElectronCB = function(data: any, callback: any) {
   }
 }
 
-ipcRenderer.on('ElectronToWeb', function(event, arg) {
-
-})
 ipcRenderer.on('MainSendToken', function(event, arg) {
   try {
     window.postMessage(arg)

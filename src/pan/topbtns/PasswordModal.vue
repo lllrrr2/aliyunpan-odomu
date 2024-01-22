@@ -4,6 +4,7 @@ import { modalCloseAll } from '../../utils/modal'
 import { usePanTreeStore, useSettingStore } from '../../store'
 import { decodeName, encodeName } from '../../module/flow-enc/utils'
 import Db from '../../utils/db'
+import message from '../../utils/message'
 
 const props = defineProps({
   visible: {
@@ -66,6 +67,7 @@ const handleOpen = async () => {
 }
 const handleClose = () => {
   if (okLoading.value) okLoading.value = false
+  maxCount.value = 0
   form.oldEncPassWord = ''
   form.encPassword = ''
   form.encConfirmPassword = ''
@@ -77,20 +79,44 @@ const handleCancel = () => {
 }
 
 const handleOK = () => {
-  formRef.value.validate((data: any) => {
+  formRef.value.validate(async (data: any) => {
     if (data) return
+    // 安全密码错误
+    if ((props.optType === 'del' || props.optType === 'confirm') && form.encPassword !== userPassword.value) {
+      maxCount.value += 1
+      if (maxCount.value >= 5) {
+        maxCount.value = 5
+        await Db.saveValueNumber('countTime', Date.now())
+        message.error('错误次数过多，请10s后再试')
+      } else {
+        message.error('安全密码错误，请重新输入')
+      }
+      return
+    }
+    // 旧密码错误
+    if (props.optType === 'modify' && form.oldEncPassWord !== userPassword.value) {
+      maxCount.value += 1
+      if (maxCount.value >= 5) {
+        maxCount.value = 5
+        await Db.saveValueNumber('countTime', Date.now())
+        message.error('错误次数过多，请10s后再试')
+      } else {
+        message.error('旧密码错误，请重新输入')
+      }
+      return
+    }
     okLoading.value = true
     if (props.optType === 'new' || props.optType === 'modify') {
       // 设置密码
       if (form.encPassword) {
         let encPassword = <string>encodeName(usePanTreeStore().user_id, settingStore.securityEncType, form.encPassword)
-        settingStore.updateStore({ securityPassword: encPassword })
+        await settingStore.updateStore({ securityPassword: encPassword })
       }
     } else if (props.optType === 'input') {
       inputpassword.value = form.encPassword
     } else if (props.optType === 'del') {
       // 删除密码
-      settingStore.updateStore({ securityPassword: '' })
+      await settingStore.updateStore({ securityPassword: '' })
     }
     setTimeout(() => {
       okLoading.value = false
@@ -130,13 +156,6 @@ const getCountTime = async () => {
                         { validator: async (value: any, cb: any) => {
                             if (await getCountTime() > 0) {
                               cb('错误次数过多，请10s后再试')
-                            } else if (value !== userPassword) {
-                              maxCount +=1
-                              if (maxCount >= 5) {
-                                maxCount = 5
-                                await Db.saveValueNumber('countTime', Date.now())
-                              }
-                              cb('旧密码错误')
                             } else {
                               cb()
                             }
@@ -159,13 +178,6 @@ const getCountTime = async () => {
                               cb('错误次数过多，请10s后再试')
                             } else if (optType === 'modify' && value === form.oldEncPassWord) {
                               cb('安全密码和旧密码相同')
-                            } else if ((optType === 'del' || optType === 'confirm') && value !== userPassword) {
-                              maxCount +=1
-                              if (maxCount >= 5) {
-                                maxCount = 5
-                                await Db.saveValueNumber('countTime', Date.now())
-                              }
-                              cb('安全密码错误')
                             } else {
                               cb()
                             }

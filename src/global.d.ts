@@ -14,6 +14,7 @@ declare global {
     Prism: any
     WebUserToken: any
     WebToElectron: any
+    WebToWindow: any
     WebClearCache: any
     WebRelaunch: any
     WebGetCookies: any

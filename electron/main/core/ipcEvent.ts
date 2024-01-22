@@ -2,12 +2,11 @@ import { AppWindow, createElectronWindow, Referer, ua } from './window'
 import path from 'path'
 import is from 'electron-is'
 import { app, BrowserWindow, dialog, ipcMain, session, shell } from 'electron'
-import fs, { existsSync, writeFileSync } from 'fs'
+import { existsSync, writeFileSync } from 'fs'
 import { exec, spawn, SpawnOptions } from 'child_process'
 import { ShowError } from './dialog'
 import { getStaticPath, getUserDataPath } from '../utils/mainfile'
 import { portIsOccupied } from '../utils'
-import axios from 'axios'
 
 export default class ipcEvent {
   private constructor() {
@@ -35,7 +34,6 @@ export default class ipcEvent {
     this.handleWebSetProxy()
     this.handleWebOpenWindow()
     this.handleWebOpenUrl()
-    this.handleWebDownload()
   }
 
   private static handleWebToElectron() {
@@ -43,15 +41,15 @@ export default class ipcEvent {
       let mainWindow = AppWindow.mainWindow
       if (data.cmd && data.cmd === 'close') {
         if (mainWindow && !mainWindow.isDestroyed()) mainWindow.hide()
-      } else if (data.cmd && data.cmd === 'exit') {
+      } else if (data.cmd && data.cmd === 'relaunch') {
         if (mainWindow && !mainWindow.isDestroyed()) {
           mainWindow.destroy()
           mainWindow = undefined
         }
         try {
+          app.relaunch({ args: process.argv.slice(1).concat(['--relaunch']) })
           app.exit(0)
-        } catch {
-        }
+        } catch {}
       } else if (data.cmd && data.cmd === 'minsize') {
         if (mainWindow && !mainWindow.isDestroyed()) mainWindow.minimize()
       } else if (data.cmd && data.cmd === 'maxsize') {
@@ -290,9 +288,11 @@ export default class ipcEvent {
           windowsHide: false,
           windowsVerbatimArguments: true
         }
+        const fileAllocation = is.macOS() ? 'none' : (is.windows() ? 'falloc' : 'trunc')
         const args = [
           `--stop-with-process=${argsToStr(process.pid)}`,
           `--conf-path=${argsToStr(confPath)}`,
+          `--file-allocation=${argsToStr(fileAllocation)}`,
           `--rpc-listen-port=${argsToStr(listenPort)}`,
           '-D'
         ]
@@ -422,41 +422,6 @@ export default class ipcEvent {
       win.loadURL(data.PageUrl, {
         userAgent: ua,
         httpReferrer: Referer
-      })
-    })
-  }
-
-  private static handleWebDownload() {
-    ipcMain.on('downloadFile', (event, data) => {
-      const downPath = getUserDataPath('download')
-      const filePath = path.join(downPath, data.name)
-      // check folder
-      if (!fs.existsSync(downPath)) {
-        fs.mkdirSync(downPath)
-        // delete file if exists
-      } else if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath)
-      }
-      axios({
-        method: 'GET',
-        url: data.url,
-        responseType: 'stream'
-      }).then((response) => {
-        response.data.pipe(fs.createWriteStream(filePath))
-        const totalSize = response.headers['content-length']
-        let downloaded = 0
-        response.data.on('data', (data) => {
-          downloaded += Buffer.byteLength(data)
-          event.sender.send('downloadProgress', { total: totalSize, loaded: downloaded })
-        })
-        response.data.on('end', () => {
-          event.sender.send('downloadEnd')
-        })
-        response.data.on('error', (error: any) => {
-          event.sender.send('downloadError', error)
-        })
-      }).catch((error) => {
-        event.sender.send('downloadError', error)
       })
     })
   }

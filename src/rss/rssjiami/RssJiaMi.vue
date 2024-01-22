@@ -62,7 +62,6 @@ const handleDecType = () => {
 
 const handleClickJiaMi = async () => {
   if (Loading.value) return
-  Loading.value = true
   if (mode.value != 'decName') {
     if (!encPath.value) {
       message.error('没有选择要执行操作的文件夹')
@@ -72,6 +71,7 @@ const handleClickJiaMi = async () => {
       message.error('没有选择输出的文件夹')
       return
     }
+    Loading.value = true
     const resp = await DoJiaMi(
       mode.value, encType.value, encName.value, password.value,
       encPath.value, outPath.value,
@@ -81,6 +81,7 @@ const handleClickJiaMi = async () => {
       message.success(`成功加密${resp.count}个文件，耗时${resp.time}`, 8)
     }
   } else {
+    Loading.value = true
     decContent.value = decodeName(password.value, encType.value, encContent.value) || ''
   }
   Loading.value = false

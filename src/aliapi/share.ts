@@ -65,7 +65,7 @@ export default class AliShare {
       error: '解析分享链接失败'
     }
     if (!share_id) return share
-    const url = 'adrive/v2/share_link/get_share_by_anonymous?share_id=' + share_id
+    const url = 'adrive/v3/share_link/get_share_by_anonymous?share_id=' + share_id
     const postData = { share_id: share_id }
     const resp = await AliHttp.Post(url, postData, '', '')
     if (AliHttp.IsSuccess(resp.code)) {
@@ -91,7 +91,8 @@ export default class AliShare {
       DebugLog.mSaveWarning('ApiGetShareAnonymous err=' + share_id + ' ' + (resp.code || ''), resp.body)
     }
 
-    if (resp.body?.code == 'ShareLink.Cancelled') share.error = '分享链接被取消分享了'
+    if (resp.body?.code == 'TooManyRequests') share.error = '429'
+    else if (resp.body?.code == 'ShareLink.Cancelled') share.error = '分享链接被取消分享了'
     else if (resp.body?.code == 'ShareLink.Expired') share.error = '分享链接过期失效了'
     else if (resp.body?.code == 'ShareLink.Forbidden') share.error = '分享链接违规禁止访问'
     else if (resp.body?.code) share.error = resp.body.code

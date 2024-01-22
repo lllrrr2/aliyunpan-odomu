@@ -27,9 +27,13 @@ import ShowUpdateLog from '../pan/topbtns/ShowUpdateLog.vue'
 import PostModal from '../pan/topbtns/PostModal.vue'
 import UserRewardSpace from '../user/UserRewardSpace.vue'
 import PasswordModal from '../pan/topbtns/PasswordModal.vue'
+import UpdateModal from '../pan/topbtns/ShowUpdateModal.vue'
+import ShowUpdateModal from '../pan/topbtns/ShowUpdateModal.vue'
 
 export default defineComponent({
   components: {
+    ShowUpdateModal,
+    UpdateModal,
     PasswordModal,
     UserRewardSpace,
     UserSpaceModal,
@@ -142,6 +146,8 @@ export default defineComponent({
                      :callback='modalStore.modalData.callback' />
 
   <ShowUpdateLog :visible="modalStore.modalName == 'showupdatelog'" />
+  <ShowUpdateModal :visible="modalStore.modalName == 'showupdate'"
+                   :verData='modalStore.modalData.verData || {}' />
 
   <PostModal :visible="modalStore.modalName == 'showpostmodal'"
              :msg='modalStore.modalData.msg || ""'

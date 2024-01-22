@@ -657,13 +657,17 @@ export async function topRecoverSelectedFile() {
   try {
     message.loading('文件恢复执行中...', 60, loadingKey)
     let successList: string[] = []
-    const oneTimeList: { drive_id: string; file_id: string; content_hash: string; size: number; name: string }[] = []
+    let oneTimeList: { drive_id: string; file_id: string; content_hash: string; size: number; name: string }[] = []
     for (let i = 0, maxi = resumeList.length; i < maxi; i++) {
       oneTimeList.push(resumeList[i])
       if (oneTimeList.length > 99) {
         const data = await AliFileCmd.ApiRecoverBatch(selectedData.user_id, oneTimeList)
         if (Array.isArray(data)) {
           successList = successList.concat(data)
+        } else {
+          oneTimeList = []
+          message.error(data, 3, loadingKey)
+          break
         }
         oneTimeList.length = 0
         message.loading('文件恢复执行中...(' + i.toString() + ')', 60, loadingKey)

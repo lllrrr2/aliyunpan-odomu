@@ -67,6 +67,10 @@ const handleOpenLink = (share: any) => {
 }
 const handleSaveMyImport = () => {
   const selected = shareHistoryStore.GetSelected()
+  if (selected.length == 0) {
+    message.error('没有选中分享')
+    return
+  }
   for (let item of selected) {
     AliShare.ApiGetShareAnonymous(item.share_id).then((info) => {
       ShareDAL.SaveOtherShare('', info, false)

@@ -1,6 +1,6 @@
 <script setup lang='ts'>
-import { useAppStore, usePanFileStore, useSettingStore } from '../store'
-import { onBeforeUnmount, onMounted } from 'vue'
+import { KeyboardState, useAppStore, useKeyboardStore, usePanFileStore, useSettingStore } from '../store'
+import { onBeforeUnmount, onMounted, ref } from 'vue'
 import Artplayer from 'artplayer'
 import HlsJs from 'hls.js'
 import AliFile from '../aliapi/file'
@@ -11,15 +11,35 @@ import type { Option } from 'artplayer/types/option'
 import AliFileCmd from '../aliapi/filecmd'
 import ASS from 'ass-html5'
 import { getEncType, getRawUrl, IRawUrl } from '../utils/proxyhelper'
+import { TestAlt, TestKey } from '../utils/keyboardhelper'
 
 const appStore = useAppStore()
 const pageVideo = appStore.pageVideo!
+const isTop = ref(false)
 let autoPlayNumber = 0
 let playbackRate = 1
 let ArtPlayerRef: Artplayer
 let AssSubtitleRef: ASS
 
+const keyboardStore = useKeyboardStore()
+keyboardStore.$subscribe((_m: any, state: KeyboardState) => {
+  if (TestAlt('f4', state.KeyDownEvent, handleHideClick)) return
+  if (TestAlt('m', state.KeyDownEvent, handleMinClick)) return
+  if (TestAlt('enter', state.KeyDownEvent, handleMaxClick)) return
+  if (TestKey('f11', state.KeyDownEvent, handleMaxClick)) return
+  if (TestKey('t', state.KeyDownEvent, handleTop)) return
+})
 
+const onKeyDown = (event: KeyboardEvent) => {
+  const ele = (event.srcElement || event.target) as any
+  const nodeName = ele && ele.nodeName
+  if (document.body.getElementsByClassName('arco-modal-container').length) return
+  if (event.key == 'Control' || event.key == 'Shift' || event.key == 'Alt' || event.key == 'Meta') return
+  const isInput = nodeName == 'INPUT' || nodeName == 'TEXTAREA' || false
+  if (!isInput) {
+    keyboardStore.KeyDown(event)
+  }
+}
 const options: Option = {
   id: 'artPlayer',
   container: '#artPlayer',
@@ -108,6 +128,7 @@ type selectorItem = {
 }
 
 onMounted(async () => {
+  window.addEventListener('keydown', onKeyDown, true)
   const name = pageVideo.file_name || '视频在线预览'
   document.body.setAttribute('arco-theme', 'dark')
   setTimeout(() => {
@@ -739,9 +760,22 @@ const updateVideoTime = async () => {
     ArtPlayerRef.currentTime
   )
 }
+
 const handleHideClick = async () => {
   await updateVideoTime()
-  window.close()
+  if (window.WebToWindow) window.WebToWindow({ cmd: 'close' })
+}
+const handleMinClick = (_e: any) => {
+  if (window.WebToWindow) window.WebToWindow({ cmd: 'minsize' })
+}
+const handleMaxClick = (_e: any) => {
+  if (window.WebToWindow) window.WebToWindow({ cmd: 'maxsize' })
+}
+const handleTop = (_e: any) => {
+  if (window.WebToWindow) window.WebToWindow({ cmd: 'top' }, (res: string) => {
+    ArtPlayerRef.notice.show = res === 'top' ? '窗口置顶' : '窗口取消置顶'
+    isTop.value = res === 'top'
+  })
 }
 
 onBeforeUnmount(() => {
@@ -769,7 +803,16 @@ onBeforeUnmount(() => {
         </a-button>
         <div class='title'>{{ pageVideo?.file_name || '视频在线预览' }}</div>
         <div class='flexauto'></div>
-        <a-button type='text' tabindex='-1' @click='handleHideClick()'>
+        <a-button type='text' tabindex='-1' :title="(isTop ? '取消置顶': '置顶') + 'Alt+T'" @click='handleTop'>
+          <i :class="'iconfont '+ (isTop ? 'iconquxiaozhiding': 'iconzhiding')" />
+        </a-button>
+        <a-button type='text' tabindex='-1' title='最小化 Alt+M' @click='handleMinClick'>
+          <i class='iconfont iconzuixiaohua'></i>
+        </a-button>
+        <a-button type='text' tabindex='-1' title='最大化 Alt+Enter' @click='handleMaxClick'>
+          <i class='iconfont iconfullscreen'></i>
+        </a-button>
+        <a-button type='text' tabindex='-1' title='关闭 Alt+F4' @click='handleHideClick'>
           <i class='iconfont iconclose'></i>
         </a-button>
       </div>

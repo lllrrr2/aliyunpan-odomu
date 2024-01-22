@@ -15,6 +15,7 @@ import { SpawnOptions } from 'child_process'
 import { delTmpFile, GetExpiresTime } from './utils'
 import PlayerUtils from './playerhelper'
 import { getEncType, getRawUrl } from './proxyhelper'
+import { CleanStringForCmd } from './filehelper'
 
 
 export async function menuOpenFile(file: IAliGetFileModel, password: string = ''): Promise<void> {
@@ -206,7 +207,7 @@ async function Video(token: ITokenInfo, drive_id: string, subTitleFile: any, fil
     playExpireTime: 0,
     playFileListPath: '',
     playCursor: humanTime(playCursorInfo.play_cursor),
-    playTitle: name,
+    playTitle: CleanStringForCmd(name),
     playCommand: settingStore.uiVideoPlayerPath
   }
   const isWindows = window.platform === 'win32'

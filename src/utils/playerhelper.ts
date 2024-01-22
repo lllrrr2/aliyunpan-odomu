@@ -11,6 +11,7 @@ import { usePanFileStore, useSettingStore } from '../store'
 import { createTmpFile } from './utils'
 import { IAliGetFileModel } from '../aliapi/alimodels'
 import { getEncType, getProxyUrl, getRawUrl } from './proxyhelper'
+import { CleanStringForCmd } from './filehelper'
 
 const PlayerUtils = {
   filterSubtitleFile(name: string, subTitlesList: IAliGetFileModel[]) {
@@ -105,7 +106,8 @@ const PlayerUtils = {
           weifa: item.icon === 'weifa' ? 1 : 0,
           encType: encType
         })
-        let listStr = `${start}*file*${url}\r\n${start}*title*${item.name.trim()}\r\n${start}*played*0\r\n`
+        let title = CleanStringForCmd(item.name.trim())
+        let listStr = `${start}*file*${url}\r\n${start}*title*${title}\r\n${start}*played*0\r\n`
         if (item.file_id === file_id) {
           playname = 'playname=' + url
           if (duration > 0) {

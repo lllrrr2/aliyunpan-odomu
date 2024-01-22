@@ -634,11 +634,13 @@ const onPanDragEnd = (ev: any) => {
     <div v-if="panfileStore.SelectDirType == 'video'" class='toppanbtn' tabindex='-1'>
       <a-space direction='horizontal'>
         <a-button size='small' tabindex='-1'
-                  :type="videoSelectType === 'recent' ? 'dashed' : 'text'" @click='handleSelectRecentPlay'>
+                  :type="videoSelectType === 'recent' ? 'dashed' : 'text'"
+                  @click='handleSelectRecentPlay'>
           <i class='iconfont iconfile_video' />正在观看
         </a-button>
         <a-button size='small' tabindex='-1'
-                  :type="videoSelectType === 'allComp' ? 'dashed' : 'text'" @click='handleSelectAllCompilation'>
+                  :type="videoSelectType === 'allComp' ? 'dashed' : 'text'"
+                  @click='handleSelectAllCompilation'>
           <i class='iconfont iconrss_video' />全部专辑
         </a-button>
       </a-space>
@@ -741,7 +743,7 @@ const onPanDragEnd = (ev: any) => {
       </a-button>
     </div>
     <div style='flex-grow: 1'></div>
-    <div class='fileorder' v-if='panfileStore.SelectDirType !== "pic"'>
+    <div class='fileorder' v-if='!["pic", "video"].includes(panfileStore.SelectDirType)'>
       <a-dropdown trigger='hover' position='bl' @select='(val:any)=>handleFileListOrder(val as string)'>
         <a-button type='text' size='small' tabindex='-1' :disabled='panfileStore.ListLoading'>
           <i class='iconfont iconpaixu1' />

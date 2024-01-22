@@ -1,4 +1,15 @@
-import { app, BrowserWindow, Menu, MenuItem, MessageChannelMain, nativeTheme, screen, shell, Tray } from 'electron'
+import {
+  app,
+  BrowserWindow,
+  ipcMain,
+  Menu,
+  MenuItem,
+  MessageChannelMain,
+  nativeTheme,
+  screen,
+  shell,
+  Tray
+} from 'electron'
 import { getAsarPath, getStaticPath, getUserDataPath } from '../utils/mainfile'
 import { existsSync, readFileSync, writeFileSync } from 'fs'
 import is from 'electron-is'
@@ -262,6 +273,25 @@ export function createElectronWindow(width: number, height: number, center: bool
       }
     })
   }
+  if (page == 'main2') {
+    handleWinCmd(win)
+  }
+  handleWebView(win)
+  win.webContents.on('will-navigate', (e, url) => {
+    e.preventDefault()
+    if (!url.includes(process.env.VITE_DEV_SERVER_URL)) {
+      shell.openExternal(url)
+    }
+  })
+  win.webContents.on('did-create-window', (childWindow) => {
+    if (is.windows()) {
+      childWindow.setMenu(null)
+    }
+  })
+  return win
+}
+
+function handleWebView(win: BrowserWindow) {
   // 处理DevTools
   win.webContents.on('before-input-event', (_, input: Electron.Input) => {
     if (input.type === 'keyDown' && input.control && input.shift && input.key === 'F12') {
@@ -304,18 +334,36 @@ export function createElectronWindow(width: number, height: number, center: bool
       }
     })
   })
-  win.webContents.on('will-navigate', (e, url) => {
-    e.preventDefault()
-    if (!url.includes(process.env.VITE_DEV_SERVER_URL)) {
-      shell.openExternal(url)
+}
+
+function handleWinCmd(win: BrowserWindow) {
+  ipcMain.on('WebToWindow', (event, data) => {
+    if (data.cmd && data.cmd === 'close') {
+      if (win && !win.isDestroyed()) win.close()
+    } else if (data.cmd && data.cmd === 'minsize') {
+      if (win && !win.isDestroyed()) win.minimize()
+    } else if (data.cmd && data.cmd === 'top') {
+      if (win && !win.isDestroyed()) {
+        if (win.isAlwaysOnTop()) {
+          event.returnValue = 'untop'
+          win.setAlwaysOnTop(false)
+        } else {
+          event.returnValue = 'top'
+          win.setAlwaysOnTop(true, 'status')
+        }
+      }
+    } else if (data.cmd && data.cmd === 'maxsize') {
+      if (win && !win.isDestroyed()) {
+        if (win.isMaximized()) {
+          event.returnValue = 'unmaximize'
+          win.unmaximize()
+        } else {
+          event.returnValue = 'maximize'
+          win.maximize()
+        }
+      }
     }
   })
-  win.webContents.on('did-create-window', (childWindow) => {
-    if (is.windows()) {
-      childWindow.setMenu(null)
-    }
-  })
-  return win
 }
 
 function creatUploadPort() {

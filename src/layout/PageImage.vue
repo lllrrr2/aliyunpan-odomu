@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useAppStore } from '../store'
+import { KeyboardState, useAppStore, useKeyboardStore } from '../store'
 import { nextTick, onMounted, onUnmounted, ref } from 'vue'
 
 import Viewer from 'viewerjs'
@@ -7,6 +7,7 @@ import 'viewerjs/dist/viewer.css'
 import axios from 'axios'
 import message from '../utils/message'
 import { getEncType, getProxyUrl } from '../utils/proxyhelper'
+import { TestAlt, TestKey } from '../utils/keyboardhelper'
 
 const appStore = useAppStore()
 const pageImage = appStore.pageImage!
@@ -24,8 +25,21 @@ interface OneImageModel {
   encType: string
 }
 
+const keyboardStore = useKeyboardStore()
+keyboardStore.$subscribe((_m: any, state: KeyboardState) => {
+  if (TestAlt('f4', state.KeyDownEvent, handleHideClick)) return
+  if (TestAlt('m', state.KeyDownEvent, handleMinClick)) return
+  if (TestAlt('enter', state.KeyDownEvent, handleMaxClick)) return
+  if (TestKey('f11', state.KeyDownEvent, handleMaxClick)) return
+})
 const handleHideClick = (_e: any) => {
-  window.close()
+  if (window.WebToWindow) window.WebToWindow({ cmd: 'close' })
+}
+const handleMinClick = (_e: any) => {
+  if (window.WebToWindow) window.WebToWindow({ cmd: 'minsize' })
+}
+const handleMaxClick = (_e: any) => {
+  if (window.WebToWindow) window.WebToWindow({ cmd: 'maxsize' })
 }
 let viewver: Viewer | undefined
 
@@ -74,6 +88,15 @@ const onKeyDown = (event: any) => {
     goNextImage()
   } else if (event.code == 'ArrowLeft') {
     goLastImage()
+  }
+
+  const ele = (event.srcElement || event.target) as any
+  const nodeName = ele && ele.nodeName
+  if (document.body.getElementsByClassName('arco-modal-container').length) return
+  if (event.key == 'Control' || event.key == 'Shift' || event.key == 'Alt' || event.key == 'Meta') return
+  const isInput = nodeName == 'INPUT' || nodeName == 'TEXTAREA' || false
+  if (!isInput) {
+    keyboardStore.KeyDown(event)
   }
 }
 const goLastImage = () => {
@@ -311,8 +334,14 @@ function getImageUrl(item: OneImageModel) {
         </a-button>
         <div class="title">{{ showName }}</div>
         <div class="flexauto"></div>
-        <a-button type="text" tabindex="-1" @click="handleHideClick">
-          <i class="iconfont iconclose"></i>
+        <a-button type='text' tabindex='-1' title='最小化 Alt+M' @click='handleMinClick'>
+          <i class='iconfont iconzuixiaohua'></i>
+        </a-button>
+        <a-button type='text' tabindex='-1' title='最大化 Alt+Enter' @click='handleMaxClick'>
+          <i class='iconfont iconfullscreen'></i>
+        </a-button>
+        <a-button type='text' tabindex='-1' title='关闭 Alt+F4' @click='handleHideClick'>
+          <i class='iconfont iconclose'></i>
         </a-button>
       </div>
     </a-layout-header>
