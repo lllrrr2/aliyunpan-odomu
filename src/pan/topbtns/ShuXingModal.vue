@@ -1,4 +1,4 @@
-<script lang='ts'>
+<script setup lang='ts'>
 import { IAliFileItem, IAliGetForderSizeModel } from '../../aliapi/alimodels'
 import AliFile from '../../aliapi/file'
 import { useFootStore, usePanFileStore, usePanTreeStore } from '../../store'
@@ -6,195 +6,168 @@ import { copyToClipboard } from '../../utils/electronhelper'
 import message from '../../utils/message'
 import { modalCloseAll } from '../../utils/modal'
 import { humanDateTimeDateStr, humanSize, humanTime } from '../../utils/format'
-import { defineComponent, ref } from 'vue'
+import { ref } from 'vue'
 import DebugLog from '../../utils/debuglog'
 import { GetDriveID } from '../../aliapi/utils'
 import { getEncType, getRawUrl } from '../../utils/proxyhelper'
 
-export default defineComponent({
-  props: {
-    visible: {
-      type: Boolean,
-      required: true
-    },
-    istree: {
-      type: Boolean,
-      required: true
-    },
-    inputselectType: {
-      type: String,
-      required: true
-    },
-    ispic: {
-      type: Boolean,
-      required: true
-    }
+const props = defineProps({
+  visible: {
+    type: Boolean,
+    required: true
   },
-  setup(props) {
-    const okLoading = ref(false)
-    const fileInfo = ref<IAliFileItem>()
-    const dirInfo = ref<IAliGetForderSizeModel>()
-    const dirPath = ref('')
-    const handleOpen = async () => {
-      const pantreeStore = usePanTreeStore()
-      let file_id = ''
-      let drive_id = GetDriveID(pantreeStore.user_id, props.ispic ? 'pic' : props.inputselectType)
-      if (props.istree) {
-        file_id = pantreeStore.selectDir.file_id
-      } else {
-        const panfileStore = usePanFileStore()
-        let fileList = panfileStore.GetSelected()
-        if (fileList.length == 0) {
-          const focus = panfileStore.mGetFocus()
-          panfileStore.mKeyboardSelect(focus, false, false)
-          fileList = panfileStore.GetSelected()
-        }
-        file_id = fileList[0].file_id
-      }
-      if (!file_id) {
-        message.error('没有选中任何文件')
-      } else {
-        let path_file_id = props.ispic ? 'pic_root' : file_id
-        let fileName = pantreeStore.selectDir.name
-        AliFile.ApiFileGetPathString(pantreeStore.user_id, drive_id, path_file_id, '/').then((data) => {
-          dirPath.value = '/' + data + (props.ispic ? '/' + fileName : '')
-        })
-        fileInfo.value = await AliFile.ApiFileInfo(pantreeStore.user_id, drive_id, file_id, props.ispic)
-        if (fileInfo.value && ['audio', 'video'].includes(fileInfo.value.category)) {
-          const encType = getEncType(fileInfo.value)
-          const category = fileInfo.value.category
-          const rawUrl = await getRawUrl(
-            pantreeStore.user_id, drive_id, file_id,
-            encType, '',
-            category === 'audio', true, category
-          )
-          if (typeof rawUrl == 'string') {
-            message.error(rawUrl)
-          } else if (rawUrl && rawUrl.url) {
-            fileInfo.value.thumbnail = rawUrl.url
-          }
-        }
-        if (fileInfo.value?.type == 'folder') {
-          dirInfo.value = await AliFile.ApiFileGetFolderSize(pantreeStore.user_id, drive_id, file_id)
-        }
-      }
-    }
-
-    const handleClose = () => {
-
-      if (okLoading.value) okLoading.value = false
-      dirInfo.value = { size: 0, folder_count: 0, file_count: 0, reach_limit: undefined }
-      fileInfo.value = undefined
-      dirPath.value = ''
-    }
-
-    const makeFenBianLv = (width: number | undefined, height: number | undefined) => {
-      if (!width) width = 0
-      if (!height) height = 0
-      if (width == 0 || height == 0) return ''
-      return width + ' x ' + height
-    }
-
-    const makeImageSheBei = (exif: string | undefined) => {
-      if (!exif) return ''
-      try {
-        let msg = ''
-        const exobj = JSON.parse(exif)
-        if (exobj.Make && exobj.Make.value) msg += exobj.Make.value + ' '
-        if (exobj.Model && exobj.Model.value) msg += exobj.Model.value + ' '
-        return msg
-      } catch (err: any) {
-        DebugLog.mSaveWarning(exif, err)
-      }
-      return ''
-    }
-
-    const makeImageShiJian = (exif: string | undefined) => {
-      if (!exif) return ''
-      try {
-        const exobj = JSON.parse(exif)
-        if (exobj.DateTimeOriginal && exobj.DateTimeOriginal.value) return exobj.DateTimeOriginal.value
-        if (exobj.DateTimeDigitized && exobj.DateTimeDigitized.value) return exobj.DateTimeDigitized.value
-        if (exobj.DateTime && exobj.DateTime.value) return exobj.DateTime.value
-      } catch (err: any) {
-        DebugLog.mSaveWarning(exif, err)
-      }
-      return ''
-    }
-
-    const handleAudioPlay = () => {
-      useFootStore().mSaveAudioUrl('')
-    }
-    const formateCRC = ref(true)
-    const handleCRC = () => {
-      formateCRC.value = !formateCRC.value
-    }
-    const formateSize = ref(true)
-    const handleSize = () => {
-      formateSize.value = !formateSize.value
-    }
-    return {
-      okLoading,
-      handleOpen,
-      handleClose,
-      fileInfo,
-      dirInfo,
-      dirPath,
-      humanDateTimeDateStr,
-      humanSize,
-      humanTime,
-      makeFenBianLv,
-      makeImageSheBei,
-      makeImageShiJian,
-      handleAudioPlay,
-      formateCRC,
-      handleCRC,
-      formateSize,
-      handleSize
-    }
+  istree: {
+    type: Boolean,
+    required: true
   },
-  methods: {
-    handleHide() {
-      modalCloseAll()
-    },
-    handleOK() {
-    },
+  ispic: {
+    type: Boolean,
+    required: true
+  }
+})
 
-    handleCopyFileName() {
-      if (this.fileInfo?.name) {
-        copyToClipboard(this.fileInfo?.name)
-        message.success('文件名已复制到剪切板')
+const okLoading = ref(false)
+const fileInfo = ref<IAliFileItem>()
+const dirInfo = ref<IAliGetForderSizeModel>()
+const dirPath = ref('')
+const handleOpen = async () => {
+  const pantreeStore = usePanTreeStore()
+  let file_id = ''
+  let drive_id = ''
+  if (props.istree) {
+    file_id = pantreeStore.selectDir.file_id
+    drive_id = pantreeStore.selectDir.drive_id
+  } else {
+    const panfileStore = usePanFileStore()
+    let fileList = panfileStore.GetSelected()
+    if (fileList.length == 0) {
+      const focus = panfileStore.mGetFocus()
+      panfileStore.mKeyboardSelect(focus, false, false)
+      fileList = panfileStore.GetSelected()
+    }
+    file_id = fileList[0].file_id
+    drive_id = fileList[0].drive_id
+  }
+  if (props.ispic) {
+    drive_id = GetDriveID(pantreeStore.user_id, 'pic')
+  }
+  if (!file_id) {
+    message.error('没有选中任何文件')
+  } else {
+    let path_file_id = props.ispic ? 'pic_root' : file_id
+    let fileName = pantreeStore.selectDir.name
+    AliFile.ApiFileGetPathString(pantreeStore.user_id, drive_id, path_file_id, '/').then((data) => {
+      dirPath.value = '/' + data + (props.ispic ? '/' + fileName : '')
+    })
+    fileInfo.value = await AliFile.ApiFileInfo(pantreeStore.user_id, drive_id, file_id, props.ispic)
+    if (fileInfo.value && ['audio', 'video'].includes(fileInfo.value.category)) {
+      const encType = getEncType(fileInfo.value)
+      const category = fileInfo.value.category
+      const rawUrl = await getRawUrl(
+        pantreeStore.user_id, drive_id, file_id,
+        encType, '',
+        category === 'audio', true, category
+      )
+      if (typeof rawUrl == 'string') {
+        message.error(rawUrl)
+      } else if (rawUrl && rawUrl.url) {
+        fileInfo.value.thumbnail = rawUrl.url
       }
-    },
-    handleCopyJson() {
-      if (this.fileInfo) {
-        copyToClipboard(JSON.stringify(this.fileInfo))
-        message.success('文件信息已复制到剪切板')
-      }
-    },
-    handleCopyDownload() {
-      const pantreeStore = usePanTreeStore()
-      if (this.fileInfo) {
-        getRawUrl(pantreeStore.user_id, pantreeStore.drive_id, this.fileInfo.file_id || '', getEncType(this.fileInfo)).then(data => {
-          if (data && typeof data !== 'string' && data.url) {
-            copyToClipboard(data.url)
-            message.success('下载链接已复制到剪切板，4小时内有效')
-          } else {
-            message.error('下载链接获取失败，请稍后重试')
-          }
-        })
+    }
+    if (fileInfo.value?.type == 'folder') {
+      dirInfo.value = await AliFile.ApiFileGetFolderSize(pantreeStore.user_id, drive_id, file_id)
+    }
+  }
+}
+
+const handleClose = () => {
+
+  if (okLoading.value) okLoading.value = false
+  dirInfo.value = { size: 0, folder_count: 0, file_count: 0, reach_limit: undefined }
+  fileInfo.value = undefined
+  dirPath.value = ''
+}
+
+const makeFenBianLv = (width: number | undefined, height: number | undefined) => {
+  if (!width) width = 0
+  if (!height) height = 0
+  if (width == 0 || height == 0) return ''
+  return width + ' x ' + height
+}
+
+const makeImageSheBei = (exif: string | undefined) => {
+  if (!exif) return ''
+  try {
+    let msg = ''
+    const exobj = JSON.parse(exif)
+    if (exobj.Make && exobj.Make.value) msg += exobj.Make.value + ' '
+    if (exobj.Model && exobj.Model.value) msg += exobj.Model.value + ' '
+    return msg
+  } catch (err: any) {
+    DebugLog.mSaveWarning(exif, err)
+  }
+  return ''
+}
+
+const makeImageShiJian = (exif: string | undefined) => {
+  if (!exif) return ''
+  try {
+    const exobj = JSON.parse(exif)
+    if (exobj.DateTimeOriginal && exobj.DateTimeOriginal.value) return exobj.DateTimeOriginal.value
+    if (exobj.DateTimeDigitized && exobj.DateTimeDigitized.value) return exobj.DateTimeDigitized.value
+    if (exobj.DateTime && exobj.DateTime.value) return exobj.DateTime.value
+  } catch (err: any) {
+    DebugLog.mSaveWarning(exif, err)
+  }
+  return ''
+}
+
+const handleAudioPlay = () => {
+  useFootStore().mSaveAudioUrl('')
+}
+
+const formateSize = ref(true)
+const handleSize = () => {
+  formateSize.value = !formateSize.value
+}
+
+const handleHide = () => {
+  modalCloseAll()
+}
+
+const handleCopyFileName = () => {
+  if (fileInfo.value?.name) {
+    copyToClipboard(fileInfo.value?.name)
+    message.success('文件名已复制到剪切板')
+  }
+}
+const handleCopyJson = () => {
+  if (fileInfo.value) {
+    copyToClipboard(JSON.stringify(fileInfo.value))
+    message.success('文件信息已复制到剪切板')
+  }
+}
+const handleCopyDownload = () => {
+  const pantreeStore = usePanTreeStore()
+  if (fileInfo.value) {
+    getRawUrl(pantreeStore.user_id, pantreeStore.drive_id, fileInfo.value.file_id || '', getEncType(fileInfo.value)).then(data => {
+      if (data && typeof data !== 'string' && data.url) {
+        copyToClipboard(data.url)
+        message.success('下载链接已复制到剪切板，4小时内有效')
       } else {
         message.error('下载链接获取失败，请稍后重试')
       }
-    },
-    handleCopyThumbnail() {
-      if (this.fileInfo?.thumbnail) {
-        copyToClipboard(this.fileInfo?.thumbnail)
-        message.success('预览链接已复制到剪切板')
-      }
-    }
+    })
+  } else {
+    message.error('下载链接获取失败，请稍后重试')
   }
-})
+}
+const handleCopyThumbnail = () => {
+  if (fileInfo.value?.thumbnail) {
+    copyToClipboard(fileInfo.value?.thumbnail)
+    message.success('预览链接已复制到剪切板')
+  }
+}
 </script>
 
 <template>

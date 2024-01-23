@@ -6,7 +6,6 @@ import {
   menuCopySelectedFile,
   menuCreatShare,
   menuDownload,
-  menuFavSelectFile,
   menuFileColorChange,
   menuJumpToDir,
   menuM3U8Download,
@@ -55,6 +54,9 @@ const isShowBtn = computed(() => {
   return (props.dirtype === 'pic' && props.inputpicType != 'mypic')
     || props.dirtype === 'mypic' || props.dirtype === 'pan'
 })
+const isPic = computed(() => {
+  return (props.dirtype === 'pic' && props.inputpicType == 'mypic')
+})
 </script>
 
 <template>
@@ -72,14 +74,6 @@ const isShowBtn = computed(() => {
       <a-doption @click="() => menuCreatShare(istree, 'pan', 'backup_root')">
         <template #icon><i class='iconfont iconrss' /></template>
         <template #default>快传</template>
-      </a-doption>
-      <a-doption v-show='isselected && !isallfavored' @click='() => menuFavSelectFile(istree, true)'>
-        <template #icon><i class='iconfont iconcrown' /></template>
-        <template #default>收藏</template>
-      </a-doption>
-      <a-doption v-show='isselected && isallfavored' @click='() => menuFavSelectFile(istree, false)'>
-        <template #icon><i class='iconfont iconcrown2' /></template>
-        <template #default>取消收藏</template>
       </a-doption>
       <a-dsubmenu v-if="dirtype !== 'pic'" id='rightpansubbiaoji' class='rightmenu' trigger='hover'>
         <template #default>
@@ -106,7 +100,7 @@ const isShowBtn = computed(() => {
           </a-doption>
         </template>
       </a-dsubmenu>
-      <a-dsubmenu id='rightpansubmove' class='rightmenu' trigger='hover' v-if="dirtype != 'video'">
+      <a-dsubmenu v-if="dirtype != 'video'" id='rightpansubmove' class='rightmenu' trigger='hover'>
         <template #default>
           <div @click.stop='() => {}'>
             <span class='arco-dropdown-option-icon'><i class='iconfont iconmoveto' style='opacity: 0.8'></i></span>操作
@@ -116,7 +110,12 @@ const isShowBtn = computed(() => {
           <a-doption v-show='isShowBtn && inputpicType !== "mypic" && dirtype !== "pan"'
                      @click='() => menuAddAlbumSelectFile()'>
             <template #icon><i class='iconfont iconmoveto' /></template>
-            <template #default>添加到相册</template>
+            <template #default>移入相册</template>
+          </a-doption>
+          <a-doption v-show='dirtype === "mypic"'
+                     @click='() => menuTrashSelectFile(istree, false, true)'>
+            <template #icon><i class='iconfont iconqingkong' /></template>
+            <template #default>移出相册</template>
           </a-doption>
           <a-doption v-show='isShowBtn' @click="() => menuCopySelectedFile(istree, 'cut')">
             <template #icon><i class='iconfont iconscissor' /></template>
@@ -126,10 +125,20 @@ const isShowBtn = computed(() => {
             <template #icon><i class='iconfont iconcopy' /></template>
             <template #default>复制到...</template>
           </a-doption>
-          <a-doption class='danger' @click='() => menuTrashSelectFile(istree, false)'>
+          <a-doption v-show='isShowBtn && dirtype !== "mypic"  || dirtype === "search"' class='danger' @click='() => menuTrashSelectFile(istree, false, isPic)'>
             <template #icon><i class='iconfont icondelete' /></template>
-            <template #default>回收站</template>
+            <template #default>放回收站</template>
           </a-doption>
+          <a-dsubmenu v-if='dirtype !== "mypic"' class='rightmenu' trigger='hover'>
+            <template #default>
+              <span class='arco-dropdown-option-icon'><i class='iconfont iconrest'></i></span>彻底删除
+            </template>
+            <template #content>
+              <a-doption title='Ctrl+Shift+Delete' class='danger' @click='() => menuTrashSelectFile(istree, true, isPic)'>
+                <template #default>删除后无法还原</template>
+              </a-doption>
+            </template>
+          </a-dsubmenu>
         </template>
       </a-dsubmenu>
 
@@ -139,11 +148,12 @@ const isShowBtn = computed(() => {
         <template #default>重命名</template>
       </a-doption>
 
-      <a-doption @click='() => modalShuXing(istree, inputselectType, dirtype.includes("pic"))'>
+      <a-doption v-show="!isPic" @click='() => modalShuXing(istree, dirtype.includes("pic"))'>
         <template #icon><i class='iconfont iconshuxing' /></template>
         <template #default>属性</template>
       </a-doption>
-      <a-dsubmenu id='rightpansubmore' class='rightmenu' trigger='hover'>
+      <a-dsubmenu v-if='!dirtype.includes("pic")'
+                  id='rightpansubmore' class='rightmenu' trigger='hover'>
         <template #default>
           <div @click.stop='() => {}'>
             <span class='arco-dropdown-option-icon'><i class='iconfont icongengduo1' style='opacity: 0.8'></i></span>更多
@@ -152,20 +162,10 @@ const isShowBtn = computed(() => {
         <template #content>
           <a-doption
             v-show="isselected && !isselectedmulti && (dirtype == 'favorite' || dirtype == 'search' || dirtype == 'color' || dirtype == 'video')"
-            @click='() => menuJumpToDir(inputselectType)'>
+            @click='() => menuJumpToDir()'>
             <template #icon><i class='iconfont icondakaiwenjianjia1' /></template>
             <template #default>打开位置</template>
           </a-doption>
-          <a-dsubmenu class='rightmenu' trigger='hover' v-if="dirtype != 'video'">
-            <template #default>
-              <span class='arco-dropdown-option-icon'><i class='iconfont iconrest'></i></span>彻底删除
-            </template>
-            <template #content>
-              <a-doption title='Ctrl+Shift+Delete' class='danger' @click='() => menuTrashSelectFile(istree, true)'>
-                <template #default>删除后无法还原</template>
-              </a-doption>
-            </template>
-          </a-dsubmenu>
           <a-doption v-show='isvideo' @click='() => menuVideoXBT()'>
             <template #icon><i class='iconfont iconjietu' /></template>
             <template #default>雪碧图</template>
@@ -182,7 +182,7 @@ const isShowBtn = computed(() => {
             <template #icon><i class='iconfont iconlist' /></template>
             <template #default>复制文件名</template>
           </a-doption>
-          <a-doption v-show='!dirtype.includes("pic") && isselected && !isselectedmulti'
+          <a-doption v-show='isselected && !isselectedmulti'
                      @click='() => menuCopyFileTree()'>
             <template #icon><i class='iconfont iconnode-tree1' /></template>
             <template #default>复制目录树</template>

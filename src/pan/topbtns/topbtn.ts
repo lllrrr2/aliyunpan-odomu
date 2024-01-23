@@ -81,7 +81,7 @@ export function handleUpload(uploadType: string, encType: string = '') {
       properties: ['openFile', 'multiSelections', 'showHiddenFiles', 'noResolveAliases', 'treatPackageAsDirectory', 'dontAddToRecent']
     }, (files: string[] | undefined) => {
       if (files && files.length > 0) {
-        modalUpload(pantreeStore.selectDir.file_id, files, true, encType)
+        modalUpload('pic_root', files, true, encType)
       }
     })
   }
@@ -240,7 +240,7 @@ export async function menuTrashSelectFile(istree: boolean, isDelete: boolean, is
     } else {
       usePanFileStore().mDeleteFiles(selectedData.dirID, successList, selectedData.dirID !== 'trash')
       if (selectedData.dirID !== 'trash') {
-        await PanDAL.aReLoadOneDirToRefreshTree(selectedData.user_id, selectedData.drive_id, selectedData.dirID)
+        await PanDAL.aReLoadOneDirToRefreshTree(selectedData.user_id, selectedData.drive_id, selectedData.dirID, selectedData.albumId)
         TreeStore.ClearDirSize(selectedData.drive_id, selectedData.selectedParentKeys)
       }
     }
@@ -717,19 +717,17 @@ export async function topSearchAll(word: string, inputsearchType: string[]) {
 }
 
 
-export async function menuJumpToDir(inputsearchType: string) {
+export async function menuJumpToDir() {
   let panTreeStore = usePanTreeStore()
   let first = usePanFileStore().GetSelectedFirst()
-  let drive_id = inputsearchType.includes('backup') ? panTreeStore.backup_drive_id : panTreeStore.resource_drive_id
   if (first && !first.parent_file_id) {
-    first = await AliFile.ApiGetFile(panTreeStore.user_id, drive_id, first.file_id)
+    first = await AliFile.ApiGetFile(panTreeStore.user_id, first.drive_id, first.file_id)
   }
   if (!first) {
     message.error('没有选中任何文件')
     return
   }
-
-  PanDAL.aReLoadOneDirToShow(drive_id, first.parent_file_id, true).then(() => {
+  PanDAL.aReLoadOneDirToShow(first.drive_id, first.parent_file_id, true).then(() => {
     usePanFileStore().mKeyboardSelect(first!.file_id, false, false)
     usePanFileStore().mSaveFileScrollTo(first!.file_id)
   })

@@ -201,7 +201,7 @@ export default class UploadingDAL {
 
 
   static async aUploadingEvent(ReportList: IStateUploadInfo[], ErrorList: IStateUploadInfo[], SuccessList: IStateUploadTaskFile[], RunningKeys: number[], StopKeys: number[], LoadingKeys: number[], SpeedTotal: string) {
-    UploadingData.UploadingEventSave(ReportList, ErrorList, SuccessList)
+    await UploadingData.UploadingEventSave(ReportList, ErrorList, SuccessList)
     const check = UploadingData.UploadingEventRunningCheck(RunningKeys, StopKeys)
     if (check.delList.length > 0) {
       console.log('UploadingEventRunningCheck', check.delList)

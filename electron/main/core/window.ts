@@ -263,7 +263,9 @@ export function createElectronWindow(width: number, height: number, center: bool
   }
 
   if (DEBUGGING && devTools) {
-    if (width < 100) win.setSize(800, 600)
+    if (width < 100) {
+      win.setSize(1050, 700)
+    }
     win.show()
     win.webContents.openDevTools({ mode: 'bottom' })
   } else {

@@ -194,11 +194,11 @@ export default class AliDirFileList {
         isGet = await AliDirFileList._ApiVideoListRecent(orders[0], orders[1], dir, pageIndex)
       } else if (dirID === 'video.compilation') {
         isGet = await AliDirFileList._ApiVideoListOnePage(orders[0], orders[1], dir, pageIndex)
-      } else if (dirID === 'mypic') {
-        isGet = await AliDirFileList._ApiAlbumListOnePage(orders[0], orders[1], dir, pageIndex)
       } else if (albumID && albumID.length > 0) {
         isGet = await AliDirFileList._ApiAlbumListFilesOnePage(orders[0], orders[1], dir, pageIndex)
         dir.itemsTotal = dir.items.length
+      } else if (dirID === 'mypic') {
+        isGet = await AliDirFileList._ApiAlbumListOnePage(orders[0], orders[1], dir, pageIndex)
       } else {
         if (!needTotal) {
           needTotal = AliDirFileList._ApiDirFileListCount(dir, dirID.includes('pic') ? 'file' : type).then((total) => {

@@ -160,7 +160,7 @@ const handleRightClick = (e: { event: MouseEvent; node: any }) => {
       </div>
     </div>
     <div class='flex flexauto'></div>
-    <div class="toppanbtns" style="height: 26px">
+    <div class="toppanbtns" style="height: 26px;min-width: fit-content">
       <div class="flex flexauto"></div>
       <div class="flex flexnoauto cellcount" title="2天内过期">
         <a-badge color="#637dff" :text="'临期 ' + myshareStore.ListStats.expir2day" />
@@ -180,7 +180,7 @@ const handleRightClick = (e: { event: MouseEvent; node: any }) => {
       <div class="flex flexnoauto cellcount" title="总转存">
         <a-badge color="#637dff" :text="'转存 ' + myshareStore.ListStats.save" />
       </div>
-      <div class="flex flexnoauto cellcount" title="最大的浏览数">
+      <div class="flex flexnoauto cellcount" title="最大浏览数">
         <a-badge color="#637dff" :text="'浏览 ' + myshareStore.ListStats.previewMax" />
       </div>
     </div>

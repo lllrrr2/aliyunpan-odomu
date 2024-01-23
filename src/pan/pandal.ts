@@ -16,6 +16,7 @@ export interface PanSelectedData {
   user_id: string
   drive_id: string
   dirID: string
+  albumId: string
   parentDirID: string
   fileDescription: string
   parentDirDescription: string
@@ -153,6 +154,12 @@ export default class PanDAL {
         file_id = driveType.key
         panTreeStore.History = []
       }
+      if (file_id.includes('pic')) {
+        panTreeStore.selectDir.album_type = file_id
+      } else {
+        panTreeStore.selectDir.album_type = 'pic_root'
+        panTreeStore.selectDir.album_id = ''
+      }
     }
     let dir = TreeStore.GetDir(drive_id, file_id)
     let dirPath = TreeStore.GetDirPath(drive_id, file_id)
@@ -172,7 +179,6 @@ export default class PanDAL {
       message.error('出错，找不到指定的文件夹 ' + file_id)
       return false
     }
-
     // 记录跳转历史
     if (!isBack && panTreeStore.selectDir.file_id != dir.file_id) {
       const history: IAliGetDirModel[] = [dir]
@@ -191,6 +197,7 @@ export default class PanDAL {
       treeExpandedKeys.add(dir.file_id)
     }
     panTreeStore.mShowDir(dir, dirPath, [dir.file_id], Array.from(treeExpandedKeys))
+    console.warn('selectDir', panTreeStore.selectDir)
     PanDAL.RefreshPanTreeAllNode(drive_id)
     const panfileStore = usePanFileStore()
     if (panfileStore.ListLoading && panfileStore.DriveID == drive_id && panfileStore.DirID == dir.file_id) {
@@ -241,7 +248,7 @@ export default class PanDAL {
   }
 
 
-  static aReLoadOneDirToRefreshTree(user_id: string, drive_id: string, dirID: string): Promise<boolean> {
+  static aReLoadOneDirToRefreshTree(user_id: string, drive_id: string, dirID: string, albumID?: string): Promise<boolean> {
     return new Promise<boolean>((resolve) => {
       if (dirID == 'favorite' || dirID.startsWith('color')
         || dirID.startsWith('search') || dirID.startsWith('video')) {
@@ -254,15 +261,16 @@ export default class PanDAL {
       }
       RefreshLock.add(dirID)
       const order = TreeStore.GetDirOrder(drive_id, dirID).replace('ext ', 'updated_at ')
-      AliDirFileList.ApiDirFileList(user_id, drive_id, dirID, '', order, 'folder')
+
+      AliDirFileList.ApiDirFileList(user_id, drive_id, dirID, '', order, 'folder', albumID)
         .then((dir) => {
           if (!dir.next_marker) {
             dir.dirID = dirID
             TreeStore.SaveOneDirFileList(dir, false).then(() => {
               PanDAL.RefreshPanTreeAllNode(drive_id)
               const pantreeStore = usePanTreeStore()
-              if (pantreeStore.selectDir.drive_id == drive_id && pantreeStore.selectDir.file_id == dirID) {
-                PanDAL.aReLoadOneDirToShow(drive_id, dirID, false).then(() => {
+              if (pantreeStore.selectDir.drive_id == drive_id && (pantreeStore.selectDir.file_id == dirID)) {
+                PanDAL.aReLoadOneDirToShow(drive_id, dirID, false, albumID).then(() => {
                   RefreshLock.delete(dirID)
                   resolve(true)
                 })
@@ -296,6 +304,7 @@ export default class PanDAL {
       user_id: panTreeStore.user_id,
       drive_id: panTreeStore.drive_id,
       dirID: panTreeStore.selectDir.file_id,
+      albumId: panTreeStore.selectDir.album_id || '',
       parentDirID: panTreeStore.selectDir.parent_file_id,
       selectedKeys: istree ? [panTreeStore.selectDir.file_id] : panFileStore.GetSelectedID(),
       selectedParentKeys: istree ? [panTreeStore.selectDir.parent_file_id] : panFileStore.GetSelectedParentDirID(),

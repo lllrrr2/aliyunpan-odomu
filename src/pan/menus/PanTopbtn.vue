@@ -1,6 +1,6 @@
 <script setup lang='ts'>
-import { computed } from 'vue'
-import { handleUpload } from '../topbtns/topbtn'
+import { computed, ref } from 'vue'
+import { handleUpload, topFavorDeleteAll } from '../topbtns/topbtn'
 import {
   modalCreatNewAlbum,
   modalCreatNewDir,
@@ -11,6 +11,7 @@ import {
 import AliShare from '../../aliapi/share'
 import { usePanTreeStore } from '../../store'
 import message from '../../utils/message'
+import PanDAL from '../pandal'
 
 const props = defineProps({
   dirtype: {
@@ -30,14 +31,26 @@ const props = defineProps({
     required: true
   }
 })
+
+const videoSelectType = ref('recent')
+const panTreeStore = usePanTreeStore()
+
 const isShowBtn = computed(() => {
   return (props.dirtype === 'pic' && props.inputpicType != 'mypic')
     || props.dirtype === 'mypic' || props.dirtype === 'pan'
 })
 
+const handleSelectAllCompilation = () => {
+  videoSelectType.value = 'allComp'
+  PanDAL.aReLoadOneDirToShow('', 'video.compilation', false)
+}
+const handleSelectRecentPlay = () => {
+  videoSelectType.value = 'recent'
+  PanDAL.aReLoadOneDirToShow('', 'video.recentplay', false)
+}
+
 const handleClickBottleFish = async () => {
-  const pantreeStore = usePanTreeStore()
-  let resp = await AliShare.ApiShareBottleFish(pantreeStore.user_id)
+  let resp = await AliShare.ApiShareBottleFish(panTreeStore.user_id)
   if (typeof resp !== 'string') {
     // 打开分享
     let share_id = resp.shareId
@@ -59,13 +72,32 @@ const handleClickBottleFish = async () => {
 </script>
 
 <template>
+  <div v-show="!isselected && dirtype === 'favorite'" class='toppanbtn'>
+    <a-button type='text' size='small' tabindex='-1' class='danger' @click='topFavorDeleteAll'>
+      <i class='iconfont iconcrown2' />清空收藏夹
+    </a-button>
+  </div>
+  <div v-if="dirtype == 'video'" class='toppanbtn' tabindex='-1'>
+    <a-space direction='horizontal'>
+      <a-button size='small' tabindex='-1'
+                :type="videoSelectType === 'recent' ? 'dashed' : 'text'"
+                @click='handleSelectRecentPlay'>
+        <i class='iconfont iconfile_video' />正在观看
+      </a-button>
+      <a-button size='small' tabindex='-1'
+                :type="videoSelectType === 'allComp' ? 'dashed' : 'text'"
+                @click='handleSelectAllCompilation'>
+        <i class='iconfont iconrss_video' />全部专辑
+      </a-button>
+    </a-space>
+  </div>
   <div v-show="!isselected && ['pan', 'pic', 'mypic'].includes(dirtype)" class='toppanbtn'>
     <a-button v-if="inputselectType.includes('resource')" type='text' size='small' tabindex='-1'
               @click="handleClickBottleFish">
       <i class='iconfont iconnotification' />好运瓶
     </a-button>
     <a-dropdown v-if='dirtype !== "pic"' trigger='hover' class='rightmenu' position='bl'>
-      <a-button v-show="!dirtype.includes('pic')" type='text' size='small' tabindex='-1'>
+      <a-button v-if="!dirtype.includes('pic')" type='text' size='small' tabindex='-1'>
         <i class='iconfont iconplus' />新建<i class='iconfont icondown' />
       </a-button>
       <template #content>

@@ -143,7 +143,7 @@ const handleRightClick = (e: { event: MouseEvent; node: any }) => {
       </div>
     </div>
     <div class='flex flexauto'></div>
-    <div class="toppanbtns" style="height: 26px">
+    <div class="toppanbtns" style="height: 26px;min-width: fit-content">
       <div class="flex flexauto"></div>
       <div class="flex flexnoauto cellcount" title="2天内过期">
         <a-badge color="#637dff" :text="'临期 ' + myTransferShare.ListStats.expir2day" />

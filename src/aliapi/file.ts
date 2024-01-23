@@ -347,6 +347,7 @@ export default class AliFile {
         list.push({
           __v_skip: true,
           drive_id: item.drive_id,
+          album_id: '',
           file_id: item.file_id,
           parent_file_id: item.parent_file_id || '',
           name: DecodeEncName(user_id, item).name,
@@ -359,6 +360,7 @@ export default class AliFile {
       list.push({
         __v_skip: true,
         drive_id: drive_id,
+        album_id: '',
         file_id: driveType.key,
         parent_file_id: '',
         name: driveType.title,

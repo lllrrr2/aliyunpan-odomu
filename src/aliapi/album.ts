@@ -82,7 +82,10 @@ export default class AliAlbum {
       const items = resp.body.items
       if (items && items.length > 0) {
         for (let item of items) {
-          const coverUrl = item.cover && item.cover.list[0].download_url
+          let coverUrl = ''
+          if (item.cover && item.cover.list.length > 0) {
+            coverUrl = item.cover.list[0].download_url || ''
+          }
           data.push({ ...item, coverUrl })
         }
       }

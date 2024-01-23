@@ -15,7 +15,7 @@ export default defineComponent({
     const leftMinWidth = 0
     const rightMinWidth = 220
     const winStore = useWinStore()
-    const bodyWidth = ref(Math.max(winStore.width, 800))
+    const bodyWidth = ref(Math.max(winStore.width, 1050))
     const splitMoveing = ref(false)
     const splitSize = ref(bodyWidth.value < 900 ? '220px' : '260px')
     const splitSizeMax = ref(bodyWidth.value - rightMinWidth)

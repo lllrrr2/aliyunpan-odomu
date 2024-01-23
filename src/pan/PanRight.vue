@@ -34,7 +34,6 @@ import {
   menuCreatShare,
   menuFavSelectFile,
   menuTrashSelectFile,
-  topFavorDeleteAll,
   topSearchAll
 } from './topbtns/topbtn'
 import {
@@ -66,7 +65,6 @@ const isresourcedrive = ref(false)
 const inputpicType = ref('pic_root')
 const inputselectType = ref('backup')
 const inputsearchType = ref(['backup', 'resource', 'pic'])
-const videoSelectType = ref('recent')
 
 const appStore = useAppStore()
 const settingStore = useSettingStore()
@@ -181,6 +179,9 @@ const handleDingWei = () => {
 
 const handleChangePic = (value: any) => {
   panTreeStore.selectDir.album_type = value
+  if (value == 'pic_root') {
+    panTreeStore.selectDir.album_id = ''
+  }
   PanDAL.aReLoadOneDirToShow(DriveID, value, false)
 }
 
@@ -190,8 +191,9 @@ const handleChangeDrive = (value: any) => {
 }
 
 const handleBack = () => {
-  if (!usePanTreeStore().PanHistoryCount) return
+  if (!panTreeStore.PanHistoryCount) return
   PanDAL.aReLoadOneDirToShow(DriveID, 'back', false)
+  inputpicType.value = panTreeStore.selectDir.album_type || 'pic_root'
 }
 const handleHome = () => {
   PanDAL.aReLoadOneDirToShow('', 'backup_root', false)
@@ -238,15 +240,6 @@ const handleSelect = (file_id: string, event: any, isCtrl: boolean = false) => {
     panfileStore.mMouseSelect(file_id, event.ctrlKey || isCtrl, event.shiftKey)
     if (!panfileStore.ListSelected.has(file_id)) panfileStore.ListFocusKey = ''
   }
-}
-
-const handleSelectAllCompilation = () => {
-  videoSelectType.value = 'allComp'
-  PanDAL.aReLoadOneDirToShow('', 'video.compilation', false)
-}
-const handleSelectRecentPlay = () => {
-  videoSelectType.value = 'recent'
-  PanDAL.aReLoadOneDirToShow('', 'video.recentplay', false)
 }
 
 const handleOpenFile = (event: Event, file: IAliGetFileModel | undefined) => {
@@ -599,7 +592,7 @@ const onPanDragEnd = (ev: any) => {
         </template>
       </a-button>
     </div>
-    <div v-show="panfileStore.SelectDirType.includes('pic')" class='toppanbtn'>
+    <div v-show="!panfileStore.IsListSelected && panfileStore.SelectDirType.includes('pic')" class='toppanbtn'>
       <a-select v-model:model-value='inputpicType' size='small' tabindex='-1'
                 @update:model-value='handleChangePic'
                 style='width: 120px; flex-shrink: 0; margin: 0 -8px' :disabled='panfileStore.ListLoading'>
@@ -607,7 +600,7 @@ const onPanDragEnd = (ev: any) => {
         <a-option value='mypic'>我的相册</a-option>
       </a-select>
     </div>
-    <div v-show="['trash', 'recover', 'favorite'].includes(panfileStore.SelectDirType)"
+    <div v-show="!panfileStore.IsListSelected && ['trash', 'recover', 'favorite'].includes(panfileStore.SelectDirType)"
          class='toppanbtn'>
       <a-select v-model:model-value='inputselectType'
                 size='small' tabindex='-1'
@@ -619,7 +612,7 @@ const onPanDragEnd = (ev: any) => {
         <a-option value='pic'>相册</a-option>
       </a-select>
     </div>
-    <div v-show="panfileStore.SelectDirType === 'search'" class='toppanbtn'>
+    <div v-show="panfileStore.SelectDirType == 'search' && !panfileStore.IsListSelected" class='toppanbtn'>
       <a-dropdown style='width: 100px;'>
         <a-button :disabled='panfileStore.ListLoading'>搜索范围</a-button>
         <template #content>
@@ -630,25 +623,6 @@ const onPanDragEnd = (ev: any) => {
           </a-checkbox-group>
         </template>
       </a-dropdown>
-    </div>
-    <div v-if="panfileStore.SelectDirType == 'video'" class='toppanbtn' tabindex='-1'>
-      <a-space direction='horizontal'>
-        <a-button size='small' tabindex='-1'
-                  :type="videoSelectType === 'recent' ? 'dashed' : 'text'"
-                  @click='handleSelectRecentPlay'>
-          <i class='iconfont iconfile_video' />正在观看
-        </a-button>
-        <a-button size='small' tabindex='-1'
-                  :type="videoSelectType === 'allComp' ? 'dashed' : 'text'"
-                  @click='handleSelectAllCompilation'>
-          <i class='iconfont iconrss_video' />全部专辑
-        </a-button>
-      </a-space>
-    </div>
-    <div v-show="panfileStore.SelectDirType == 'favorite'" class='toppanbtn'>
-      <a-button type='text' size='small' tabindex='-1' class='danger' @click='topFavorDeleteAll'>
-        <i class='iconfont iconcrown2' />清空收藏夹
-      </a-button>
     </div>
     <div v-show="panfileStore.SelectDirType == 'search' && !panfileStore.IsListSelected" class='toppanbtn'>
       <a-input-search

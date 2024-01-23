@@ -140,6 +140,7 @@ const usePanTreeStore = defineStore('pantree', {
       }
       if (key === 'video') this.drive_id = GetDriveID(this.user_id, 'backup')
       if (key === 'pic_root') key = this.selectDir.album_type || 'pic_root'
+      else this.selectDir.album_id = ''
       PanDAL.aReLoadOneDirToShow('', key, true)
     },
     mTreeExpand(key: string) {

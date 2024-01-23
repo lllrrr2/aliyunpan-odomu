@@ -82,7 +82,9 @@ const handleOK = () => {
   <a-modal :visible='visible' modal-class='modalclass' :footer='false' :unmount-on-close='true' :mask-closable='false'
            @cancel='handleHide' @before-open='handleOpen' @close='handleClose'>
     <template #title>
-      <span class='modaltitle'>{{ `${encType == 'enc' ? '加密' : encType == 'myenc' ? '私密' : ''}上传 文件/文件夹 到网盘` }}</span>
+      <span
+        class='modaltitle'>{{ `${encType == 'enc' ? '加密' : encType == 'myenc' ? '私密' : ''}上传 文件/文件夹 到网盘`
+        }}</span>
     </template>
     <div class='modalbody' style='width: 440px; max-height: calc(80vh - 100px); overflow-y: scroll'>
       <div class='settinghead'>

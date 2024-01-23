@@ -17,7 +17,10 @@ let UploadingInfoStop = new Set<number>()
 let _UploadingSendTime = 0
 
 function SaveStopToDB() {
-  return DBUpload.saveUploadObj('UploadingStop', { TaskIDList: Array.from(UploadingTaskStop), UploadIDList: Array.from(UploadingInfoStop) })
+  return DBUpload.saveUploadObj('UploadingStop', {
+    TaskIDList: Array.from(UploadingTaskStop),
+    UploadIDList: Array.from(UploadingInfoStop)
+  })
 }
 
 const SaveTaskList = new Map<number, IStateUploadTask>()
@@ -151,7 +154,10 @@ export default class UploadingData {
 
 
   static async ReloadUploading(): Promise<void> {
-    const stop = (await DBUpload.getUploadObj('UploadingStop')) as { TaskIDList: number[]; UploadIDList: number[] } | undefined
+    const stop = (await DBUpload.getUploadObj('UploadingStop')) as {
+      TaskIDList: number[];
+      UploadIDList: number[]
+    } | undefined
     UploadingTaskStop = new Set<number>(stop?.TaskIDList || [])
     UploadingInfoStop = new Set<number>(stop?.UploadIDList || [])
 
@@ -251,13 +257,13 @@ export default class UploadingData {
         showList.push({
           UploadID: task.TaskID,
           TaskID: task.TaskID,
-          localFilePath: path.join(task.localFilePath, task.localFilePath.endsWith(':\\') ? '' : task.TaskName) ,
+          localFilePath: path.join(task.localFilePath, task.localFilePath.endsWith(':\\') ? '' : task.TaskName),
           name: task.TaskName,
           sizeStr: humanSize(task.ChildTotalSize),
           icon: 'iconfont iconfile-folder',
           isDir: task.isDir,
           uploadState: isStop ? '暂停中' : isRunning ? '上传中' : '排队中',
-          speedStr: isRunning ? humanSizeSpeed(speed) : '' ,
+          speedStr: isRunning ? humanSizeSpeed(speed) : '',
           Progress: Math.floor((childFinishSize * 100) / (task.ChildTotalSize + 1)) % 100,
           ProgressStr: task.ChildFinishCount + ' / ' + task.ChildTotalCount,
           errorMessage: isError > 0 ? '有错误点击查看' : ''
@@ -290,13 +296,13 @@ export default class UploadingData {
       return {
         UploadID: isShowTask ? TaskID : item.UploadID,
         TaskID: TaskID,
-        localFilePath: path.join(localFilePath, item.partPath) ,
+        localFilePath: path.join(localFilePath, item.partPath),
         name: item.partPath || item.name,
         sizeStr: item.sizeStr,
         icon: item.isDir ? 'iconfont iconfile-folder' : 'iconfont iconwenjian',
         isDir: item.isDir,
         uploadState: uploadState,
-        speedStr: isRunning || isHashing ? info.speedStr : '' ,
+        speedStr: isRunning || isHashing ? info.speedStr : '',
         Progress: isSuccess ? 100 : info.Progress,
         ProgressStr: '',
         errorMessage: isError ? info.failedCode + ' ' + info.failedMessage : ''
@@ -602,7 +608,11 @@ export default class UploadingData {
               delTaskList.push(TaskID)
               UploadingTaskStop.delete(TaskID)
               saveUploadedList.push(task)
-              await PanDAL.aReLoadOneDirToRefreshTree(task.user_id, task.drive_id, task.parent_file_id)
+              let panTreeStore = usePanTreeStore()
+              let album_id = panTreeStore.selectDir.album_id || ''
+              if (!album_id) {
+                await PanDAL.aReLoadOneDirToRefreshTree(task.user_id, task.drive_id, task.parent_file_id)
+              }
             }
 
             UploadingInfoList.delete(fileItem.UploadID)
@@ -622,10 +632,10 @@ export default class UploadingData {
 
       if (delTaskList.length > 0) await DBUpload.deleteUploadTaskBatch(delTaskList)
       if (saveUploadedList.length > 0) {
-        // 上传完毕，若为相册上传则添加到相册
         let panTreeStore = usePanTreeStore()
         let album_id = panTreeStore.selectDir.album_id || ''
-        if (album_id && album_id.length > 0) {
+        // 上传完毕，若为相册上传则添加到相册
+        if (album_id) {
           let drive_file_list: { drive_id: string, file_id: string }[] = []
           saveUploadedList.forEach(info => {
             drive_file_list.push({
@@ -634,6 +644,7 @@ export default class UploadingData {
             })
           })
           await AliAlbum.ApiAlbumAddFiles(panTreeStore.user_id, album_id, drive_file_list)
+          await PanDAL.aReLoadOneDirToShow(drive_file_list[0].drive_id, 'refresh', false, album_id)
         }
         await DBUpload.saveUploadedBatch(saveUploadedList)
         await UploadDAL.aReloadUploaded()
@@ -643,7 +654,10 @@ export default class UploadingData {
   }
 
 
-  static UploadingEventRunningCheck(RunningKeys: number[], StopKeys: number[]): { delList: number[]; newList: number[] } {
+  static UploadingEventRunningCheck(RunningKeys: number[], StopKeys: number[]): {
+    delList: number[];
+    newList: number[]
+  } {
 
     let fixStop = 0
     for (let i = 0, maxi = StopKeys.length; i < maxi; i++) {
@@ -853,11 +867,21 @@ export default class UploadingData {
         await DBUpload.deleteUploadTask(TaskID)
         UploadingTaskStop.delete(TaskID)
         await DBUpload.saveUploadedBatch([task])
-        UploadDAL.aReloadUploaded()
-
-        PanDAL.aReLoadOneDirToRefreshTree(task.user_id, task.drive_id, task.parent_file_id)
+        await UploadDAL.aReloadUploaded()
+        let panTreeStore = usePanTreeStore()
+        let album_id = panTreeStore.selectDir.album_id || ''
+        // 重新上传完毕，若为相册上传则添加到相册
+        if (album_id) {
+          let drive_file_list: { drive_id: string, file_id: string }[] = [{
+            drive_id: task.drive_id,
+            file_id: task.TaskFileID
+          }]
+          await AliAlbum.ApiAlbumAddFiles(panTreeStore.user_id, album_id, drive_file_list)
+          await PanDAL.aReLoadOneDirToShow(task.drive_id, 'refresh', false, album_id)
+        } else {
+          await PanDAL.aReLoadOneDirToRefreshTree(task.user_id, task.drive_id, task.parent_file_id)
+        }
       } else {
-
         SaveTaskList.set(task.TaskID, task)
         SaveTaskToDB()
       }

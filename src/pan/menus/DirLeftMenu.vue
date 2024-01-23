@@ -90,7 +90,7 @@ const handleExpandAll = (isExpand: boolean) => {
         <template #default>重命名</template>
       </a-doption>
 
-      <a-doption @click='() => modalShuXing(istree, inputselectType)'>
+      <a-doption @click='() => modalShuXing(istree)'>
         <template #icon><i class='iconfont iconshuxing' /></template>
         <template #default>属性</template>
       </a-doption>

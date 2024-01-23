@@ -1,22 +1,13 @@
-<script lang='ts'>
+<script setup lang='ts'>
 import { usePanTreeStore, useSettingStore } from '../../store'
-import { defineComponent } from 'vue'
 import PanDAL from '../pandal'
 
-export default defineComponent({
-  setup() {
-    const pantreeStore = usePanTreeStore()
-    const settingStore = useSettingStore()
-    return { pantreeStore, settingStore }
-  },
-
-  methods: {
-    selectDir(drive_id: string, file_id: string, album_id: string) {
-      PanDAL.aTreeScrollToDir(file_id)
-      PanDAL.aReLoadOneDirToShow(drive_id, file_id, true, album_id)
-    }
-  }
-})
+const pantreeStore = usePanTreeStore()
+const settingStore = useSettingStore()
+const selectDir = (drive_id: string, file_id: string, album_id: string) => {
+  PanDAL.aTreeScrollToDir(file_id)
+  PanDAL.aReLoadOneDirToShow(drive_id, file_id, true, album_id)
+}
 </script>
 
 <template>

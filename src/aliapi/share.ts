@@ -87,7 +87,7 @@ export default class AliShare {
         share.error = ''
         return share
       }
-    } else if (!AliHttp.HttpCodeBreak(resp.code)) {
+    } else if (resp.code != 429 && !AliHttp.HttpCodeBreak(resp.code)) {
       DebugLog.mSaveWarning('ApiGetShareAnonymous err=' + share_id + ' ' + (resp.code || ''), resp.body)
     }
 

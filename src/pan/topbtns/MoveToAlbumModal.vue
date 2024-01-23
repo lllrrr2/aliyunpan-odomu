@@ -31,10 +31,8 @@ const handleOpen = () => {
   }
   AliAlbum.ApiAlbumList(panTreeStore.user_id).then(data => {
     albumList.value = data
-    okLoading.value = false
-  }).catch((e) => {
-    okLoading.value = false
   })
+  okLoading.value = false
 }
 
 const handleClick = (key: string) => {
