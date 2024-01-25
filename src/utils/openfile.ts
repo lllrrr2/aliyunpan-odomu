@@ -9,13 +9,9 @@ import UserDAL from '../user/userdal'
 import { clickWait } from './debounce'
 import DebugLog from './debuglog'
 import message from './message'
-import { modalArchive, modalArchivePassword, modalSelectPanDir } from './modal'
-import { humanTime } from './format'
-import { SpawnOptions } from 'child_process'
-import { delTmpFile, GetExpiresTime } from './utils'
+import { modalArchive, modalArchivePassword, modalSelectPanDir, modalSelectVideoQuality } from './modal'
 import PlayerUtils from './playerhelper'
 import { getEncType, getRawUrl } from './proxyhelper'
-import { CleanStringForCmd } from './filehelper'
 
 
 export async function menuOpenFile(file: IAliGetFileModel, password: string = ''): Promise<void> {
@@ -69,7 +65,7 @@ export async function menuOpenFile(file: IAliGetFileModel, password: string = ''
     }
     // 选择字幕
     let subTitleFile: any
-    const { uiVideoPlayer, uiVideoSubtitleMode } = useSettingStore()
+    const { uiVideoPlayer, uiVideoSubtitleMode, uiVideoQualityTips } = useSettingStore()
     const listDataRaw: IAliGetFileModel[] = usePanFileStore().ListDataRaw || []
     const subTitlesList: IAliGetFileModel[] = listDataRaw.filter(file => /srt|vtt|ass/.test(file.ext))
     if (uiVideoPlayer === 'other') {
@@ -77,12 +73,12 @@ export async function menuOpenFile(file: IAliGetFileModel, password: string = ''
         subTitleFile = PlayerUtils.filterSubtitleFile(file.name, subTitlesList)
       } else if (uiVideoSubtitleMode === 'select') {
         modalSelectPanDir('select', parent_file_id, async (_user_id: string, _drive_id: string, selectFile: any) => {
-          await Video(token, drive_id, selectFile, file, password)
+          await Video(token, file, selectFile, password)
         }, '', /srt|vtt|ass/)
         return
       }
     }
-    await Video(token, drive_id, subTitleFile, file, password)
+    await Video(token, file, subTitleFile, password)
     return
   }
   if (file.category.startsWith('audio')) {
@@ -149,169 +145,77 @@ async function Archive(drive_id: string, file_id: string, file_name: string, par
   }
 }
 
-async function Video(token: ITokenInfo, drive_id: string, subTitleFile: any, file: IAliGetFileModel, password: string = ''): Promise<void> {
+async function Video(token: ITokenInfo, file: IAliGetFileModel, subTitleFile: any, password: string = ''): Promise<void> {
   if (file.icon == 'iconweifa') {
     message.error('在线预览失败 无法预览违规文件')
     return
   }
-  message.loading('加载中...', 2)
-  let file_id = file.file_id
-  let dec = file.description
-  let parent_file_id = file.parent_file_id
-  let name = file.name
-  let compilation_id = file.compilation_id
-  let playCursorInfo = await PlayerUtils.getPlayCursor(token.user_id, drive_id, file_id)
-  if (!playCursorInfo) {
-    return
-  }
-  const settingStore = useSettingStore()
-  if (settingStore.uiAutoColorVideo && !dec.includes('ce74c3c')) {
-    AliFileCmd.ApiFileColorBatch(token.user_id, drive_id, dec ? dec + ',' + 'ce74c3c' : 'ce74c3c', [file_id])
+  // message.loading('加载中...', 2)
+  let desc = file.description
+  let play_cursor = file.media_play_cursor ? parseInt(file.media_play_cursor) : 0
+  const {
+    uiAutoColorVideo,
+    uiVideoQuality,
+    uiVideoQualityTips,
+    uiVideoPlayer,
+    uiVideoPlayerPath
+  } = useSettingStore()
+  if (uiAutoColorVideo && !desc.includes('ce74c3c')) {
+    AliFileCmd.ApiFileColorBatch(token.user_id, file.drive_id, desc ? desc + ',' + 'ce74c3c' : 'ce74c3c', [file.file_id])
       .then((success) => {
         usePanFileStore().mColorFiles('ce74c3c', success)
       })
   }
-  if (settingStore.uiVideoPlayer == 'web') {
+  if (uiVideoPlayer == 'web') {
     const pageVideo: IPageVideo = {
       user_id: token.user_id,
-      file_name: name,
-      html: name,
-      drive_id: drive_id,
-      file_id: file_id,
-      parent_file_id: parent_file_id,
+      file_name: file.name,
+      html: file.name,
+      drive_id: file.drive_id,
+      file_id: file.file_id,
+      parent_file_id: file.parent_file_id,
       expire_time: 0,
       password: password,
       encType: getEncType(file),
-      play_cursor: playCursorInfo.play_cursor
+      play_cursor: play_cursor
     }
     window.WebOpenWindow({ page: 'PageVideo', data: pageVideo, theme: 'dark' })
     return
   }
-  // 加载网盘内字幕文件
-  let subTitleUrl = ''
-  if (subTitleFile) {
-    const encType1 = getEncType({ description: subTitleFile.description })
-    const data = await getRawUrl(token.user_id, subTitleFile.drive_id, subTitleFile.file_id, encType1, password)
-    if (typeof data !== 'string' && data.url && data.url != '') {
-      subTitleUrl = data.url
-    }
-  }
-  // 构造播放参数
-  let playInfo: any = {
-    drive_id: drive_id,
-    playUrl: '',
-    playDec: dec,
-    playList: [],
-    playFileId: file_id,
-    playReferer: token.open_api_enable ? 'https://openapi.alipan.com/' : 'https://www.aliyundrive.com/',
-    playExpireTime: 0,
-    playFileListPath: '',
-    playCursor: humanTime(playCursorInfo.play_cursor),
-    playTitle: CleanStringForCmd(name),
-    playCommand: settingStore.uiVideoPlayerPath
-  }
   const isWindows = window.platform === 'win32'
   const isMacOrLinux = ['darwin', 'linux'].includes(window.platform)
-  const isMpv = playInfo.playCommand.toLowerCase().includes('mpv')
-  const isPotplayer = playInfo.playCommand.toLowerCase().includes('potplayer')
-  const argsToStr = (args: string) => isWindows ? `"${args}"` : `'${args}'`
   if (!isWindows && !isMacOrLinux) {
     message.error('不支持的系统，操作取消')
     return
   }
-  if ((!isPotplayer && !isMpv) || ((isPotplayer || isMpv) && !settingStore.uiVideoEnablePlayerList)) {
-    const encType = getEncType(file)
-    const data = await getRawUrl(token.user_id, drive_id, file_id, encType, password, file.icon == 'iconweifa', true, 'video')
-    if (typeof data == 'string') {
-      message.error('视频地址解析失败，操作取消')
-      return
-    }
-    if (data.url.indexOf('x-oss-additional-headers=referer') > 0) {
-      message.error('用户token已过期，请点击头像里退出按钮后重新登录账号')
-      return
-    }
-    playInfo.playUrl = data.url
-    playInfo.playExpireTime = GetExpiresTime(data.url)
+  const encType = getEncType(file)
+  let rawData: any = await getRawUrl(
+    token.user_id, file.drive_id,
+    file.file_id, encType, password,
+    file.icon == 'iconweifa', 'video'
+  )
+  if (typeof rawData == 'string') {
+    message.error('视频地址解析失败，操作取消')
+    return
   }
-  let playerArgs: any = { playUrl: playInfo.playUrl, otherArgs: [] }
-  let options: SpawnOptions = { detached: !settingStore.uiVideoPlayerExit }
-  let socketPath = isWindows ? '\\\\.\\pipe\\mpvserver' : '/tmp/mpvserver.sock'
-  if (isPotplayer) {
-    playerArgs = {
-      playUrl: playInfo.playUrl,
-      otherArgs: [
-        '/new',
-        '/autoplay',
-        `/referer=${argsToStr(playInfo.playReferer)}`,
-        `/title=${argsToStr(playInfo.playTitle)}`
-      ]
-    }
-    if (playInfo.playCursor.length > 0 && settingStore.uiVideoPlayerHistory) {
-      playerArgs.otherArgs.push(`/seek=${argsToStr(playInfo.playCursor)}`)
-    }
-    if (subTitleUrl.length > 0) {
-      playerArgs.otherArgs.push(`/sub=${argsToStr(subTitleUrl)}`)
-    }
+  if (rawData.url.indexOf('x-oss-additional-headers=referer') > 0) {
+    message.error('用户token已过期，请点击头像里退出按钮后重新登录账号')
+    return
   }
-  if (isMpv) {
-    playerArgs = {
-      playUrl: playInfo.playUrl,
-      otherArgs: [
-        '--force-window=immediate',
-        '--hwdec=auto',
-        '--geometry=80%',
-        '--autofit-larger=100%x100%',
-        '--autofit-smaller=640',
-        '--audio-pitch-correction=yes',
-        '--keep-open-pause=no',
-        '--alang=[en,eng,zh,chi,chs,sc,zho]',
-        '--slang=[zh,chi,chs,sc,zho,en,eng]',
-        `--force-media-title=${argsToStr(playInfo.playTitle)}`,
-        `--referrer=${argsToStr(playInfo.playReferer)}`,
-        `--title=${argsToStr(playInfo.playTitle)}`
-      ]
-    }
-    if (playInfo.playCursor.length > 0 && settingStore.uiVideoPlayerHistory) {
-      playerArgs.otherArgs.push(`--start=${argsToStr(playInfo.playCursor)}`)
-    }
-    if (subTitleUrl.length > 0) {
-      playerArgs.otherArgs.push(`--sub-file=${argsToStr(subTitleUrl)}`)
-    }
+  let otherArgs: any = {
+    file, subTitleFile,
+    playList: [], fileList: [], playFileListPath: '',
+    rawData, password, quality: uiVideoQuality
   }
-  if (isMpv && settingStore.uiVideoPlayerParams.length > 0) {
-    playerArgs.otherArgs.push(...settingStore.uiVideoPlayerParams.replaceAll(/\s+/g, '').split(','))
+  // 清晰度选择
+  if (uiVideoQualityTips && !encType) {
+    modalSelectVideoQuality(file, rawData, async (quality: any) => {
+      otherArgs.quality = quality
+      await PlayerUtils.startPlayer(token, uiVideoPlayerPath, otherArgs)
+    })
+  } else {
+    await PlayerUtils.startPlayer(token, uiVideoPlayerPath, otherArgs)
   }
-  const playArgs: any[] = [argsToStr(playerArgs.playUrl), ...Array.from(new Set(playerArgs.otherArgs))]
-  console.log('playArgs', playArgs)
-  let fileList: IAliGetFileModel[] = []
-  if (settingStore.uiVideoEnablePlayerList) {
-    fileList = compilation_id ? await PlayerUtils.getDirFileList(token.user_id, drive_id, parent_file_id) : usePanFileStore().ListDataRaw
-    console.log('getDirFileList', fileList)
-    playInfo.playList = fileList.filter((v: any) => v.category.includes('video'))
-    playInfo.playFileListPath = await PlayerUtils.createPlayListFile(
-      token.user_id, file_id,
-      playCursorInfo.play_duration,
-      playCursorInfo.play_cursor,
-      isPotplayer ? 'dpl' : 'm3u',
-      playInfo.playList
-    )
-    // console.log('tmpFile', tmpFile)
-    const playIndex = playInfo.playList.findIndex((v: any) => v.file_id == file_id)
-    playArgs.shift()
-    if (isMpv) {
-      playArgs.push(`--playlist-start=${playIndex}`)
-    } else {
-      playArgs.unshift(playInfo.playFileListPath)
-    }
-  }
-  console.log('playInfo', playInfo)
-  const otherArgs = { user_id: token.user_id, socketPath, fileList, playInfo }
-  await PlayerUtils.startPlayer(playInfo.playCommand, playArgs, otherArgs, options, async () => {
-    if (settingStore.uiVideoEnablePlayerList) {
-      delTmpFile(playInfo.playFileListPath)
-    }
-    playInfo = {}
-  })
 }
 
 async function Image(drive_id: string, file_id: string, name: string, password: string = ''): Promise<void> {
@@ -378,7 +282,7 @@ async function Audio(drive_id: string, file_id: string, name: string, weifa: boo
     message.error('在线预览失败 账号失效，操作取消')
     return
   }
-  const data = await getRawUrl(user_id, drive_id, file_id, getEncType({ description }), password, true, true, 'audio')
+  const data = await getRawUrl(user_id, drive_id, file_id, getEncType({ description }), password, weifa, 'audio')
   if (typeof data != 'string') {
     useFootStore().mSaveAudioUrl(data.url)
   } else {

@@ -80,8 +80,8 @@ const handleCopyM3U8Click = () => {
   AliFile.ApiVideoPreviewUrl(pageVideoXBT.user_id, pageVideoXBT.drive_id, pageVideoXBT.file_id).then((data) => {
     if (typeof data == 'string') {
       message.error(data)
-    } else if (data && data.url) {
-      copyToClipboard(data.url)
+    } else if (data && data.qualities) {
+      copyToClipboard(data.qualities[0].url)
       message.success('视频的M3U8链接已复制，4小时内有效')
     } else {
       message.error('视频的M3U8链接获取失败，请稍后重试')

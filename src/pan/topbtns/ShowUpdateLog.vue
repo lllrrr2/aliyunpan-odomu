@@ -36,9 +36,7 @@ const handleOpen = async () => {
   const resp = await AliHttp.Get(updateUrl, '')
   const updateData = resp.body as IUpdateRespData[]
   const updateLog = updateData && updateData.map(up => `## ${up.name} \r\n${up.body}`).join('\r\n')
-  setTimeout(() => {
-    okLoading.value = false
-  }, 1500)
+  setTimeout(() => { okLoading.value = false }, 200)
   await nextTick(() => {
     if (updateLog) {
       const md = new MarkdownIt({

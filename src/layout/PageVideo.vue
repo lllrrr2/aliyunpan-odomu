@@ -12,6 +12,8 @@ import AliFileCmd from '../aliapi/filecmd'
 import ASS from 'ass-html5'
 import { getEncType, getRawUrl, IRawUrl } from '../utils/proxyhelper'
 import { TestAlt, TestKey } from '../utils/keyboardhelper'
+import message from '../utils/message'
+import { GetExpiresTime } from '../utils/utils'
 
 const appStore = useAppStore()
 const pageVideo = appStore.pageVideo!
@@ -119,6 +121,7 @@ const playM3U8 = (video: HTMLMediaElement, url: string, art: Artplayer) => {
 type selectorItem = {
   url: string;
   html: string;
+  type?: string;
   name?: string;
   default?: boolean;
   file_id?: string;
@@ -426,40 +429,34 @@ const defaultControls = async (art: Artplayer) => {
 
 const getVideoInfo = async (art: Artplayer) => {
   // 获取视频链接
-  const data: string | IRawUrl = await getRawUrl(pageVideo.user_id, pageVideo.drive_id, pageVideo.file_id, pageVideo.encType, pageVideo.password, false, true, 'video')
-  if (typeof data != 'string') {
+  const data: string | IRawUrl = await getRawUrl(pageVideo.user_id, pageVideo.drive_id, pageVideo.file_id, pageVideo.encType, pageVideo.password, false, 'video')
+  if (typeof data != 'string' && data.qualities.length > 0) {
     // 画质
     const qualitySelector: selectorItem[] = []
     const isBigFile = data.size >= 3 * 1024 * 1024 * 1024
-    if (data.url && useSettingStore().uiVideoMode === 'web') {
-      qualitySelector.push({ url: data.url, html: '原画' })
+    for (let item of data.qualities) {
+      qualitySelector.push({ url: item.url, type: item.quality, html: item.label + ' ' + item.value })
     }
-    if (!pageVideo.encType) {
-      if (data.urlQHD) qualitySelector.push({ url: data.urlQHD, html: '2k高清 2560p' })
-      if (data.urlFHD) qualitySelector.push({ url: data.urlFHD, html: '全高清 1080P' })
-      if (data.urlHD) qualitySelector.push({ url: data.urlHD, html: '高清 720P' })
-      if (data.urlSD) qualitySelector.push({ url: data.urlSD, html: '标清 540P' })
-      if (data.urlLD) qualitySelector.push({ url: data.urlLD, html: '流畅 480P' })
-    }
-    let qualityDefault = qualitySelector[0]
-    if (isBigFile && qualityDefault.html == '原画') {
+    let uiVideoQuality = useSettingStore().uiVideoQuality
+    let defaultQuality = qualitySelector.find(q => q.type === uiVideoQuality) || qualitySelector[0]
+    if (isBigFile && defaultQuality.html == '原画') {
       if (pageVideo.encType) {
-        art.notice.show = '加密文件超过3GB，请使用自定义播放器播放'
         art.emit('video:ended')
+        message.error('加密文件超过3GB，请使用自定义播放器播放')
         return
       }
       art.notice.show = '原画文件超过3GB，自动切换到转码画质播放'
-      qualityDefault = qualitySelector[1]
+      defaultQuality = qualitySelector[1]
     }
-    qualityDefault.default = true
-    art.url = qualityDefault.url
-    pageVideo.expire_time = data.expire_time
+    defaultQuality.default = true
+    art.url = defaultQuality.url
+    pageVideo.expire_time = GetExpiresTime(defaultQuality.url)
     art.controls.update({
       name: 'quality',
       index: 20,
       position: 'right',
       style: { marginRight: '15px' },
-      html: qualityDefault ? qualityDefault.html : '',
+      html: defaultQuality ? defaultQuality.html : '',
       selector: qualitySelector,
       onSelect: async (item: selectorItem) => {
         if (item.html === '原画') {
@@ -491,7 +488,7 @@ const getVideoInfo = async (art: Artplayer) => {
     await getSubTitleList(art)
   } else {
     art.url = ''
-    art.notice.show = data
+    art.notice.show = '获取视频链接失败'
     art.emit('video:ended')
   }
 }

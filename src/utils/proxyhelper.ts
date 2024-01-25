@@ -17,16 +17,18 @@ const httpAgent = new HttpAgent({ keepAlive: true })
 export interface IRawUrl {
   drive_id: string
   file_id: string
-  expire_time: number
   url: string
   size: number
-  duration: number
-  urlQHD: string
-  urlFHD: string
-  urlHD: string
-  urlSD: string
-  urlLD: string
-  subtitles: any[]
+  qualities: {
+    quality: string
+    label: string
+    value: string
+    url: string
+  }[]
+  subtitles: {
+    language: string
+    url: string
+  }[]
 }
 
 interface FileInfo {
@@ -92,66 +94,59 @@ export async function getRawUrl(
   encType: string = '',
   password: string = '',
   weifa: boolean = false,
-  preview: boolean = false,
-  preview_type?: string
+  preview_type: string = '',
+  quality: string = ''
 ): Promise<string | IRawUrl> {
   let data: any = {
     drive_id: drive_id,
     file_id: file_id,
-    expire_time: 0,
     url: '',
     size: 0,
-    duration: 0,
-    urlQHD: '',
-    urlFHD: '',
-    urlHD: '',
-    urlSD: '',
-    urlLD: '',
+    qualities: [],
     subtitles: []
   }
-  if (!encType && preview) {
-    // 违规视频也使用转码播放
-    if (weifa || preview_type === 'video' || useSettingStore().uiVideoMode === 'online') {
+  let { uiVideoQuality, uiVideoPlayer } = useSettingStore()
+  // 违规视频也使用转码播放
+  if (!encType && (preview_type && preview_type != 'other')) {
+    if (weifa || preview_type !== 'audio') {
       let previewData = await AliFile.ApiVideoPreviewUrl(user_id, drive_id, file_id)
       if (typeof previewData != 'string') {
         Object.assign(data, previewData)
+        if (quality && quality != 'Origin') {
+          data.url = data.qualities.find((q: any)=> q.quality === quality)?.url || data.qualities[0].url
+        }
       }
-    } else if (preview_type === 'audio') {
+    } else {
       let audioData = await AliFile.ApiAudioPreviewUrl(user_id, drive_id, file_id)
       if (typeof audioData != 'string') {
         data.url = audioData.url
       }
     }
-    // 违规文件无法获取地址
-    if (!weifa && useSettingStore().uiVideoMode === 'web') {
-      let downUrl = await AliFile.ApiFileDownloadUrl(user_id, drive_id, file_id, 14400)
-      if (typeof downUrl != 'string') {
-        if (getUrlFileName(downUrl.url).includes('wma')) {
-          return '不支持预览的加密音频格式'
-        }
-        data.url = downUrl.url
-        data.size = downUrl.size
-      }
-    }
-    if (!data.url) {
-      return '获取下载链接失败'
-    }
-  } else {
+  }
+  // 违规文件无法获取地址
+  if ((!weifa && !data.url) || uiVideoPlayer == 'web') {
     let downUrl = await AliFile.ApiFileDownloadUrl(user_id, drive_id, file_id, 14400)
     if (typeof downUrl != 'string') {
       if (getUrlFileName(downUrl.url).includes('wma')) {
         return '不支持预览的加密音频格式'
+      }
+      if (!encType) {
+        data.qualities.unshift({ quality: 'Origin', label: '原画', value: '', url: downUrl.url })
       }
       data.url = downUrl.url
       data.size = downUrl.size
     }
   }
   // 代理播放
-  if (preview_type || encType) {
+  if ((preview_type && preview_type != 'other') || encType) {
     data.url = getProxyUrl({
       user_id, drive_id, file_id, encType, password,
-      file_size: data.size, proxy_url: data.url
+      file_size: data.size, quality: quality || uiVideoQuality,
+      proxy_url: data.url,
     })
+    if (encType) {
+      data.qualities.unshift({ quality: 'Origin', label: '原画', value: '', url: data.url })
+    }
   }
   return data
 }
@@ -168,50 +163,54 @@ export async function createProxyServer(port: number) {
   const url = require('url')
   const proxyServer: Server = http.createServer(async (clientReq: IncomingMessage, clientRes: ServerResponse) => {
     const { pathname, query } = url.parse(clientReq.url, true)
-    const { user_id, drive_id, file_id, file_size, encType, password, weifa, proxy_url } = query
-    // console.log('proxy request: ', clientReq.url)
-    console.info('proxy request query: ', query)
+    const { user_id, drive_id, file_id, file_size, encType, password, weifa, quality, proxy_url } = query
+    console.info('proxy query: ', query)
     if (pathname === '/proxy') {
       let proxyInfo: any = await Db.getValueObject('ProxyInfo')
-      // console.warn('proxyInfo', proxyInfo)
       let proxyUrl = proxy_url || (proxyInfo && proxyInfo.proxy_url || '') || ''
+      let { uiVideoQuality, securityEncType, securityFileNameAutoDecrypt } = useSettingStore()
+      let selectQuality = quality || uiVideoQuality
       let needRefreshUrl = proxyInfo && (file_id != proxyInfo.file_id || proxyInfo.expires_time <= Date.now())
-      let changeVideoMode = proxyInfo && proxyInfo.videoMode && (useSettingStore().uiVideoMode !== proxyInfo.videoMode)
-      if (!proxyUrl || (needRefreshUrl || changeVideoMode)) {
+      let changeVideoQuality = proxyInfo && proxyInfo.videoQuality && (selectQuality !== proxyInfo.videoQuality)
+      if (!proxyUrl || needRefreshUrl || changeVideoQuality) {
         // 获取地址
-        let data = await getRawUrl(user_id, drive_id, file_id, '', '', weifa, true)
+        let data = await getRawUrl(user_id, drive_id, file_id, '', '', weifa, 'other', selectQuality)
+        console.error('proxy getRawUrl', data)
         if (typeof data != 'string' && data.url) {
+          let subtitleData = data.subtitles.find((sub: any) => sub.language === 'chi') || data.subtitles[0]
           let info: FileInfo = {
             user_id, drive_id, file_id, file_size, encType,
-            videoMode: useSettingStore().uiVideoMode,
+            videoQuality: selectQuality,
             expires_time: GetExpiresTime(data.url),
-            proxy_url: data.url
+            proxy_url: data.url,
+            subtitle_url: subtitleData && subtitleData.url || ''
           }
           await Db.saveValueObject('ProxyInfo', info)
           proxyUrl = data.url
-        } else {
-          clientRes.writeHead(500, { 'Content-Type': 'text/plain' })
-          clientRes.end(JSON.stringify(data))
-          await Db.deleteValueObject('ProxyInfo')
         }
       }
-      if (proxyUrl.indexOf('.aliyuncs.com') > 0) {
+      console.warn('proxyUrl', proxyUrl)
+      if (!proxyUrl) {
+        clientRes.writeHead(404, { 'Content-Type': 'text/plain' })
+        clientRes.end()
+        await Db.deleteValueObject('ProxyInfo')
+        return
+      }
+      if (!encType) {
         // 转码视频 302重定向
         clientRes.writeHead(302, { 'Location': proxyUrl })
         clientRes.end()
-      } else if (proxyUrl) {
+      } else {
         let decryptTransform: any = null
         // 需要解密
         console.warn('proxy.range', clientReq.headers.range)
-        if (encType) {
-          // 要定位请求文件的位置 bytes=xxx-
-          const range = clientReq.headers.range
-          const start = range ? parseInt(range.replace('bytes=', '').split('-')[0]) : 0
-          const flowEnc = getFlowEnc(user_id, file_size, encType, password)!!
-          decryptTransform = flowEnc.decryptTransform()
-          if (start) {
-            await flowEnc.setPosition(start)
-          }
+        // 要定位请求文件的位置 bytes=xxx-
+        const range = clientReq.headers.range
+        const start = range ? parseInt(range.replace('bytes=', '').split('-')[0]) : 0
+        const flowEnc = getFlowEnc(user_id, file_size, encType, password)!!
+        decryptTransform = flowEnc.decryptTransform()
+        if (start) {
+          await flowEnc.setPosition(start)
         }
         console.warn('proxyUrl', proxyUrl)
         delete clientReq.headers.host
@@ -235,7 +234,7 @@ export async function createProxyServer(port: number) {
                 // Referer
                 httpResp.headers.location = getProxyUrl({
                   user_id, drive_id, file_id, password, weifa,
-                  file_size, encType, proxy_url
+                  file_size, encType, quality, proxy_url
                 })
               }
               console.log('302 redirectUrl:', redirectUrl)
@@ -247,12 +246,11 @@ export async function createProxyServer(port: number) {
               clientRes.setHeader(key, httpResp.headers[key])
             }
             // 解密文件名
-            if (clientReq.method === 'GET' && clientRes.statusCode === 200 && encType && useSettingStore().securityFileNameAutoDecrypt) {
+            if (clientReq.method === 'GET' && clientRes.statusCode === 200 && encType && securityFileNameAutoDecrypt) {
               let fileName = getUrlFileName(proxyUrl)
               if (fileName) {
                 let ext = path.extname(fileName)
                 let securityPassword = getEncPassword(user_id, encType, password)
-                let securityEncType = useSettingStore().securityEncType
                 let decName = decodeName(securityPassword, securityEncType, fileName.replace(ext, '')) || ''
                 clientRes.setHeader('content-disposition', `attachment; filename*=UTF-8''${encodeURIComponent(decName + ext)};`)
               }
@@ -266,7 +264,6 @@ export async function createProxyServer(port: number) {
           proxyServer.on('close', async () => {
             decryptTransform && decryptTransform.destroy()
           })
-          // 关闭解密流
           proxyServer.on('error', (e: Error) => {
             clientRes.end()
             console.log('proxyServer socket error: ' + e)

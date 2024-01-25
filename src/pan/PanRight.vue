@@ -869,7 +869,7 @@ const onPanDragEnd = (ev: any) => {
               <a-button v-else type='text' tabindex='-1' class='gengduo' disabled></a-button>
             </div>
 
-            <div v-show='!item.album_id' class='filesize' style="max-width: 70px">{{ item.sizeStr }}</div>
+            <div v-show='!item.album_id' class='filesize'>{{ item.sizeStr }}</div>
             <div v-show='item.file_count' class='filesize'>{{ '文件数: ' + item.file_count }}</div>
             <div class='filetime'>{{ item.timeStr }}</div>
           </div>

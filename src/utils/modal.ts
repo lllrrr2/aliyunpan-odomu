@@ -1,6 +1,7 @@
 import { IAliGetFileModel, IAliShareItem } from '../aliapi/alimodels'
 import { useModalStore } from '../store'
 import { IServerVerData } from '../aliapi/server'
+import { IRawUrl } from './proxyhelper'
 
 export function modalCloseAll() {
   useModalStore().showModal('', {})
@@ -59,6 +60,10 @@ export function modalSelectPanDir(selecttype: string, selectid: string,
                                   category?: string,
                                   extFilter?: RegExp) {
   useModalStore().showModal('selectpandir', { selecttype, selectid, category, extFilter, callback })
+}
+
+export function modalSelectVideoQuality(fileInfo: IAliGetFileModel, qualityData: IRawUrl, callback: (quality: string) => void) {
+  useModalStore().showModal('selectvideoquality', { fileInfo, qualityData, callback })
 }
 
 export function modalShuXing(istree: boolean, ispic: boolean = false) {

@@ -10,18 +10,18 @@ export interface IDownloadUrl {
 export interface IVideoPreviewUrl {
   drive_id: string
   file_id: string
-  expire_time: number
-  url: string
   size: number
   duration: number
+  expire_time: number
   width: number
   height: number
-  urlQHD: string
-
-  urlFHD: string
-  urlHD: string
-  urlSD: string
-  urlLD: string
+  qualities: {
+    quality: string
+    width: number
+    label: string
+    value: string
+    url: string
+  }[]
   subtitles: {
     language: string
     url: string

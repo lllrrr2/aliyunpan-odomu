@@ -160,13 +160,8 @@ export default class AliFile {
       expire_time: 0,
       width: 0,
       height: 0,
-      url: '',
       duration: 0,
-      urlQHD: '',
-      urlFHD: '',
-      urlHD: '',
-      urlSD: '',
-      urlLD: '',
+      qualities: [],
       subtitles: []
     }
     if (AliHttp.IsSuccess(resp.code)) {
@@ -177,28 +172,35 @@ export default class AliFile {
         }
       }
       const taskList = resp.body.video_preview_play_info?.live_transcoding_task_list || []
+      const qualityMap: any = {
+        'LD': { label: '低清', value: '480p' },
+        'SD': { label: '标清', value: '720p' },
+        'HD': { label: '高清', value: '1080p' },
+        'FHD': { label: '全高清', value: '1080p' },
+        'QHD': { label: '超高清', value: '2560p' }
+      }
       for (let i = 0, maxi = taskList.length; i < maxi; i++) {
         if (taskList[i].url.indexOf('pdsapi.aliyundrive.com') > 0) {
           // 非OpenApi无法播放
           continue
         }
-        if (taskList[i].template_id && taskList[i].template_id == 'QHD' && taskList[i].status == 'finished') {
-          data.urlQHD = taskList[i].url
-        } else if (taskList[i].template_id && taskList[i].template_id == 'FHD' && taskList[i].status == 'finished') {
-          data.urlFHD = taskList[i].url
-        } else if (taskList[i].template_id && taskList[i].template_id == 'HD' && taskList[i].status == 'finished') {
-          data.urlHD = taskList[i].url
-        } else if (taskList[i].template_id && taskList[i].template_id == 'SD' && taskList[i].status == 'finished') {
-          data.urlSD = taskList[i].url
-        } else if (taskList[i].template_id && taskList[i].template_id == 'LD' && taskList[i].status == 'finished') {
-          data.urlLD = taskList[i].url
+        let templateId = taskList[i].template_id
+        if (templateId && taskList[i].status == 'finished') {
+          let quality = qualityMap[templateId]
+          data.qualities.push({
+            quality: templateId,
+            width: taskList[i].template_width,
+            label: quality.label,
+            value: quality.value,
+            url: taskList[i].url
+          })
         }
       }
-      data.url = data.urlQHD || data.urlFHD || data.urlHD || data.urlSD || data.urlLD || ''
+      data.qualities = data.qualities.sort((a, b) => b.width - a.width)
       data.duration = Math.floor(resp.body.video_preview_play_info?.meta?.duration || 0)
       data.width = resp.body.video_preview_play_info?.meta?.width || 0
       data.height = resp.body.video_preview_play_info?.meta?.height || 0
-      data.expire_time = GetExpiresTime(data.url)
+      data.expire_time = GetExpiresTime(data.qualities[0].url)
       return data
     } else if (!AliHttp.HttpCodeBreak(resp.code)) {
       DebugLog.mSaveWarning('ApiVideoPreviewUrl err=' + file_id + ' ' + (resp.code || ''), resp.body)
@@ -343,7 +345,9 @@ export default class AliFile {
       const list: IAliGetDirModel[] = []
       for (let i = items.length - 1; i >= 0; i--) {
         const item = items[i]
-        if (item.name === 'Default' || item.name === 'resource') continue
+        if (item.name === 'Default' || item.name === 'resource' || item.name === 'alibum') {
+          continue
+        }
         list.push({
           __v_skip: true,
           drive_id: item.drive_id,

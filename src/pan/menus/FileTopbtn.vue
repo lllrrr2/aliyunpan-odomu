@@ -55,7 +55,7 @@ const props = defineProps({
 const istree = false
 const isShowBtn = computed(() => {
   return (props.dirtype === 'pic' && props.inputpicType != 'mypic')
-    || props.dirtype === 'mypic' || props.dirtype === 'pan'
+    || props.dirtype === 'mypic' || props.dirtype === 'pan' || props.dirtype === 'color'
 })
 const isPic = computed(() => {
   return (props.dirtype === 'pic' && props.inputpicType == 'mypic')
@@ -85,7 +85,7 @@ const isPic = computed(() => {
               @click='() => menuFavSelectFile(istree, false)'>
       <i class='iconfont iconcrown2' />取消收藏
     </a-button>
-    <a-button v-if='isShowBtn && inputpicType !== "mypic" && dirtype !== "pan"' type='text' size='small' tabindex='-1' title='Ctrl+G'
+    <a-button v-if='inputpicType !== "mypic" && dirtype === "pic"' type='text' size='small' tabindex='-1' title='Ctrl+G'
               @click='() => menuAddAlbumSelectFile()'>
       <i class='iconfont iconmoveto' />移入相册
     </a-button>

@@ -8,6 +8,7 @@ import UserDAL from '../user/userdal'
 import { isEmpty } from 'lodash'
 
 declare type ProxyType = 'none' | 'http' | 'https' | 'socks4' | 'socks4a' | 'socks5' | 'socks5h'
+declare type VideoQuality = 'Origin' | 'QHD' | 'FHD' | 'HD' | 'SD' | 'LD'
 
 export interface SettingState {
   // 应用设置
@@ -43,7 +44,9 @@ export interface SettingState {
   securityHidePicDrive: boolean
 
   // 在线预览
-  uiVideoMode: string
+  uiVideoQuality: VideoQuality
+  uiVideoQualityTips: boolean
+  uiVideoQualityLastSelect: boolean
   uiVideoPlayer: string
   uiVideoEnablePlayerList: boolean
   uiVideoPlayerExit: boolean
@@ -166,7 +169,9 @@ const setting: SettingState = {
   securityHidePicDrive: false,
 
   // 在线预览
-  uiVideoMode: 'web',
+  uiVideoQuality: 'Origin',
+  uiVideoQualityTips: false,
+  uiVideoQualityLastSelect: true,
   uiVideoPlayer: 'web',
   uiVideoEnablePlayerList: false,
   uiVideoPlayerExit: false,
@@ -296,7 +301,9 @@ function _loadSetting(val: any) {
   setting.securityHidePicDrive = defaultBool(val.securityHidePicDrive, false)
 
   // 在线预览
-  setting.uiVideoMode = defaultValue(val.uiVideoMode, ['web', 'online'])
+  setting.uiVideoQuality = defaultValue(val.uiVideoQuality, ['Origin', 'QHD', 'FHD', 'HD', 'SD', 'LD'])
+  setting.uiVideoQualityTips = defaultBool(val.uiVideoQualityTips, false)
+  setting.uiVideoQualityLastSelect = defaultBool(val.uiVideoQualityLastSelect, true)
   setting.uiVideoPlayer = defaultValue(val.uiVideoPlayer, ['web', 'other'])
   setting.uiVideoEnablePlayerList = defaultBool(val.uiVideoEnablePlayerList, false)
   setting.uiVideoPlayerExit = defaultBool(val.uiVideoPlayerExit, false)

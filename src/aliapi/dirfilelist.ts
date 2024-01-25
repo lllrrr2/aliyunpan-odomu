@@ -106,22 +106,48 @@ export default class AliDirFileList {
         if (item.play_cursor) {
           add.media_play_cursor = humanTime(item.play_cursor)
         } else if (item.user_meta) {
-          add.media_play_cursor = humanTime(JSON.parse(item.user_meta).play_cursor)
+          const meta = JSON.parse(item.user_meta)
+          if (meta.play_cursor) {
+            add.media_play_cursor = humanTime(meta.play_cursor)
+          }
         }
-        add.media_duration = humanTime(item.video_media_metadata.duration)
+        if (item.duration) {
+          add.media_duration = humanTime(item.duration)
+        } else if (item.video_media_metadata.duration) {
+          add.media_duration = humanTime(item.video_media_metadata.duration)
+        }
       } else if (item.video_preview_metadata) {
         add.media_width = item.video_preview_metadata.width || 0
         add.media_height = item.video_preview_metadata.height || 0
         if (item.play_cursor) {
           add.media_play_cursor = humanTime(item.play_cursor)
         } else if (item.user_meta) {
-          add.media_play_cursor = humanTime(JSON.parse(item.user_meta).play_cursor)
+          const meta = JSON.parse(item.user_meta)
+          if (meta.play_cursor) {
+            add.media_play_cursor = humanTime(meta.play_cursor)
+          }
         }
-        add.media_duration = humanTime(item.video_preview_metadata.duration)
+        if (item.duration) {
+          add.media_duration = humanTime(item.duration)
+        } else if (item.video_preview_metadata.duration) {
+          add.media_duration = humanTime(item.video_preview_metadata.duration)
+        }
       } else if (item.image_media_metadata) {
         add.media_width = item.image_media_metadata.width || 0
         add.media_height = item.image_media_metadata.height || 0
         add.media_time = humanDateTimeDateStr(item.image_media_metadata.time)
+      } else {
+        if (item.duration) {
+          add.media_duration = humanTime(item.duration)
+        }
+        if (item.play_cursor) {
+          add.media_play_cursor = humanTime(item.play_cursor)
+        } else if (item.user_meta) {
+          const meta = JSON.parse(item.user_meta)
+          if (meta.play_cursor) {
+            add.media_play_cursor = humanTime(meta.play_cursor)
+          }
+        }
       }
     }
     // 完全违规和部分违规
@@ -313,7 +339,7 @@ export default class AliDirFileList {
   private static async _ApiFavorFileListOnePage(orderby: string, order: string, dir: IAliFileResp, pageIndex: number): Promise<boolean> {
     let url = 'v2/file/list_by_custom_index_key'
     if (useSettingStore().uiShowPanMedia == false) url += '?jsonmask=next_marker%2Cpunished_file_count%2Ctotal_count%2Citems(' + AliDirFileList.ItemJsonmask + ')'
-    else url += '?jsonmask=next_marker%2Cpunished_file_count%2Ctotal_count%2Citems(' + AliDirFileList.ItemJsonmask + '%2Cvideo_media_metadata(duration%2Cwidth%2Cheight%2Ctime)%2Cvideo_preview_metadata%2Fduration%2Cimage_media_metadata)'
+    else url += '?jsonmask=next_marker%2Cpunished_file_count%2Ctotal_count%2Citems(' + AliDirFileList.ItemJsonmask + '%2Cuser_meta%2Cvideo_media_metadata(duration%2Cwidth%2Cheight%2Ctime)%2Cvideo_preview_metadata%2Fduration%2Cimage_media_metadata)'
 
     const postData = {
       drive_id: dir.m_drive_id,
@@ -363,7 +389,7 @@ export default class AliDirFileList {
   static async _ApiSearchFileListOnePage(orderby: string, order: string, dir: IAliFileResp, pageIndex: number): Promise<boolean> {
     let url = 'adrive/v3/file/search'
     if (useSettingStore().uiShowPanMedia == false) url += '?jsonmask=next_marker%2Cpunished_file_count%2Ctotal_count%2Citems(' + AliDirFileList.ItemJsonmask + ')'
-    else url += '?jsonmask=next_marker%2Cpunished_file_count%2Ctotal_count%2Citems(' + AliDirFileList.ItemJsonmask + '%2Cvideo_media_metadata(duration%2Cwidth%2Cheight%2Ctime)%2Cvideo_preview_metadata%2Fduration%2Cimage_media_metadata)'
+    else url += '?jsonmask=next_marker%2Cpunished_file_count%2Ctotal_count%2Citems(' + AliDirFileList.ItemJsonmask + '%2Cuser_meta%2Cvideo_media_metadata(duration%2Cwidth%2Cheight%2Ctime)%2Cvideo_preview_metadata%2Fduration%2Cimage_media_metadata)'
 
     let query = ''
     let drive_id_list = []

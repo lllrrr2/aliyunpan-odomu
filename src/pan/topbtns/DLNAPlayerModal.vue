@@ -81,7 +81,7 @@ export default defineComponent({
           // playercurr.stop()
           // await Sleep(2000)
           playercurr.play(
-            preview.url,
+            preview.qualities[0].url,
             {
               title: info.name,
               type: 'application/x-mpegURL',

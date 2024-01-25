@@ -395,7 +395,7 @@ export async function AriaAddUrl(file: IStateDownFile): Promise<string> {
       if (file.Down.IsStop) return '已暂停'
       const split = useSettingStore().downThreadMax
       const referer = Config.referer
-      const userAgent = Config.downAgent
+      const userAgent = Config.userAgent
       const multicall = [
         ['aria2.forceRemove', info.GID],
         ['aria2.removeDownloadResult', info.GID],

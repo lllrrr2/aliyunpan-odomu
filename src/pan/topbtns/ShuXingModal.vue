@@ -66,7 +66,7 @@ const handleOpen = async () => {
       const rawUrl = await getRawUrl(
         pantreeStore.user_id, drive_id, file_id,
         encType, '',
-        category === 'audio', true, category
+        category === 'audio', category
       )
       if (typeof rawUrl == 'string') {
         message.error(rawUrl)

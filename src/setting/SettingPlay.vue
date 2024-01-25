@@ -36,35 +36,6 @@ const playerType = computed(() => {
 
 <template>
   <div class='settingcard'>
-    <div class='settinghead'>:播放视频清晰度</div>
-    <div class='settingrow'>
-      <a-radio-group type='button' tabindex='-1' :model-value='settingStore.uiVideoMode'
-                     @update:model-value='cb({ uiVideoMode: $event })'>
-        <a-radio tabindex='-1' value='web'>播放原始的文件</a-radio>
-        <a-radio tabindex='-1' value='online'>播放转码后视频</a-radio>
-      </a-radio-group>
-      <a-popover position='bottom'>
-        <i class='iconfont iconbulb' />
-        <template #content>
-          <div>
-            默认：<span class='opred'>播放原始的文件</span>
-            <hr />
-            <span class='opred'>播放原始的文件</span>：<br />
-            原始的清晰度(1080P,2K,4K),支持<span class='oporg'>多个音轨</span>/<span
-            class='oporg'>多个字幕</span>的切换<br />
-            可以拖放加载自己的字幕,但文件体积太大时会卡(网络卡)
-
-            <div class='hrspace'></div>
-            <span class='opred'>播放转码后视频</span>：<br />
-            最高720P/1080P清晰度,不能选择音轨/字幕<br />
-            理论上播放更流畅，但可能遇到字幕不显示
-            <div class='hrspace'></div>
-            <span class='oporg'>注：违规视频会<span class='opblue'>自动</span>通过转码视频播放</span>
-          </div>
-        </template>
-      </a-popover>
-    </div>
-    <div class='settingspace'></div>
     <div class='settinghead'>:选择视频播放器</div>
     <div class='settingrow' style='min-width: 800px '>
       <a-radio-group type='button' tabindex='-1' :model-value='settingStore.uiVideoPlayer'
@@ -94,7 +65,58 @@ const playerType = computed(() => {
         【内置网页播放器】 支持倍速！支持选择清晰度！支持播放历史！支持播放列表！支持字幕选择！
       </div>
     </div>
+    <div class='settingspace'></div>
+    <div class='settinghead'>:视频默认清晰度</div>
+    <div class='settingrow'>
+      <a-select :model-value='settingStore.uiVideoQuality' tabindex='-1'
+                @update:model-value='cb({ uiVideoQuality: $event })'
+                :style="{width:'252px'}" placeholder="清晰度选择"
+                :trigger-props="{ autoFitPopupMinWidth: true }">
+        <a-option value="Origin">原画（原始文件）</a-option>
+        <a-option value="QHD">超高清（2560p）</a-option>
+        <a-option value="FHD">全高清（1080P）</a-option>
+        <a-option value="HD">高清（720P）</a-option>
+        <a-option value="SD">标清（540P）</a-option>
+        <a-option value="LD">流畅（480P）</a-option>
+      </a-select>
+      <a-popover position='bottom'>
+        <i class='iconfont iconbulb' />
+        <template #content>
+          <div>
+            默认：<span class='opred'>播放原始的文件</span>
+            <hr />
+            <span class='opred'>播放原始的文件</span>：<br />
+            原始的清晰度(1080P,2K,4K),支持<span class='oporg'>多个音轨</span>/<span
+            class='oporg'>多个字幕</span>的切换<br />
+            可以拖放加载自己的字幕,但文件体积太大时会卡(网络卡)
+
+            <div class='hrspace'></div>
+            <span class='opred'>播放转码后视频</span>：<br />
+            最高720P/1080P清晰度,不能选择音轨/字幕<br />
+            理论上播放更流畅，但可能遇到字幕不显示
+            <div class='hrspace'></div>
+            <span class='oporg'>注：违规视频会<span class='opblue'>自动</span>通过转码视频播放</span>
+          </div>
+        </template>
+      </a-popover>
+    </div>
     <template v-if="settingStore.uiVideoPlayer === 'other'">
+      <div class='settingspace'></div>
+      <div class='settinghead'>:每次播放前提示选择清晰度</div>
+      <div class='settingrow'>
+        <MySwitch :value='settingStore.uiVideoQualityTips'
+                  @update:value='cb({ uiVideoQualityTips: $event })'>
+          观看视频前 将提示选择清晰度
+        </MySwitch>
+      </div>
+      <div class='settingspace'></div>
+      <div class='settinghead'>:记忆选择的清晰度</div>
+      <div class='settingrow'>
+        <MySwitch :value='settingStore.uiVideoQualityLastSelect'
+                  @update:value='cb({ uiVideoQualityLastSelect: $event })'>
+          记忆上次选择的清晰度
+        </MySwitch>
+      </div>
       <div class='settingspace'></div>
       <div class='settinghead'>:字幕加载设置</div>
       <a-popover position='bottom'>
@@ -121,37 +143,13 @@ const playerType = computed(() => {
           </a-radio>
         </a-radio-group>
       </div>
-      <div class='settingspace'></div>
-      <div class='settinghead'>:播放器启动参数设置</div>
-      <a-popover position='bottom'>
-        <i class='iconfont iconbulb' />
-        <template #content>
-          <div style='min-width: 400px'>
-            <span class='opred'>自定义播放器参数, 使用,【逗号】分割</span> <br>
-            <span class='opred'>参数错误可能无法启动</span> <br>
-            <hr />
-            <span class='opblue'>例如【MPV播放器HDR】：</span> --d3d11-output-csp=pq
-          </div>
-        </template>
-      </a-popover>
-      <div class='settingrow'>
-        <a-textarea
-          v-model.trim='settingStore.uiVideoPlayerParams'
-          :style="{ width: '320px' }"
-          :autoSize='{minRows: 1, maxRows: 2}'
-          allow-clear
-          @keydown='(e:any) => e.stopPropagation()'
-          placeholder='没有不填，用于自定义播放器启动参数'
-          @update:model-value='cb({ uiVideoPlayerParams: $event })' />
-      </div>
-      <template v-if='playerType.includes("mpv")
-                      || playerType.includes("potplayer")'>
+      <template v-if='playerType.includes("mpv") || playerType.includes("potplayer")'>
         <div class='settingspace'></div>
         <div class='settinghead'>:播放列表设置</div>
         <a-popover position='bottom'>
           <i class='iconfont iconbulb' />
           <template #content>
-            <div style='min-width: 400px'>
+            <div style='min-width: 200px'>
               <span class='opred'>PotPlayer开启播放列表：</span><br>
               无法自动加载字幕和跳转播放历史 <br>
               <hr />
@@ -203,7 +201,30 @@ const playerType = computed(() => {
         </a-popover>
       </div>
       <div class='settingspace'></div>
-      <div class='settinghead'>:视频播放器路径</div>
+      <div class='settinghead'>:播放器启动参数</div>
+      <a-popover position='bottom'>
+        <i class='iconfont iconbulb' />
+        <template #content>
+          <div style='min-width: 400px'>
+            <span class='opred'>自定义播放器参数, 使用,【逗号】分割</span> <br>
+            <span class='opred'>参数错误可能无法启动</span> <br>
+            <hr />
+            <span class='opblue'>例如【MPV播放器HDR】：</span> --d3d11-output-csp=pq
+          </div>
+        </template>
+      </a-popover>
+      <div class='settingrow'>
+        <a-textarea
+          v-model.trim='settingStore.uiVideoPlayerParams'
+          :style="{ width: '320px' }"
+          :autoSize='{minRows: 1, maxRows: 2}'
+          allow-clear
+          @keydown='(e:any) => e.stopPropagation()'
+          placeholder='没有不填，用于自定义播放器启动参数'
+          @update:model-value='cb({ uiVideoPlayerParams: $event })' />
+      </div>
+      <div class='settingspace'></div>
+      <div class='settinghead'>:自定义播放器路径</div>
       <a-popover position='bottom'>
         <i class='iconfont iconbulb' />
         <template #content>
@@ -279,10 +300,11 @@ const playerType = computed(() => {
     </div>
   </div>
   <div class='settingcard'>
+    <div class='settingspace'></div>
     <div class='settinghead'>:自动标记已看视频</div>
     <div class='settingrow'>
-      <MySwitch :value='settingStore.uiAutoColorVideo' @update:value='cb({ uiAutoColorVideo: $event })'>观看视频时
-        将视频自动标记为浅灰色
+      <MySwitch :value='settingStore.uiAutoColorVideo' @update:value='cb({ uiAutoColorVideo: $event })'>
+        观看视频时 将视频自动标记为浅红色
       </MySwitch>
     </div>
     <div class='settingspace'></div>
@@ -294,7 +316,7 @@ const playerType = computed(() => {
       <a-popover position='bottom'>
         <i class='iconfont iconbulb' />
         <template #content>
-          <div style='min-width: 400px'>只有使用 <span class='opblue'>内置网页播放器</span> 时才支持同步 播放进度</div>
+          <div style='min-width: 400px'>只有使用 <span class='opblue'>内置网页播放器或者MPV播放器</span> 时才支持同步 播放进度</div>
         </template>
       </a-popover>
     </div>

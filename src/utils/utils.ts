@@ -108,9 +108,10 @@ export function HanToPin(input: string): string {
 }
 
 export function GetExpiresTime(downUrl: string) {
-  if (!downUrl || !downUrl.includes('x-oss-expires=')) return 0
+  let url = decodeURIComponent(downUrl)
+  if (!url || !url.includes('x-oss-expires=')) return 0
   try {
-    let expires = downUrl.substring(downUrl.indexOf('x-oss-expires=') + 'x-oss-expires='.length)
+    let expires = url.substring(url.indexOf('x-oss-expires=') + 'x-oss-expires='.length)
     expires = expires.substring(0, expires.indexOf('&'))
     return parseInt(expires) * 1000
   } catch {
@@ -119,10 +120,10 @@ export function GetExpiresTime(downUrl: string) {
 }
 
 export function GetOssExpires(downUrl: string) {
-  if (!downUrl || !downUrl.includes('x-oss-expires=')) return 0
+  let url = decodeURIComponent(downUrl)
+  if (!url || !url.includes('x-oss-expires=')) return 0
   try {
-
-    let expires = downUrl.substring(downUrl.indexOf('x-oss-expires=') + 'x-oss-expires='.length)
+    let expires = url.substring(url.indexOf('x-oss-expires=') + 'x-oss-expires='.length)
     expires = expires.substring(0, expires.indexOf('&'))
     return parseInt(expires) - Math.floor(Date.now() / 1000)
   } catch {

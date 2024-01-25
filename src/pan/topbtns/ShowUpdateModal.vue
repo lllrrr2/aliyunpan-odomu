@@ -1,7 +1,7 @@
 <script setup lang="ts">
 
 import { modalCloseAll } from '../../utils/modal'
-import { PropType, ref } from 'vue'
+import { nextTick, PropType, ref } from 'vue'
 import { IServerVerData } from '../../aliapi/server'
 import MarkdownIt from 'markdown-it'
 import { getAppNewPath, getResourcesPath, getUserDataPath, openExternal } from '../../utils/electronhelper'
@@ -27,17 +27,18 @@ const props = defineProps({
   }
 })
 const okLoading = ref(false)
-const mdInfo = ref('')
 const percent = ref(0)
 const loaded = ref(0)
 
-const handleOpen = () => {
+const handleOpen = async () => {
   const markdown = new MarkdownIt({
     html: true,
     linkify: true,
     typographer: true
   })
-  mdInfo.value = markdown.render(props.verData.verInfo)
+  await nextTick(() => {
+    document.getElementById('markdown-content')!!.innerHTML = markdown.render(props.verData.verInfo)
+  })
 }
 
 const handleHide = () => {
@@ -152,7 +153,7 @@ const autoInstallNewVersion = async (resourcesPath: string) => {
       </span>
     </template>
     <div class='vermodalbody'>
-      <div v-html="mdInfo"></div>
+      <div id='markdown-content' />
     </div>
     <template #footer>
       <div class='modalfoot'>
