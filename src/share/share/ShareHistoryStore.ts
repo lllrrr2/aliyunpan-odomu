@@ -172,6 +172,17 @@ const useShareHistoryStore = defineStore('sharehistory', {
       this.$patch({ ListSelected: data.selectedNew, ListFocusKey: data.focusLast, ListSelectKey: data.selectedLast })
       this.mRefreshListDataShow(false)
     },
+
+    mRangSelect(lastkey: string, file_idList: string[]) {
+      if (this.ListDataShow.length == 0) return
+      const selectedNew = new Set<string>(this.ListSelected)
+      for (let i = 0, maxi = file_idList.length; i < maxi; i++) {
+        selectedNew.add(file_idList[i])
+      }
+      this.$patch({ ListSelected: selectedNew, ListFocusKey: lastkey, ListSelectKey: lastkey })
+      this.mRefreshListDataShow(false)
+    },
+
     mKeyboardSelect(key: string, Ctrl: boolean, Shift: boolean) {
       if (this.ListDataShow.length == 0) return
       const data = KeyboardSelectOne(this.ListDataShow, KEY, this.ListSelected, this.ListFocusKey, this.ListSelectKey, key, Ctrl, Shift, '')

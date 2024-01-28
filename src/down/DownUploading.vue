@@ -373,30 +373,7 @@ const handleRightClick = (e: { event: MouseEvent; node: any }) => {
   </div>
 </template>
 
-<style>
-.rightBottomTip {
-  display: inline-block;
-  position: absolute;
-  bottom: 0;
-  right: 20px;
-  padding: 0;
-  opacity: 0.8;
-  font-size: 14px;
-  line-height: 16px;
-  color: var(--color-text-3);
-}
-
-.downHideTip {
-  padding: 8px;
-  text-align: center;
-  opacity: 0.5;
-}
-
-.downHideTip .iconfont {
-  color: #ccc;
-  font-size: 80px;
-}
-
+<style scoped>
 .fileitem .icondownload {
   color: #bcb3b399;
 }
@@ -417,9 +394,8 @@ const handleRightClick = (e: { event: MouseEvent; node: any }) => {
   flex-shrink: 0;
   width: 130px;
   overflow: hidden;
-  color: #00000033;
+  color: var(--color-text-4);
   font-size: 25px;
-
   text-align: right;
   text-overflow: clip;
   white-space: nowrap;

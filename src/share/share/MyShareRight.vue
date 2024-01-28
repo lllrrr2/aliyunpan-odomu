@@ -1,7 +1,16 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { IAliShareItem } from '../../aliapi/alimodels'
-import { KeyboardState, useAppStore, useKeyboardStore, useMyShareStore, useUserStore, useWinStore } from '../../store'
+import {
+  KeyboardState,
+  MouseState,
+  useAppStore,
+  useKeyboardStore,
+  useMouseStore,
+  useMyShareStore,
+  useUserStore,
+  useWinStore
+} from '../../store'
 import { humanCount } from '../../utils/format'
 import ShareDAL from './ShareDAL'
 import {
@@ -21,6 +30,8 @@ import 'ant-design-vue/es/tooltip/style/css'
 import { modalEditShareLink, modalShowShareLink } from '../../utils/modal'
 import { ArrayKeyList } from '../../utils/utils'
 import { GetShareUrlFormate } from '../../utils/shareurl'
+import { TestButton } from '../../utils/mosehelper'
+import { xorWith } from 'lodash'
 
 const viewlist = ref()
 const inputsearch = ref()
@@ -48,13 +59,131 @@ keyboardStore.$subscribe((_m: any, state: KeyboardState) => {
   if (TestKeyboardScroll(state.KeyDownEvent, viewlist.value, myshareStore)) return
 })
 
+const mouseStore = useMouseStore()
+mouseStore.$subscribe((_m: any, state: MouseState) => {
+  if (appStore.appTab != 'share') return
+  const mouseEvent = state.MouseEvent
+  // console.log('MouseEvent', state.MouseEvent)
+  if (TestButton(0, mouseEvent, () => {
+    if (mouseEvent.srcElement) {
+      // @ts-ignore
+      if (mouseEvent.srcElement.className && mouseEvent.srcElement.className.toString().startsWith('arco-virtual-list')) {
+        onSelectCancel()
+      }
+    }
+  })) return
+})
+
+const rangIsSelecting = ref(false)
+const rangSelectID = ref('')
+const rangSelectStart = ref('')
+const rangSelectEnd = ref('')
+const rangSelectFiles = ref<{ [k: string]: any }>({})
+const onSelectRangStart = () => {
+  onHideRightMenuScroll()
+  rangIsSelecting.value = !rangIsSelecting.value
+  rangSelectID.value = ''
+  rangSelectStart.value = ''
+  rangSelectEnd.value = ''
+  rangSelectFiles.value = {}
+  myshareStore.mRefreshListDataShow(false)
+}
+const onSelectCancel = () => {
+  onHideRightMenuScroll()
+  myshareStore.ListSelected.clear()
+  myshareStore.ListFocusKey = ''
+  myshareStore.mRefreshListDataShow(false)
+}
+const onSelectReverse = () => {
+  onHideRightMenuScroll()
+  const listData = myshareStore.ListDataShow
+  const listSelected = myshareStore.GetSelected()
+  const reverseSelect = xorWith(listData, listSelected, (a, b) => a.share_id === b.share_id)
+  myshareStore.ListSelected.clear()
+  myshareStore.ListFocusKey = ''
+  if (reverseSelect.length > 0) {
+    myshareStore.mRangSelect(reverseSelect[0].share_id, reverseSelect.map(r => r.share_id))
+  }
+  myshareStore.mRefreshListDataShow(false)
+}
+const onSelectRang = (share_id: string) => {
+  if (rangIsSelecting.value && rangSelectID.value != '') {
+    let startid = rangSelectID.value
+    let endid = ''
+    const s: { [k: string]: any } = {}
+    const children = myshareStore.ListDataShow
+    let a = -1
+    let b = -1
+    for (let i = 0, maxi = children.length; i < maxi; i++) {
+      if (children[i].share_id == share_id) a = i
+      if (children[i].share_id == startid) b = i
+      if (a > 0 && b > 0) break
+    }
+    if (a >= 0 && b >= 0) {
+      if (a > b) {
+        ;[a, b] = [b, a]
+        endid = share_id
+      } else {
+        endid = startid
+        startid = share_id
+      }
+      for (let n = a; n <= b; n++) {
+        s[children[n].share_id] = true
+      }
+    }
+    rangSelectStart.value = startid
+    rangSelectEnd.value = endid
+    rangSelectFiles.value = s
+    myshareStore.mRefreshListDataShow(false)
+  }
+}
+
 const handleRefresh = () => ShareDAL.aReloadMyShare(useUserStore().user_id, true)
 const handleSelectAll = () => myshareStore.mSelectAll()
 const handleOrder = (order: string) => myshareStore.mOrderListData(order)
 const handleSelect = (share_id: string, event: any, isCtrl: boolean = false) => {
   onHideRightMenuScroll()
-  myshareStore.mMouseSelect(share_id, event.ctrlKey || isCtrl, event.shiftKey)
+  if (rangIsSelecting.value) {
+    if (!rangSelectID.value) {
+      if (!myshareStore.ListSelected.has(share_id)) {
+        myshareStore.mMouseSelect(share_id, true, false)
+      }
+      rangSelectID.value = share_id
+      rangSelectStart.value = share_id
+      rangSelectFiles.value = { [share_id]: true }
+    } else {
+      const start = rangSelectID.value
+      const children = myshareStore.ListDataShow
+      let a = -1
+      let b = -1
+      for (let i = 0, maxi = children.length; i < maxi; i++) {
+        if (children[i].share_id == share_id) a = i
+        if (children[i].share_id == start) b = i
+        if (a > 0 && b > 0) break
+      }
+      const fileList: string[] = []
+      if (a >= 0 && b >= 0) {
+        if (a > b) [a, b] = [b, a]
+        for (let n = a; n <= b; n++) {
+          fileList.push(children[n].share_id)
+        }
+      }
+      myshareStore.mRangSelect(share_id, fileList)
+      rangIsSelecting.value = false
+      rangSelectID.value = ''
+      rangSelectStart.value = ''
+      rangSelectEnd.value = ''
+      rangSelectFiles.value = {}
+    }
+    myshareStore.mRefreshListDataShow(false)
+  } else {
+    myshareStore.mMouseSelect(share_id, event.ctrlKey || isCtrl, event.shiftKey)
+    if (!myshareStore.ListSelected.has(share_id)) {
+      myshareStore.ListFocusKey = ''
+    }
+  }
 }
+
 
 const handleClickName = (share: IAliShareItem) => {
   handleEdit(share)
@@ -244,9 +373,38 @@ const handleRightClick = (e: { event: MouseEvent; node: any }) => {
           <i :class="myshareStore.IsListSelectedAll ? 'iconfont iconrsuccess' : 'iconfont iconpic2'" />
         </a-button>
       </AntdTooltip>
+      <div class='selectInfo'>{{ myshareStore.ListDataSelectCountInfo }}</div>
+      <div style='margin: 0 2px'>
+        <AntdTooltip placement='rightTop' v-if="myshareStore.ListDataShow.length > 0">
+          <a-button shape='square' type='text' tabindex='-1' class='qujian'
+                    :status="rangIsSelecting ? 'danger' : 'normal'" title='Ctrl+Q' @click='onSelectRangStart'>
+            {{ rangIsSelecting ? '取消选择' : '区间选择' }}
+          </a-button>
+          <template #title>
+            <div>
+              第1步: 点击 区间选择 这个按钮
+              <br />
+              第2步: 鼠标点击一个文件
+              <br />
+              第3步: 移动鼠标点击另外一个文件
+            </div>
+          </template>
+        </AntdTooltip>
+        <a-button shape='square'
+                  v-if='!rangIsSelecting && myshareStore.ListSelected.size > 0 && myshareStore.ListSelected.size < myshareStore.ListDataShow.length'
+                  type='text'
+                  tabindex='-1'
+                  class='qujian'
+                  status='normal' @click='onSelectReverse'>
+          反向选择
+        </a-button>
+        <a-button shape='square' v-if='!rangIsSelecting && myshareStore.ListSelected.size > 0' type='text'
+                  tabindex='-1' class='qujian'
+                  status='normal' @click='onSelectCancel'>
+          取消已选
+        </a-button>
+      </div>
     </div>
-    <div class="selectInfo" style="min-width: 266px">{{ myshareStore.ListDataSelectCountInfo }}</div>
-
     <div style="flex-grow: 1"></div>
     <div class="cell tiquma">提取码</div>
     <div :class="'cell sharestate order ' + (myshareStore.ListOrderKey == 'state' ? 'active' : '')"
@@ -303,8 +461,10 @@ const handleRightClick = (e: { event: MouseEvent; node: any }) => {
           <div
             :class="'fileitem' + (myshareStore.ListSelected.has(item.share_id) ? ' selected' : '') + (myshareStore.ListFocusKey == item.share_id ? ' focus' : '')"
             @click="handleSelect(item.share_id, $event)"
+            @mouseover='onSelectRang(item.share_id)'
             @contextmenu="(event:MouseEvent)=>handleRightClick({event,node:{key:item.share_id}} )">
-            <div style="margin: 2px">
+            <div
+              :class="'rangselect ' + (rangSelectFiles[item.share_id] ? (rangSelectStart == item.share_id ? 'rangstart' : rangSelectEnd == item.share_id ? 'rangend' : 'rang') : '')">
               <a-button shape="circle" type="text" tabindex="-1" class="select" :title="index"
                         @click.prevent.stop="handleSelect(item.share_id, $event, true)">
                 <i
@@ -364,91 +524,5 @@ const handleRightClick = (e: { event: MouseEvent; node: any }) => {
 </template>
 
 <style>
-.cellcount {
-  align-items: center;
-  margin-right: 16px;
-}
 
-.cellcount .arco-badge .arco-badge-status-text {
-  margin-left: 4px;
-  color: var(--color-text-3);
-  line-height: 26px;
-}
-
-body[arco-theme='dark'] .toppanarea .cell {
-  color: rgba(211, 216, 241, 0.45);
-}
-
-.cell {
-  color: var(--color-text-3);
-  overflow: hidden;
-  text-align: center;
-  flex-grow: 0;
-  flex-shrink: 0;
-  display: inline-block;
-  line-height: 18px;
-  min-height: 18px;
-  padding: 0 4px;
-  justify-content: center;
-}
-
-.cell.tiquma {
-  width: 60px;
-  font-size: 12px;
-}
-
-.cell.count {
-  width: 70px;
-  font-size: 12px;
-  line-height: 14px;
-  text-align: right;
-  word-wrap: break-word;
-  word-break: keep-all;
-}
-
-.cell.sharetime {
-  width: 80px;
-  font-size: 12px;
-  line-height: 14px;
-  text-align: right;
-  word-wrap: break-word;
-  word-break: keep-all;
-}
-
-.cell.sharetime.active {
-  color: rgb(217, 48, 37);
-}
-
-.cell.sharestate {
-  width: 70px;
-  font-size: 12px;
-}
-
-.cell.sharestate.active {
-  color: rgb(var(--primary-6));
-}
-
-.cell.sharestate.forbidden {
-  color: rgb(217, 48, 37);
-}
-
-.cell.sharestate.deleted {
-  text-decoration: line-through;
-}
-
-.cell.p5 {
-  width: 5px;
-}
-
-.cell.pr {
-  width: 12px;
-}
-
-.toppanarea .cell.order {
-  cursor: pointer;
-}
-
-.toppanarea .cell.order:hover {
-  color: rgb(var(--primary-6));
-}
 </style>

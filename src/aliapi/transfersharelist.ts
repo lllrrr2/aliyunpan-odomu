@@ -40,10 +40,10 @@ export default class AliTransferShareList {
       order_direction: 'DESC'
     }
     const resp = await AliHttp.Post(url, postData,user_id,'')
-    return AliTransferShareList._TransferShareListOnePage(user_id, dir, resp)
+    return await AliTransferShareList._TransferShareListOnePage(user_id, dir, resp)
   }
 
-  static _TransferShareListOnePage(user_id: string, dir: IAliShareResp, resp: IUrlRespData): boolean {
+  static async _TransferShareListOnePage(user_id: string, dir: IAliShareResp, resp: IUrlRespData): Promise<boolean> {
     try {
       if (AliHttp.IsSuccess(resp.code)) {
         const timeNow = new Date().getTime()
@@ -51,7 +51,7 @@ export default class AliTransferShareList {
           const item = resp.body.items[i] as IAliShareItem
           if (dir.itemsKey.has(item.share_id)) continue
           let icon = 'iconwenjian'
-          let first_file: any = item.share_id && AliTransferShareList.ApiTransferShareFileStatus(user_id, item.share_id)
+          let first_file: any = item.share_id && await AliTransferShareList.ApiTransferShareFileStatus(user_id, item.share_id)
           const add = Object.assign({}, item, { first_file, icon }) as IAliShareItem
           if (!add.full_share_msg) add.full_share_msg = ''
           if (!add.share_msg) add.share_msg = ''

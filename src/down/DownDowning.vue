@@ -298,7 +298,8 @@ const handleRightClick = (e: { event: MouseEvent; node: any }) => {
                 status='normal' @click='onSelectReverse'>
         反向选择
       </a-button>
-      <a-button shape='square' v-if='!rangIsSelecting && downingStore.ListSelected.size > 0' type='text' tabindex='-1' class='qujian'
+      <a-button shape='square' v-if='!rangIsSelecting && downingStore.ListSelected.size > 0' type='text' tabindex='-1'
+                class='qujian'
                 status='normal' @click='onSelectCancel'>
         取消已选
       </a-button>
@@ -335,7 +336,8 @@ const handleRightClick = (e: { event: MouseEvent; node: any }) => {
               :class="'rangselect ' + (rangSelectFiles[item.DownID] ? (rangSelectStart == item.DownID ? 'rangstart' : rangSelectEnd == item.DownID ? 'rangend' : 'rang') : '')">
               <a-button shape='circle' type='text' tabindex='-1' class='select' :title='index'
                         @click.prevent.stop='handleSelect(item.DownID, $event, true)'>
-                <i :class="downingStore.ListSelected.has(item.DownID) ? 'iconfont iconrsuccess' : 'iconfont iconpic2'" />
+                <i
+                  :class="downingStore.ListSelected.has(item.DownID) ? 'iconfont iconrsuccess' : 'iconfont iconpic2'" />
               </a-button>
             </div>
             <div class='fileicon'>
@@ -388,118 +390,47 @@ const handleRightClick = (e: { event: MouseEvent; node: any }) => {
   </div>
 </template>
 
-<style>
-.cellcount {
-  align-items: center;
-  margin-right: 16px;
-}
-
-.cellcount .arco-badge .arco-badge-status-text {
-  font-size: 13px;
-  margin-left: 4px;
-  color: var(--color-text-3);
-  line-height: 26px;
-}
-
-body[arco-theme='dark'] .toppanarea .cell {
-  color: rgba(211, 216, 241, 0.45);
-}
-
-.cell {
-  color: var(--color-text-3);
-  overflow: hidden;
-  text-align: center;
-  flex-grow: 0;
-  flex-shrink: 0;
-  display: inline-block;
-  line-height: 18px;
-  min-height: 18px;
-  padding: 0 4px;
-  justify-content: center;
-}
-
-.cell.filesize {
-  font-size: 16px;
-  width: 86px;
-  text-align: right;
-  flex-shrink: 0;
-  flex-grow: 0;
-  margin-right: 16px;
-}
-
-.cell.tiquma {
-  width: 60px;
-  font-size: 12px;
-}
-
-.cell.count {
-  width: 60px;
-  font-size: 12px;
-}
-
-.cell.sharetime {
-  width: 80px;
-  font-size: 12px;
-  line-height: 14px;
-  text-align: right;
-  word-wrap: break-word;
-  word-break: keep-all;
-}
-
-.cell.sharetime.active {
-  color: rgb(217, 48, 37);
-}
-
-.cell.sharestate {
-  width: 70px;
-  font-size: 12px;
-}
-
-.cell.sharestate.active {
-  color: rgb(var(--primary-6));
-}
-
-.cell.sharestate.forbidden {
-  color: rgb(217, 48, 37);
-}
-
-.cell.sharestate.deleted {
-  text-decoration: line-through;
-}
-
-.cell.p5 {
-  width: 5px;
-}
-
-.cell.pr {
-  width: 12px;
-}
-
-.toppanarea .cell.order {
-  cursor: pointer;
-}
-
-.toppanarea .cell.order:hover {
-  color: rgb(var(--primary-6));
-}
-
+<style scoped>
 .downprogress {
-  width: 90px;
-  flex-shrink: 0;
   flex-grow: 0;
+  flex-shrink: 0;
+  width: 110px;
   margin-right: 8px;
 }
 
 .downspeed {
-  width: 126px;
-  font-size: 22px;
-  color: var(--color-text-4);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: clip;
-  flex-shrink: 0;
   flex-grow: 0;
+  flex-shrink: 0;
+  width: 130px;
+  overflow: hidden;
+  color: var(--color-text-4);
+  font-size: 25px;
   text-align: right;
+  text-overflow: clip;
+  white-space: nowrap;
+  word-break: keep-all;
+}
+
+@media only screen and (min-width: 900px) {
+  .downprogress {
+    width: 150px;
+  }
+}
+
+@media only screen and (min-width: 960px) {
+  .downprogress {
+    width: 170px;
+  }
+}
+
+@media only screen and (min-width: 1000px) {
+  .downprogress {
+    width: 180px;
+  }
+
+  .downspeed {
+    width: 150px;
+  }
 }
 
 .transfering-state {
@@ -509,45 +440,50 @@ body[arco-theme='dark'] .toppanarea .cell {
 }
 
 .text-state {
+  max-width: 100%;
+  height: 16px;
+  margin: 0;
+  overflow: hidden;
+  color: var(--color-text-3);
   font-size: 12px;
   line-height: 16px;
-  color: var(--color-text-3);
-  max-width: 100%;
-  overflow: hidden;
   white-space: nowrap;
   -o-text-overflow: ellipsis;
   text-overflow: ellipsis;
-  height: 16px;
-  margin: 0;
 }
 
 .text-error {
+  width: 100%;
+  height: 16px;
+  margin: 0;
+  overflow: visible;
   color: #f35b51;
   font-size: 12px;
   line-height: 16px;
-  width: 100%;
-  overflow: visible;
   white-space: nowrap;
-  height: 16px;
-  margin: 0;
 }
 
 .progress-total {
+  position: relative;
   width: 100%;
   height: 3px;
-  background: var(--color-text-4);
-  border-radius: 1.5px;
   margin-top: 2px;
-  position: relative;
+  background: #84858d14;
+  border-radius: 1.5px;
+}
+
+body[arco-theme='dark'] .progress-total {
+  background: #84858d;
 }
 
 .progress-total .progress-current {
   position: absolute;
   top: 0;
   left: 0;
-  max-width: 100%;
   min-width: 6px;
+  max-width: 100%;
   height: 100%;
+  background: #00000033;
   border-radius: 1.5px;
   background: var(--color-primary-light-4);
   -webkit-transition: width 0.3s ease, opacity 0.3s ease;
@@ -566,11 +502,4 @@ body[arco-theme='dark'] .toppanarea .cell {
 .progress-total .progress-current.active {
   background: linear-gradient(270deg, #ffba7a 0%, #ff74c7 8.56%, #637dff 26.04%, rgba(99, 125, 255, 0.2) 100%);
 }
-
-.downHideTip {
-  text-align: center;
-  padding: 8px;
-  opacity: 0.5;
-}
-
 </style>

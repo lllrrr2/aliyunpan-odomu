@@ -560,6 +560,96 @@ body[arco-theme='dark'] .toppanbtn .arco-btn {
     box-shadow: 0 1px 5px rgb(0 0 0 / 20%), 0 2px 2px rgb(0 0 0 / 14%), 0 3px 1px -2px rgb(0 0 0 / 12%) !important;
 }
 
+body[arco-theme='dark'] .toppanarea .cell {
+    color: rgba(211, 216, 241, 0.45);
+}
+
+.cell {
+    color: var(--color-text-3);
+    overflow: hidden;
+    text-align: center;
+    flex-grow: 0;
+    flex-shrink: 0;
+    display: inline-block;
+    line-height: 18px;
+    min-height: 18px;
+    padding: 0 4px;
+    justify-content: center;
+}
+
+.cell.tiquma {
+    width: 60px;
+    font-size: 12px;
+}
+
+.cell.filesize {
+    font-size: 16px;
+    width: 86px;
+    text-align: right;
+    flex-shrink: 0;
+    flex-grow: 0;
+    margin-right: 16px;
+}
+
+.cell.count {
+    width: 70px;
+    font-size: 12px;
+    line-height: 14px;
+    text-align: right;
+    word-wrap: break-word;
+    word-break: keep-all;
+}
+
+.cellcount {
+    align-items: center;
+    margin-right: 16px;
+}
+
+.cellcount .arco-badge .arco-badge-status-text {
+    margin-left: 4px;
+    color: var(--color-text-3);
+    line-height: 26px;
+}
+
+.cell.sharetime {
+    width: 80px;
+    font-size: 12px;
+    line-height: 14px;
+    text-align: right;
+    word-wrap: break-word;
+    word-break: keep-all;
+}
+
+.cell.sharetime.active {
+    color: rgb(217, 48, 37);
+}
+
+.cell.sharestate {
+    width: 65px;
+    font-size: 12px;
+    margin: 0 5px 0 5px;
+}
+
+.cell.sharestate.active {
+    color: rgb(var(--primary-6));
+}
+
+.cell.sharestate.forbidden {
+    color: rgb(217, 48, 37);
+}
+
+.cell.sharestate.deleted {
+    text-decoration: line-through;
+}
+
+.cell.p5 {
+    width: 5px;
+}
+
+.cell.pr {
+    width: 12px;
+}
+
 .toppanarea {
     box-sizing: border-box;
     display: flex;
@@ -600,6 +690,15 @@ body[arco-theme='dark'] .toppanarea {
 .toppanarea .cell.active .iconxia {
     color: rgb(var(--primary-6));
 }
+
+.toppanarea .cell.order {
+    cursor: pointer;
+}
+
+.toppanarea .cell.order:hover {
+    color: rgb(var(--primary-6));
+}
+
 
 .select,
 .select > button {
