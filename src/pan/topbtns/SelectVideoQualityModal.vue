@@ -34,7 +34,9 @@ const cb = (val: any) => {
 
 const handleOpen = () => {
   qualitySelect.value = settingStore.uiVideoQuality
-
+  if (!props.qualityData?.qualities.some(q => q.quality === qualitySelect.value)) {
+    qualitySelect.value = props.qualityData?.qualities.find(v => v.width)?.quality || ''
+  }
 }
 const handleHide = () => {
   modalCloseAll()
@@ -70,16 +72,16 @@ const handleOK = () => {
       <a-typography-title :heading="3" style="margin-top: -25px">
         {{ fileInfo.name }}
       </a-typography-title>
-      <a-space align="start">
+      <a-space align="start" size="mini">
         <a-typography>
-          <a-typography-paragraph>
-            <a-space direction="vertical" :size="15">
+          <a-typography-paragraph style="min-width: fit-content">
+            <a-space direction="vertical" :size="18" style="min-height: 145px">
               <a-typography-text>
-                <span>文件大小：{{ humanSize(fileInfo.size) }}</span>
+                <span>大小：{{ humanSize(fileInfo.size) }}</span>
               </a-typography-text>
-              <a-typography-text v-if="fileInfo.media_width">
+              <a-typography-text>
                 <span>
-                  分辨率：{{ fileInfo.media_width > 0 ? fileInfo.media_width + 'x' + fileInfo.media_height : '' }}
+                  分辨率：{{ fileInfo.media_width ? fileInfo.media_width + 'x' + fileInfo.media_height : '未知' }}
                 </span>
               </a-typography-text>
               <a-typography-text v-if="fileInfo.media_duration">
@@ -93,12 +95,12 @@ const handleOK = () => {
         </a-typography>
         <a-image
           style="margin-left: 60px"
-          :preview="false"
+          width="260px"
+          height="145px"
+          show-loader
           :src="fileInfo.thumbnail"
         />
       </a-space>
-
-      <div class='settingspace'></div>
       <div class='settinghead'>:清晰度快捷设置</div>
       <div class='settingrow'>
         <MySwitch :value='settingStore.uiVideoQualityTips'

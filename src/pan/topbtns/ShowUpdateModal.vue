@@ -5,7 +5,7 @@ import { nextTick, PropType, ref } from 'vue'
 import { IServerVerData } from '../../aliapi/server'
 import MarkdownIt from 'markdown-it'
 import { getAppNewPath, getResourcesPath, getUserDataPath, openExternal } from '../../utils/electronhelper'
-import { existsSync, rmSync, writeFile } from 'fs'
+import fs, { existsSync, rmSync, writeFile } from 'fs'
 import message from '../../utils/message'
 import axios, { AxiosResponse } from 'axios'
 import { Sleep } from '../../utils/format'
@@ -75,6 +75,10 @@ const handleOK = async () => {
           }
         })
       }
+    } else {
+      percent.value = 0
+      message.error('新版本下载失败，请前往github下载最新版本', 8)
+      openExternal(verHtml)
     }
   } else {
     openExternal(verHtml)
@@ -83,6 +87,12 @@ const handleOK = async () => {
 
 const AutoDownload = async (url: string, name: string, html_url: string, hot: boolean) => {
   const downPath = hot ? getAppNewPath() : getUserDataPath(name)
+  if (!hot && existsSync(downPath) && fs.statSync(downPath).size == props.verData.fileSize) {
+    await autoInstallNewVersion(downPath)
+    return true
+  } else {
+    await fs.promises.rm(downPath, { force: true })
+  }
   return axios
     .get(url, {
       withCredentials: false,
@@ -105,21 +115,16 @@ const AutoDownload = async (url: string, name: string, html_url: string, hot: bo
     .then(async (response: AxiosResponse) => {
       writeFile(downPath, Buffer.from(response.data), (err) => {
         if (err) {
-          message.error('下载更新失败，请检查是否有写入权限', 5)
           return false
         }
       })
       if (!hot) {
-        await Sleep(2000)
         await autoInstallNewVersion(downPath)
       }
       return true
     })
     .catch(() => {
-      percent.value = 0
-      message.error('新版本下载失败，请前往github下载最新版本', 5)
       rmSync(downPath, { force: true })
-      openExternal(html_url)
       return false
     })
 }
@@ -170,7 +175,7 @@ const autoInstallNewVersion = async (resourcesPath: string) => {
             }"
           :percent="percent">
           <template #format="percent">
-            {{`${percent}%(${loaded}/${props.verData.fileSize})` }}
+            {{ `${percent}%(${loaded}/${props.verData.fileSize})` }}
           </template>
         </AntdProgress>
         <div style='flex-grow: 1'></div>

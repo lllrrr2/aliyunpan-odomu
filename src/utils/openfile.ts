@@ -150,7 +150,6 @@ async function Video(token: ITokenInfo, file: IAliGetFileModel, subTitleFile: an
     message.error('在线预览失败 无法预览违规文件')
     return
   }
-  // message.loading('加载中...', 2)
   let desc = file.description
   let play_cursor = file.media_play_cursor ? parseInt(file.media_play_cursor) : 0
   const {
@@ -182,6 +181,7 @@ async function Video(token: ITokenInfo, file: IAliGetFileModel, subTitleFile: an
     window.WebOpenWindow({ page: 'PageVideo', data: pageVideo, theme: 'dark' })
     return
   }
+  message.loading('加载中...', 2)
   const isWindows = window.platform === 'win32'
   const isMacOrLinux = ['darwin', 'linux'].includes(window.platform)
   if (!isWindows && !isMacOrLinux) {

@@ -80,7 +80,6 @@ export default class AliDirFileList {
     if (!isDir) {
       const icon = getFileIcon(add.category, add.ext, add.ext || item.mime_extension, add.mime_type, add.size)
       add.category = icon[0]
-      // 加密图标
       add.icon = icon[1]
 
       if (downUrl) {
@@ -91,7 +90,7 @@ export default class AliDirFileList {
         } else if (add.category == 'image2') {
           add.thumbnail = downUrl + '&drive_id=' + add.drive_id + '&file_id=' + add.file_id
         } else if (add.category.startsWith('video')) {
-          add.thumbnail = downUrl + '&drive_id=' + add.drive_id + '&file_id=' + add.file_id + '&video_thumbnail_process=video%2Fsnapshot%2Ct_106000%2Cf_jpg%2Car_auto%2Cw_260%2Cm_fast'
+          add.thumbnail = downUrl + '&drive_id=' + add.drive_id + '&file_id=' + add.file_id + '&video_thumbnail_process=video%2Fsnapshot%2Ct_106000%2Cf_jpg%2Car_auto%2Cm_fast'
         } else if (add.category == 'doc' || add.category == 'doc2') {
           if (add.ext != 'txt' && add.ext != 'epub' && add.ext != 'azw' && add.ext != 'azw3') {
             add.thumbnail = downUrl + '&drive_id=' + add.drive_id + '&file_id=' + add.file_id + '&office_thumbnail_process=image%2Fresize%2Cl_260%2Fformat%2Cjpg%2Fauto-orient%2C1'

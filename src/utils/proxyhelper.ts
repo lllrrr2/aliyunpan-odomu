@@ -9,6 +9,7 @@ import { IAliFileItem, IAliGetFileModel } from '../aliapi/alimodels'
 import { MainProxyPort } from '../layout/PageMain'
 import AliFile from '../aliapi/file'
 import path from 'path'
+import { localPwd } from './aria2c'
 
 // 默认maxFreeSockets=256
 const httpsAgent = new HttpsAgent({ keepAlive: true })
@@ -22,6 +23,7 @@ export interface IRawUrl {
   qualities: {
     quality: string
     label: string
+    width: number
     value: string
     url: string
   }[]
@@ -59,8 +61,14 @@ export function getEncPassword(user_id: string, encType: string, inputpassword: 
       return inputpassword
     }
     let settingStore = useSettingStore()
-    let ecnPassword = decodeName(user_id, settingStore.securityEncType, settingStore.securityPassword) || ''
-    return encType == 'xbyEncrypt1' ? ecnPassword : user_id
+    if (encType == 'xbyEncrypt1') {
+      let ecnPassword = decodeName(localPwd, settingStore.securityEncType, settingStore.securityPassword)
+      if (!ecnPassword) {
+        ecnPassword = decodeName(user_id, settingStore.securityEncType, settingStore.securityPassword)
+      }
+      return ecnPassword || ''
+    }
+    return user_id
   }
   return ''
 }
@@ -107,13 +115,13 @@ export async function getRawUrl(
   }
   let { uiVideoQuality, uiVideoPlayer } = useSettingStore()
   // 违规视频也使用转码播放
-  if (!encType && (preview_type && preview_type != 'other')) {
+  if (!encType && preview_type) {
     if (weifa || preview_type !== 'audio') {
       let previewData = await AliFile.ApiVideoPreviewUrl(user_id, drive_id, file_id)
       if (typeof previewData != 'string') {
         Object.assign(data, previewData)
         if (quality && quality != 'Origin') {
-          data.url = data.qualities.find((q: any)=> q.quality === quality)?.url || data.qualities[0].url
+          data.url = data.qualities.find((q: any) => q.quality === quality)?.url || data.qualities[0].url
         }
       }
     } else {
@@ -142,7 +150,7 @@ export async function getRawUrl(
     data.url = getProxyUrl({
       user_id, drive_id, file_id, encType, password,
       file_size: data.size, quality: quality || uiVideoQuality,
-      proxy_url: data.url,
+      proxy_url: data.url
     })
     if (encType) {
       data.qualities.unshift({ quality: 'Origin', label: '原画', value: '', url: data.url })

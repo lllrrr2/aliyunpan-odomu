@@ -127,9 +127,9 @@ const PlayerUtils = {
     }
     return createTmpFile(contentStr, 'play_list' + '.' + fileExt)
   },
-  async mpvPlayer(binary: string, playArgs: any, otherArgs: any, options: SpawnOptions, exitCallBack: any) {
-    let { user_id, drive_id, file, fileList, playList, playFileListPath } = otherArgs
-    console.log('otherArgs', otherArgs)
+  async mpvPlayer(token: ITokenInfo, binary: string, playArgs: any, otherArgs: any, options: SpawnOptions, exitCallBack: any) {
+    let { file, fileList, playList, playFileListPath } = otherArgs
+    // console.log('otherArgs', otherArgs)
     let {
       uiAutoColorVideo,
       uiVideoEnablePlayerList,
@@ -157,17 +157,17 @@ const PlayerUtils = {
           if (status.property === 'playlist-pos' && status.value != -1) {
             // 保存历史
             const item = playList[status.value]
-            await AliFile.ApiUpdateVideoTime(user_id, drive_id, currentFileId, currentTime)
+            await AliFile.ApiUpdateVideoTime(token.user_id, item.drive_id, currentFileId, currentTime)
             currentFileId = item && item.file_id || undefined
             if (currentFileId && uiAutoColorVideo && !item.description.includes('ce74c3c')) {
-              AliFileCmd.ApiFileColorBatch(user_id, item.drive_id, item.description ? item.description + ',' + 'ce74c3c' : 'ce74c3c', [currentFileId])
+              AliFileCmd.ApiFileColorBatch(token.user_id, item.drive_id, item.description ? item.description + ',' + 'ce74c3c' : 'ce74c3c', [currentFileId])
                 .then((success) => {
                   usePanFileStore().mColorFiles('ce74c3c', success)
                 })
             }
             mpv.once('started', async () => {
               if (currentFileId && uiVideoPlayerHistory) {
-                let playCursorInfo = await this.getPlayCursor(user_id, drive_id, currentFileId)
+                let playCursorInfo = await this.getPlayCursor(token.user_id, file.drive_id, currentFileId)
                 if (playCursorInfo && playCursorInfo.play_cursor > 0) {
                   await mpv.seek(playCursorInfo.play_cursor, 'absolute')
                 }
@@ -182,9 +182,9 @@ const PlayerUtils = {
                   if (subTitlesList.length > 0) {
                     let subTitleFile = this.filterSubtitleFile(filename, subTitlesList)
                     if (subTitleFile) {
-                      const data = await getRawUrl(user_id, drive_id, subTitleFile.file_id, getEncType(subTitleFile))
+                      const data = await getRawUrl(token.user_id, subTitleFile.drive_id, subTitleFile.file_id, getEncType(subTitleFile))
                       if (typeof data !== 'string' && data.url && data.url != '') {
-                        await mpv.addSubtitles(data.url, 'select', filename)
+                        await mpv.addSubtitles(data.url, 'select', subTitleFile.name || filename)
                       }
                     }
                   }
@@ -199,13 +199,17 @@ const PlayerUtils = {
         currentTime = timeposition
       })
       mpv.on('quit', async () => {
-        await AliFile.ApiUpdateVideoTime(user_id, drive_id, currentFileId, currentTime)
+        if (currentFileId) {
+          await AliFile.ApiUpdateVideoTime(token.user_id, file.drive_id, currentFileId, currentTime)
+        }
         exitCallBack()
       })
       if (uiVideoPlayerExit) {
         mpv.on('stopped', async () => {
           message.info('播放完毕，自动退出软件', 8)
-          await AliFile.ApiUpdateVideoTime(user_id, drive_id, currentFileId, currentTime)
+          if (currentFileId) {
+            await AliFile.ApiUpdateVideoTime(token.user_id, file.drive_id, currentFileId, currentTime)
+          }
           await mpv.quit()
         })
       }
@@ -250,21 +254,26 @@ const PlayerUtils = {
     }
     // 构造播放参数
     let { file, subTitleFile, rawData, quality, password } = otherArgs
+    let play_url = ''
     let play_cursor = file.media_play_cursor ? parseInt(file.media_play_cursor) : 0
     let play_duration = file.media_duration ? parseInt(file.media_duration) : 0
     let play_referer = token.open_api_enable ? 'https://openapi.alipan.com/' : 'https://www.aliyundrive.com/'
     let { uiVideoEnablePlayerList, uiVideoPlayerExit, uiVideoPlayerHistory, uiVideoPlayerParams } = useSettingStore()
     let playerArgs: any = []
-    // 加载网盘内字幕文件
     let subTitleUrl = ''
-    if (rawData.subtitles.length && quality != 'Origin') {
-      let subTitleData = rawData.subtitles.find((sub: any) => sub.language === 'chi') || rawData.subtitles[0]
-      subTitleUrl = subTitleData && subTitleData.url || ''
+    if (rawData) {
+      // 加载转码的内嵌字幕
+      if (rawData.subtitles && quality != 'Origin') {
+        let subTitleData = rawData.subtitles.find((sub: any) => sub.language === 'chi') || rawData.subtitles[0]
+        subTitleUrl = subTitleData && subTitleData.url || ''
+      }
+      if (rawData.qualities) {
+        play_url = rawData.qualities.find((q: any) => q.quality === quality)?.url || rawData.qualities[0].url
+      }
     }
-    let play_url = rawData.qualities.find((q: any) => q.quality === quality)?.url || rawData.qualities[0].url
+    // 加载网盘内字幕文件
     if (subTitleFile) {
-      const encType1 = getEncType({ description: subTitleFile.description })
-      const data = await getRawUrl(token.user_id, subTitleFile.drive_id, subTitleFile.file_id, encType1, password)
+      const data = await getRawUrl(token.user_id, subTitleFile.drive_id, subTitleFile.file_id, getEncType(subTitleFile), password)
       if (typeof data !== 'string' && data.url && data.url != '') {
         subTitleUrl = data.url
       }
@@ -362,7 +371,7 @@ const PlayerUtils = {
     }
     if (uiVideoEnablePlayerList || uiVideoPlayerHistory) {
       if (isMPV) {
-        await this.mpvPlayer(commandStr, playArgs, otherArgs, options, exitCallBack)
+        await this.mpvPlayer(token, commandStr, playArgs, otherArgs, options, exitCallBack)
       } else {
         this.commandSpawn(commandStr, playArgs, options, exitCallBack)
       }

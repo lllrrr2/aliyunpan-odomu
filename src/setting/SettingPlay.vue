@@ -50,14 +50,12 @@ const playerType = computed(() => {
             默认：<span class='opred'>内置网页播放器</span>
             <hr />
             <span class='opred'>内置网页播放器</span>：<br />
-            使用Videojs网页，播放转码后的视频<br />
-            支持 选择清晰度、倍速播放、内置字幕、画中画模式
+            使用ArtPlayer网页，在线播放视频<br />
+            支持 选择清晰度、倍速播放、字幕选择、画中画模式，播放加密视频
             <div class='hrspace'></div>
             <span class='opred'>自定义播放软件</span>：<br />
             是实验性的功能，可以<span class='oporg'>自己选择</span>电脑上安装的播放软件<br />
-            例如:PotPlayer,MPV,Infuse,IINA<br />
-            <div class='hrspace'></div>
-            详情请参阅<span class='opblue'>帮助文档</span>
+            例如:PotPlayer,MPV,Infuse,IINA等等<br />
           </div>
         </template>
       </a-popover>
@@ -67,6 +65,25 @@ const playerType = computed(() => {
     </div>
     <div class='settingspace'></div>
     <div class='settinghead'>:视频默认清晰度</div>
+    <a-popover position='bottom'>
+      <i class='iconfont iconbulb' />
+      <template #content>
+        <div>
+          默认：<span class='opred'>播放原始的文件</span>
+          <hr />
+          <span class='opred'>播放原始的文件</span>：<br />
+          原始的清晰度(1080P,2K,4K)，支持<span class='oporg'>多个音轨</span>/
+          <span class='oporg'>多个字幕</span>的切换<br />
+          可以拖放加载自己的字幕,但文件体积太大时会卡(网络卡)
+          <div class='hrspace'></div>
+          <span class='opred'>播放转码后视频</span>：<br />
+          支持2560p/1080P/540P/720P清晰度选择，不能选择音轨/字幕<br />
+          理论上播放更流畅，但可能遇到字幕不显示（内置字幕默认使用中文）
+          <div class='hrspace'></div>
+          <span class='oporg'>注：违规视频会<span class='opblue'>自动</span>通过转码视频播放</span>
+        </div>
+      </template>
+    </a-popover>
     <div class='settingrow'>
       <a-select :model-value='settingStore.uiVideoQuality' tabindex='-1'
                 @update:model-value='cb({ uiVideoQuality: $event })'
@@ -79,26 +96,6 @@ const playerType = computed(() => {
         <a-option value="SD">标清（540P）</a-option>
         <a-option value="LD">流畅（480P）</a-option>
       </a-select>
-      <a-popover position='bottom'>
-        <i class='iconfont iconbulb' />
-        <template #content>
-          <div>
-            默认：<span class='opred'>播放原始的文件</span>
-            <hr />
-            <span class='opred'>播放原始的文件</span>：<br />
-            原始的清晰度(1080P,2K,4K),支持<span class='oporg'>多个音轨</span>/<span
-            class='oporg'>多个字幕</span>的切换<br />
-            可以拖放加载自己的字幕,但文件体积太大时会卡(网络卡)
-
-            <div class='hrspace'></div>
-            <span class='opred'>播放转码后视频</span>：<br />
-            最高720P/1080P清晰度,不能选择音轨/字幕<br />
-            理论上播放更流畅，但可能遇到字幕不显示
-            <div class='hrspace'></div>
-            <span class='oporg'>注：违规视频会<span class='opblue'>自动</span>通过转码视频播放</span>
-          </div>
-        </template>
-      </a-popover>
     </div>
     <template v-if="settingStore.uiVideoPlayer === 'other'">
       <div class='settingspace'></div>
@@ -184,21 +181,21 @@ const playerType = computed(() => {
       </template>
       <div class='settingspace'></div>
       <div class='settinghead'>:播放历史设置</div>
+      <a-popover position='bottom'>
+        <i class='iconfont iconbulb' />
+        <template #content>
+          <div style='min-width: 400px'>
+            <span class='opblue'>仅Mpv支持同步 播放进度</span> <br>
+            其他播放器只能够跳转到网页播放器历史进度
+            <hr />
+            已支持：PotPlayer，Mpv
+          </div>
+        </template>
+      </a-popover>
       <div class='settingrow'>
         <MySwitch :value='settingStore.uiVideoPlayerHistory' @update:value='cb({ uiVideoPlayerHistory: $event })'>
           跳转并记忆播放历史
         </MySwitch>
-        <a-popover position='bottom'>
-          <i class='iconfont iconbulb' />
-          <template #content>
-            <div style='min-width: 400px'>
-              <span class='opblue'>仅Mpv支持同步 播放进度</span> <br>
-              其他播放器只能够跳转到网页播放器历史进度
-              <hr />
-              已支持：PotPlayer，Mpv
-            </div>
-          </template>
-        </a-popover>
       </div>
       <div class='settingspace'></div>
       <div class='settinghead'>:播放器启动参数</div>

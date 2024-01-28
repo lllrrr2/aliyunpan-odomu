@@ -189,7 +189,7 @@ export default class AliFile {
           let quality = qualityMap[templateId]
           data.qualities.push({
             quality: templateId,
-            width: taskList[i].template_width,
+            width: taskList[i].template_width || 0,
             label: quality.label,
             value: quality.value,
             url: taskList[i].url

@@ -10,6 +10,7 @@ import { getPkgVersion } from '../utils/utils'
 import { modalUpdateLog } from '../utils/modal'
 import fs from 'node:fs'
 import message from '../utils/message'
+import { Sleep } from '../utils/format'
 
 const platform = window.platform
 const settingStore = useSettingStore()
@@ -53,8 +54,10 @@ const handleImportAsar = () => {
   }, async (files: string[] | undefined) => {
     if (files && files.length > 0) {
       // 导入到app.new
-      fs.copyFileSync(files[0], getAppNewPath())
-      message.success('导入成功，手动重启软件进行更新')
+      await fs.promises.cp(files[0], getAppNewPath())
+      message.info('导入更新文件成功，重新打开应用...', 0)
+      await Sleep(1000)
+      window.WebToElectron({ cmd: 'relaunch' })
     }
   })
 }

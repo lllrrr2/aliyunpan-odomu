@@ -5,6 +5,7 @@ import { usePanTreeStore, useSettingStore } from '../../store'
 import { decodeName, encodeName } from '../../module/flow-enc/utils'
 import Db from '../../utils/db'
 import message from '../../utils/message'
+import { localPwd } from '../../utils/aria2c'
 
 const props = defineProps({
   visible: {
@@ -45,7 +46,11 @@ const modalTitle = computed(() => {
   }
 })
 const userPassword = computed(() => {
-  return decodeName(usePanTreeStore().user_id, useSettingStore().securityEncType, useSettingStore().securityPassword) || ''
+  let decPassword = decodeName(localPwd, useSettingStore().securityEncType, useSettingStore().securityPassword)
+  if (!decPassword) {
+    decPassword = decodeName(usePanTreeStore().user_id, useSettingStore().securityEncType, useSettingStore().securityPassword)
+  }
+  return decPassword || ''
 })
 const handleOpen = async () => {
   setTimeout(() => {
@@ -109,7 +114,7 @@ const handleOK = () => {
     if (props.optType === 'new' || props.optType === 'modify') {
       // 设置密码
       if (form.encPassword) {
-        let encPassword = <string>encodeName(usePanTreeStore().user_id, settingStore.securityEncType, form.encPassword)
+        let encPassword = <string>encodeName(localPwd, settingStore.securityEncType, form.encPassword)
         await settingStore.updateStore({ securityPassword: encPassword })
       }
     } else if (props.optType === 'input') {
