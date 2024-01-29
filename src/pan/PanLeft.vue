@@ -275,14 +275,16 @@ const filterTreeData = computed(() => {
               <i class='iconfont iconfile-folder' />
             </template>
             <template #title='{ dataRef }'>
-              <span class='quicktitle' :title='dataRef.namesearch'>
+              <div class="quickitem">
+                 <span class='quicktitle' :title='dataRef.namesearch'>
                 {{ dataRef.title }}
               </span>
-              <span class='quickbtn'>
+                <span class='quickbtn'>
                 <a-button type='text' size='mini' @click.stop='handleQuickDelete(dataRef.key)'>
                   删除
                 </a-button>
               </span>
+              </div>
             </template>
           </AntdTree>
         </a-tab-pane>
@@ -393,10 +395,11 @@ body[arco-theme='dark'] .ant-tree-node-selected .ant-tree-title > span {
   height: 56px;
   overflow: hidden;
   text-align: center;
+  justify-content: center;
   position: relative;
   padding-top: 16px;
   padding-bottom: 6px;
-  margin-left: -22px;
+  margin: auto;
   flex-shrink: 0;
   flex-grow: 0;
 }
@@ -436,7 +439,7 @@ body[arco-theme='dark'] .ant-tree-node-selected .ant-tree-title > span {
   height: 50px;
   flex-shrink: 0;
   flex-grow: 0;
-  margin: 0 4px 10px -40px;
+  margin: auto;
   border: 3px dotted var(--color-border-2);
   display: flex;
   align-items: center;
@@ -463,7 +466,11 @@ body[arco-theme='dark'] .ant-tree-node-selected .ant-tree-title > span {
   flex-direction: row;
 }
 
-.quicktree .quicktitle {
+.quickitem {
+  display: flex;
+}
+
+.quickitem .quicktitle {
   flex-shrink: 1;
   flex-grow: 1;
   display: -webkit-box;
@@ -474,9 +481,9 @@ body[arco-theme='dark'] .ant-tree-node-selected .ant-tree-title > span {
   -webkit-line-clamp: 1;
 }
 
-.quicktree .quickbtn {
-  display: inline-block;
-  flex-grow: 1;
+.quickitem .quickbtn {
+  flex-shrink: 0;
+  flex-grow: 0;
   padding-left: 2px;
   padding-right: 2px;
   font-size: 12px;

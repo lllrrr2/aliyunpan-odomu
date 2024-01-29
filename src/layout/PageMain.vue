@@ -85,7 +85,8 @@ const onResize = throttle(() => {
     if (winStore.width != width || winStore.height != height) {
       winStore.updateStore({ width, height })
     }
-  } catch (err) {}
+  } catch (err) {
+  }
   // let ddsound = document.getElementById('ddsound') as { play: any } | undefined
   // if (ddsound) ddsound.play()
 }, 50)
@@ -118,7 +119,12 @@ const onMouseDown = (event: MouseEvent) => {
     mouseStore.KeyDown(event)
   }
 }
-
+const handleAsyncDeleteAll = () => {
+  footStore.mDeleteAllTask()
+}
+const handleAsyncClear = () => {
+  footStore.mClearTask()
+}
 const handleAsyncDelete = (key: string) => {
   footStore.mDeleteTask(key)
 }
@@ -291,6 +297,21 @@ const handleCheckVer = () => {
             </div>
             <template #content>
               <div style='width: 360px; min-height: 120px; max-height: 50vh; overflow-y: auto; overflow-x: hidden'>
+                <div style="display:flex;" v-if="footStore.taskList.length > 0">
+                  <div style="flex: 1;">任务列表</div>
+                  <div style="flex: 1;text-align: right">
+                    <a-button-group>
+                      <a-button type="outline" size='mini' @click.stop="handleAsyncClear">
+                        清理完成
+                      </a-button>
+                      <a-popconfirm content="清理所有任务？" @ok="handleAsyncDeleteAll">
+                        <a-button type="outline" size='mini' tabindex="-1" status="danger" style="margin-left: 2px">
+                          清理全部
+                        </a-button>
+                      </a-popconfirm>
+                    </a-button-group>
+                  </div>
+                </div>
                 <div v-for='item in footStore.taskList' :key='item.key' class='asynclistitem'>
                   <div class='asynclistitem-content'>
                     <div v-if="item.status == 'error'" class='asynclistitem-name danger' :title='item.title'>

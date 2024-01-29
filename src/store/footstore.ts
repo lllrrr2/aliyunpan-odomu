@@ -102,6 +102,18 @@ const useFootStore = defineStore('foot', {
       this.$patch(partial)
     },
 
+    mClearTask() {
+      const list = this.taskList
+      const newList: AsyncModel[] = []
+      for (let i = 0, maxi = list.length; i < maxi; i++) {
+        if (list[i].status == 'running') newList.push(list[i])
+      }
+      this.taskList = newList
+    },
+
+    mDeleteAllTask() {
+      this.taskList = []
+    },
 
     mDeleteTask(key: string) {
       this.taskList = this.taskList.filter((t) => t.key != key)
@@ -144,15 +156,6 @@ const useFootStore = defineStore('foot', {
             })
         }
       }
-    },
-
-    mClearTask() {
-      const list = this.taskList
-      const newList: AsyncModel[] = []
-      for (let i = 0, maxi = list.length; i < maxi; i++) {
-        if (list[i].status == 'running') newList.push(list[i])
-      }
-      this.taskList = newList
     },
 
     mSaveUploadingInfo(total: number) {
