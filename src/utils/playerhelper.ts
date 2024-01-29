@@ -254,9 +254,18 @@ const PlayerUtils = {
     }
     // 构造播放参数
     let { file, subTitleFile, rawData, quality, password } = otherArgs
+    let encType = getEncType(file)
     let play_url = ''
-    let play_cursor = file.media_play_cursor ? parseInt(file.media_play_cursor) : 0
-    let play_duration = file.media_duration ? parseInt(file.media_duration) : 0
+    let play_cursor = 0
+    let play_duration = 0
+    let playCursorInfo = await this.getPlayCursor(token.user_id, file.drive_id, file.file_id)
+    if (playCursorInfo) {
+      play_cursor = playCursorInfo.play_cursor
+      play_duration = playCursorInfo.play_duration
+    } else {
+      play_cursor = file.media_play_cursor ? parseInt(file.media_play_cursor) : 0
+      play_duration = file.media_duration ? parseInt(file.media_duration) : 0
+    }
     let play_referer = token.open_api_enable ? 'https://openapi.alipan.com/' : 'https://www.aliyundrive.com/'
     let { uiVideoEnablePlayerList, uiVideoPlayerExit, uiVideoPlayerHistory, uiVideoPlayerParams } = useSettingStore()
     let playerArgs: any = []
@@ -324,14 +333,14 @@ const PlayerUtils = {
     let fileList: IAliGetFileModel[] = []
     if (uiVideoEnablePlayerList) {
       if (file.compilation_id) {
-        fileList = await PlayerUtils.getDirFileList(token.user_id, file.drive_id, file.parent_file_id)
+        fileList = await this.getDirFileList(token.user_id, file.drive_id, file.parent_file_id)
       } else {
         fileList = usePanFileStore().ListDataRaw
       }
       otherArgs.fileList = fileList
       console.log('getDirFileList', fileList)
       otherArgs.playList = fileList.filter((v: any) => v.category.includes('video'))
-      otherArgs.playFileListPath = await PlayerUtils.createPlayListFile(
+      otherArgs.playFileListPath = await this.createPlayListFile(
         token.user_id, file.file_id,
         play_duration, quality, play_cursor,
         isPotplayer ? 'dpl' : 'm3u',
@@ -354,7 +363,6 @@ const PlayerUtils = {
       }
       otherArgs = {}
     }
-    let encType = getEncType(file)
     if (!encType) {
       let info: any = {
         user_id: token.user_id,

@@ -117,11 +117,16 @@ export async function getRawUrl(
   // 违规视频也使用转码播放
   if (!encType && preview_type) {
     if (weifa || preview_type !== 'audio') {
-      let previewData = await AliFile.ApiVideoPreviewUrl(user_id, drive_id, file_id)
-      if (typeof previewData != 'string') {
-        Object.assign(data, previewData)
-        if (quality && quality != 'Origin') {
-          data.url = data.qualities.find((q: any) => q.quality === quality)?.url || data.qualities[0].url
+      let proxyInfo = await Db.getValueObject('ProxyInfo') as any
+      if (proxyInfo && proxyInfo.encType && proxyInfo.file_id === file_id) {
+        // 加密视频通过下载链接播放
+      } else {
+        let previewData = await AliFile.ApiVideoPreviewUrl(user_id, drive_id, file_id)
+        if (typeof previewData != 'string') {
+          Object.assign(data, previewData)
+          if (quality && quality != 'Origin') {
+            data.url = data.qualities.find((q: any) => q.quality === quality)?.url || data.qualities[0].url
+          }
         }
       }
     } else {
