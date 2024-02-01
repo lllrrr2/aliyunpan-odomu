@@ -21,12 +21,11 @@ export async function GetWeiGuiFile(user_id: string, PanData: IScanDriverModel, 
         dirList.push({ dirID: key.value, next_marker: '', items: [], itemsKey: new Set() } as IAliDirBatchResp)
       } else break
     }
-    Processing.value += add
     if (dirList.length == 0) break
     if (!PanData.drive_id) break
-
     const isGet = await ApiBatchDirFileList(user_id, PanData.drive_id, dirList, scanType)
     if (isGet) {
+      Processing.value += add
       const list: IAliDirBatchResp[] = []
       for (let i = 0, maxi = dirList.length; i < maxi; i++) {
         if (dirList[i].next_marker && dirList[i].items.length < 2000) {
@@ -118,9 +117,8 @@ export async function GetWeiGuiFile(user_id: string, PanData: IScanDriverModel, 
 
 async function ApiBatchDirFileList(user_id: string, drive_id: string, dirList: IAliDirBatchResp[], scanType: string) {
   if (!user_id || !drive_id || dirList.length == 0) return false
-  let postData = '{"requests":['
   for (let i = 0, maxi = dirList.length; i < maxi; i++) {
-    if (i > 0) postData = postData + ','
+    const dir = dirList[i]
     let dirID = dirList[i].dirID.includes('root') ? 'root' : dirList[i].dirID
     let query = 'parent_file_id="' + dirID + '"'
     if (scanType == 'size10') query += ' and size > 10485760'
@@ -128,60 +126,36 @@ async function ApiBatchDirFileList(user_id: string, drive_id: string, dirList: I
     else if (scanType == 'size1000') query += ' and size > 1048576000'
     else if (['video', 'doc', 'image', 'audio', 'others', 'zip'].includes(scanType)) query += ' and category = "' + scanType + '"'
     if (!query.includes('category')) query += ' and type = "file"'
-
-    const data2 = {
-      body: {
-        drive_id: drive_id,
-        query: query,
-        marker: dirList[i].next_marker,
-        limit: 100,
-        fields: 'thumbnail'
-      },
-      headers: { 'Content-Type': 'application/json' },
-      id: dirID,
-      method: 'POST',
-      url: '/file/search'
+    let postData = {
+      drive_id: drive_id,
+      limit: 100,
+      query: query,
+      fields: 'thumbnail',
+      marker: dir.next_marker
     }
-    postData = postData + JSON.stringify(data2)
-  }
-  postData += '],"resource":"file"}'
+    const url = 'adrive/v3/file/search?jsonmask=next_marker%2Cpunished_file_count%2Ctotal_count%2Citems(name%2Cfile_id%2Cdrive_id%2Ctype%2Csize%2Cupdated_at%2Ccategory%2Cfile_extension%2Cparent_file_id%2Cmime_type%2Cmime_extension%2Cpunish_flag)'
+    const resp = await AliHttp.Post(url, postData, user_id, '')
 
-  const url = 'v2/batch?jsonmask=responses(id%2Cstatus%2Cbody(next_marker%2Cpunished_file_count%2Ctotal_count%2Citems(name%2Cfile_id%2Cdrive_id%2Ctype%2Csize%2Cupdated_at%2Ccategory%2Cfile_extension%2Cparent_file_id%2Cmime_type%2Cmime_extension%2Cpunish_flag)))'
-  const resp = await AliHttp.Post(url, postData, user_id, '')
-
-  try {
-    if (AliHttp.IsSuccess(resp.code)) {
-      const responses = resp.body.responses
-      for (let j = 0, maxj = responses.length; j < maxj; j++) {
-        const status = responses[j].status as number
-        if (status >= 200 && status <= 205) {
-          const respi = responses[j]
-          const id = respi.id || ''
-          for (let i = 0, maxi = dirList.length; i < maxi; i++) {
-            if (dirList[i].dirID == id) {
-              const dir = dirList[i]
-              const items = respi.body.items
-              dir.next_marker = respi.body.next_marker
-              for (let i = 0, maxi = items.length; i < maxi; i++) {
-                if (dir.itemsKey.has(items[i].file_id)) continue
-                const add = AliDirFileList.getFileInfo(user_id, items[i], '')
-                dir.items.push(add)
-                dir.itemsKey.add(add.file_id)
-              }
-              if (dir.items.length >= 3000) dir.next_marker = ''
-              break
-            }
-          }
+    try {
+      if (AliHttp.IsSuccess(resp.code)) {
+        const items = resp.body.items
+        dir.next_marker = resp.body.next_marker
+        for (let i = 0, maxi = items.length; i < maxi; i++) {
+          if (dir.itemsKey.has(items[i].file_id)) continue
+          const add = AliDirFileList.getFileInfo(user_id, items[i], '')
+          dir.items.push(add)
+          dir.itemsKey.add(add.file_id)
         }
+        if (dir.items.length >= 3000) dir.next_marker = ''
+      } else if (!AliHttp.HttpCodeBreak(resp.code)) {
+        DebugLog.mSaveWarning('SPApiBatchDirFileList err=' + (resp.code || ''), resp.body)
       }
-      return true
-    } else if (!AliHttp.HttpCodeBreak(resp.code)) {
-      DebugLog.mSaveWarning('SPApiBatchDirFileList err=' + (resp.code || ''), resp.body)
+    } catch (err: any) {
+      DebugLog.mSaveWarning('ApiBatchDirFileList', err)
+      return false
     }
-  } catch (err: any) {
-    DebugLog.mSaveWarning('ApiBatchDirFileList', err)
   }
-  return false
+  return true
 }
 
 

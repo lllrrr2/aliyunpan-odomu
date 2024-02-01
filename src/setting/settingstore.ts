@@ -19,6 +19,7 @@ export interface SettingState {
   uiLaunchAutoSign: boolean
   uiLaunchStart: boolean
   uiLaunchStartShow: boolean
+  uiUpdateProxyEnable: boolean
   uiUpdateProxyUrl: string
 
   // 账户设置
@@ -144,6 +145,7 @@ const setting: SettingState = {
   uiLaunchAutoSign: false,
   uiLaunchStart: false,
   uiLaunchStartShow: false,
+  uiUpdateProxyEnable: false,
   uiUpdateProxyUrl: 'https://mirror.ghproxy.com',
 
   // 账户设置
@@ -277,6 +279,7 @@ function _loadSetting(val: any) {
   setting.uiLaunchAutoSign = defaultBool(val.uiLaunchAutoSign, false)
   setting.uiLaunchStart = defaultBool(val.uiLaunchStart, false)
   setting.uiLaunchStartShow = defaultBool(val.uiLaunchStartShow, false)
+  setting.uiUpdateProxyEnable = defaultBool(val.uiUpdateProxyEnable, false)
   setting.uiUpdateProxyUrl = defaultString(val.uiUpdateProxyUrl, 'https://mirror.ghproxy.com')
 
   // 账户设置

@@ -141,10 +141,16 @@ const handleImportAsar = () => {
     <div class='settingspace'></div>
     <div class='settinghead'>:软件更新代理</div>
     <div class='settingrow'>
-      <a-input v-model.trim='settingStore.uiUpdateProxyUrl'
-               :style="{ width: '280px' }"
-               placeholder='软件更新代理'
-               @update:model-value='cb({ uiUpdateProxyUrl: $event })' />
+      <MySwitch :value='settingStore.uiUpdateProxyEnable' @update:value='cb({ uiUpdateProxyEnable: $event })'>
+        开启软件更新代理
+      </MySwitch>
+      <div class='settingrow' v-if="settingStore.uiUpdateProxyEnable">
+        <a-input v-model.trim='settingStore.uiUpdateProxyUrl'
+                 allow-clear
+                 :style="{ width: '280px' }"
+                 placeholder='软件更新代理'
+                 @update:model-value='cb({ uiUpdateProxyUrl: $event })' />
+      </div>
     </div>
   </div>
 </template>

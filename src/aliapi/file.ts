@@ -188,6 +188,7 @@ export default class AliFile {
         if (templateId && taskList[i].status == 'finished') {
           let quality = qualityMap[templateId]
           data.qualities.push({
+            html: quality.label + ' ' + quality.value,
             quality: templateId,
             width: taskList[i].template_width || 0,
             label: quality.label,

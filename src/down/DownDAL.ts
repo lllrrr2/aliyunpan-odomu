@@ -420,7 +420,7 @@ export default class DownDAL {
   }
 
   static QueryIsDowning() {
-    const downingList = useDowningStore().ListDataRaw
+    const downingList = useDowningStore().ListDataShow
     return downingList.some(down => down.Down.IsDowning)
   }
 }

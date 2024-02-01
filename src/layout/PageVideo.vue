@@ -14,6 +14,8 @@ import { getEncType, getRawUrl, IRawUrl } from '../utils/proxyhelper'
 import { TestAlt, TestKey } from '../utils/keyboardhelper'
 import message from '../utils/message'
 import { GetExpiresTime } from '../utils/utils'
+import artplayerPluginDanmuku from '../../src/module/video-plugins/artplayer-plugin-danmuku'
+import PlayerUtils from '../utils/playerhelper'
 
 const appStore = useAppStore()
 const pageVideo = appStore.pageVideo!
@@ -69,6 +71,11 @@ const options: Option = {
     'webkit-playsinline': true,
     playsInline: true
   },
+  plugins: [
+    artplayerPluginDanmuku({
+      danmuku: async (option) => PlayerUtils.getVideoDanmuList(pageVideo, option, autoPlayNumber)
+    })
+  ],
   customType: {
     m3u8: (video: HTMLMediaElement, url: string) => playM3U8(video, url, ArtPlayerRef)
   }
@@ -432,13 +439,15 @@ const getVideoInfo = async (art: Artplayer) => {
   const data: string | IRawUrl = await getRawUrl(pageVideo.user_id, pageVideo.drive_id, pageVideo.file_id, pageVideo.encType, pageVideo.password, false, 'video')
   if (typeof data != 'string' && data.qualities.length > 0) {
     // 画质
-    const qualitySelector: selectorItem[] = []
     const isBigFile = data.size >= 3 * 1024 * 1024 * 1024
-    for (let item of data.qualities) {
-      qualitySelector.push({ url: item.url, type: item.quality, html: item.label + ' ' + item.value })
-    }
     let uiVideoQuality = useSettingStore().uiVideoQuality
-    let defaultQuality = qualitySelector.find(q => q.type === uiVideoQuality) || qualitySelector[0]
+    let defaultQuality: selectorItem
+    if (uiVideoQuality === 'Origin') {
+      defaultQuality = data.qualities[0]
+    } else {
+      let preData = data.qualities.filter(q => q.width)
+      defaultQuality = preData.find(q => q.quality === uiVideoQuality) || preData[0]
+    }
     if (isBigFile && defaultQuality.html == '原画') {
       if (pageVideo.encType) {
         art.emit('video:ended')
@@ -446,7 +455,7 @@ const getVideoInfo = async (art: Artplayer) => {
         return
       }
       art.notice.show = '原画文件超过3GB，自动切换到转码画质播放'
-      defaultQuality = qualitySelector[1]
+      defaultQuality = data.qualities[1]
     }
     defaultQuality.default = true
     art.url = defaultQuality.url
@@ -457,7 +466,7 @@ const getVideoInfo = async (art: Artplayer) => {
       position: 'right',
       style: { marginRight: '15px' },
       html: defaultQuality ? defaultQuality.html : '',
-      selector: qualitySelector,
+      selector: data.qualities,
       onSelect: async (item: selectorItem) => {
         if (item.html === '原画') {
           art.once('video:canplay', () => {

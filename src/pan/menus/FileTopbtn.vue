@@ -55,7 +55,7 @@ const props = defineProps({
 const istree = false
 const isShowBtn = computed(() => {
   return (props.dirtype === 'pic' && props.inputpicType != 'mypic')
-    || props.dirtype === 'mypic' || props.dirtype === 'pan' || props.dirtype === 'color'
+    || props.dirtype === 'mypic' || ['search', 'color', 'pan'].includes(props.dirtype)
 })
 const isPic = computed(() => {
   return (props.dirtype === 'pic' && props.inputpicType == 'mypic')

@@ -28,9 +28,10 @@ export function PageMain() {
         MainProxyPort = await portIsOccupied(8000)
         MainProxyServer = await createProxyServer(MainProxyPort)
       } else {
-        MainProxyServer.on('close', () => {
-          MainProxyPort = 0
-          MainProxyServer = null
+        MainProxyServer.on('close', async () => {
+          await Sleep(2000)
+          MainProxyPort = await portIsOccupied(8000)
+          MainProxyServer = await createProxyServer(MainProxyPort)
         })
       }
       DebugLog.mSaveSuccess('小白羊启动')

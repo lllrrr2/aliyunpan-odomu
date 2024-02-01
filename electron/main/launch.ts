@@ -132,10 +132,9 @@ export default class launch extends EventEmitter {
         } catch (err) {
         }
         session.defaultSession.webRequest.onBeforeSendHeaders((details, cb) => {
-          const should115Referer = details.url.indexOf('.115.com') > 0
           const shouldGieeReferer = details.url.indexOf('gitee.com') > 0
-          const shouldAliOrigin = details.url.indexOf('.aliyundrive.com') > 0
-          const shouldAliReferer = !should115Referer && !shouldGieeReferer && (!details.referrer || details.referrer.trim() === '' || /(\/localhost:)|(^file:\/\/)|(\/127.0.0.1:)/.exec(details.referrer) !== null)
+          const shouldAliOrigin = details.url.indexOf('.aliyundrive.com') > 0 || details.url.indexOf('.alipan.com') > 0
+          const shouldAliReferer = !shouldGieeReferer && (!details.referrer || details.referrer.trim() === '' || /(\/localhost:)|(^file:\/\/)|(\/127.0.0.1:)/.exec(details.referrer) !== null)
           const shouldToken = details.url.includes('aliyundrive') && details.url.includes('download')
           const shouldOpenApiToken = details.url.includes('adrive/v1.0')
 
@@ -143,10 +142,6 @@ export default class launch extends EventEmitter {
             cancel: false,
             requestHeaders: {
               ...details.requestHeaders,
-              ...(should115Referer && {
-                Referer: 'http://115.com/s/swn4bs33z88',
-                Origin: 'http://115.com'
-              }),
               ...(shouldGieeReferer && {
                 Referer: 'https://gitee.com/'
               }),
@@ -162,8 +157,10 @@ export default class launch extends EventEmitter {
               ...(shouldOpenApiToken && {
                 Authorization: this.userToken.open_api_access_token
               }),
-              'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) aDrive/4.11.0 Chrome/108.0.5359.215 Electron/22.3.24 Safari/537.36',
-              'X-Canary': 'client=windows,app=adrive,version=v4.11.0',
+              ...(shouldToken && {
+                'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36 Edg/121.0.0.0',
+                'X-Canary': 'client=web,app=adrive,version=v4.9.0'
+              }),
               'Accept-Language': 'zh-CN,zh;q=0.9'
             }
           })

@@ -94,14 +94,12 @@ export default class AliHttp {
             'UserDeviceOffline',
             'DeviceSessionSignatureInvalid',
             'AccessTokenInvalid',
-            'AccessTokenExpired',
-            'I400JD',
+            'AccessTokenExpired'
           ]
           if (errCode.includes(data.code)) isNeedLog = false
           // 自动刷新Token
           if (data.code == 'AccessTokenInvalid'
-            || data.code == 'AccessTokenExpired'
-            || data.code == 'I400JD') {
+            || data.code == 'AccessTokenExpired') {
             if (token) {
               const isOpenApi = config.url.includes('adrive/v1.0')
               if (!isOpenApi) {
@@ -369,8 +367,13 @@ export default class AliHttp {
           (url.includes('/file/search')
           || url.includes('/file/list')
           || url.includes('/file/walk')
-          || url.includes('/file/scan'))
-          && !resp.body?.code) await Sleep(2000)
+          || url.includes('/file/scan')))  {
+        if (resp.body?.code && resp.body.code == 'BadRequest') {
+          return resp
+        } else {
+          await Sleep(2000)
+        }
+      }
       else if (AliHttp.HttpCodeBreak(resp.code)) return resp
       else if (i == 5) return resp
       else await Sleep(2000)

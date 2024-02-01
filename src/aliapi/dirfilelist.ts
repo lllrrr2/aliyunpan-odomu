@@ -377,7 +377,7 @@ export default class AliDirFileList {
     const postData = {
       drive_id: dir.m_drive_id,
       limit: 100,
-      order_by: '',
+      order_by: 'gmt_deleted',
       order_direction: 'DESC',
       marker: dir.next_marker
     }
@@ -745,57 +745,37 @@ export default class AliDirFileList {
     size: number
   }[] | undefined> {
     const list: Map<string, { dirID: string; size: number }> = new Map<string, { dirID: string; size: number }>()
-    let postData = '{"requests":['
     for (let i = 0, maxi = file_idList.length; i < maxi; i++) {
       list.set(file_idList[i], { dirID: file_idList[i], size: 0 })
-      if (i > 0) postData = postData + ','
       let id = file_idList[i].includes('root') ? 'root' : file_idList[i]
-      const data2 = {
-        body: {
-          drive_id: drive_id,
-          query: 'parent_file_id="' + id + '" and type="file"',
-          limit: 100,
-          fields: 'thumbnail',
-          order_by: 'size DESC'
-        },
-        headers: { 'Content-Type': 'application/json' },
-        id: id,
-        method: 'POST',
-        url: '/file/search'
+      let postData = {
+        drive_id: drive_id,
+        limit: 100,
+        query: 'parent_file_id="' + id + '" and type="file"',
+        fields: 'thumbnail',
+        order_by: 'size DESC'
       }
-      postData = postData + JSON.stringify(data2)
-    }
-    postData += '],"resource":"file"}'
-
-    const url = 'v2/batch?jsonmask=responses(id%2Cstatus%2Cbody(next_marker%2Citems(size)))'
-    const resp = await AliHttp.Post(url, postData, user_id, '')
-
-    try {
-      if (AliHttp.IsSuccess(resp.code)) {
-        const responses = resp.body.responses
-        for (let j = 0, maxj = responses.length; j < maxj; j++) {
-          const respi = responses[j]
-
-          if (respi.id && respi.status && respi.status >= 200 && respi.status <= 205) {
-            if (respi.body && respi.body.items && respi.body.items.length > 0) {
-              let size = 0
-              const items = respi.body.items
-              for (let k = 0, maxk = items.length; k < maxk; k++) {
-                size += items[k].size || 0
-              }
-              const find = list.get(respi.id)
-              if (find) find.size = size
+      const url = 'adrive/v3/file/search?jsonmask=next_marker%2Citems(size)'
+      const resp = await AliHttp.Post(url, postData, user_id, '')
+      try {
+        if (AliHttp.IsSuccess(resp.code)) {
+          if (resp.body && resp.body.items && resp.body.items.length > 0) {
+            let size = 0
+            const items = resp.body.items
+            for (let k = 0, maxk = items.length; k < maxk; k++) {
+              size += items[k].size || 0
             }
+            const find = list.get(id)
+            if (find) find.size = size
           }
-
+          return MapValueToArray(list)
+        } else {
+          DebugLog.mSaveWarning('ApiDirFileSize err=' + (resp.code || ''), resp.body)
+          return undefined
         }
-        return MapValueToArray(list)
-      } else {
-        DebugLog.mSaveWarning('ApiDirFileSize err=' + (resp.code || ''), resp.body)
-        return undefined
+      } catch (err: any) {
+        DebugLog.mSaveWarning('ApiDirFileSize', err)
       }
-    } catch (err: any) {
-      DebugLog.mSaveWarning('ApiDirFileSize', err)
     }
     return MapValueToArray(list)
   }

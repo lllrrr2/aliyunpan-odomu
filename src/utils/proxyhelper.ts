@@ -21,6 +21,7 @@ export interface IRawUrl {
   url: string
   size: number
   qualities: {
+    html: string
     quality: string
     label: string
     width: number
@@ -116,7 +117,7 @@ export async function getRawUrl(
   let { uiVideoQuality, uiVideoPlayer } = useSettingStore()
   // 违规视频也使用转码播放
   if (!encType && preview_type) {
-    if (weifa || preview_type !== 'audio') {
+    if (weifa || preview_type === 'video' || (preview_type === 'other' && quality != 'Origin')) {
       let proxyInfo = await Db.getValueObject('ProxyInfo') as any
       if (proxyInfo && proxyInfo.encType && proxyInfo.file_id === file_id) {
         // 加密视频通过下载链接播放
@@ -129,7 +130,7 @@ export async function getRawUrl(
           }
         }
       }
-    } else {
+    } else if (preview_type === 'audio') {
       let audioData = await AliFile.ApiAudioPreviewUrl(user_id, drive_id, file_id)
       if (typeof audioData != 'string') {
         data.url = audioData.url
@@ -143,8 +144,8 @@ export async function getRawUrl(
       if (getUrlFileName(downUrl.url).includes('wma')) {
         return '不支持预览的加密音频格式'
       }
-      if (!encType) {
-        data.qualities.unshift({ quality: 'Origin', label: '原画', value: '', url: downUrl.url })
+      if (!encType && preview_type) {
+        data.qualities.unshift({ quality: 'Origin', html: '原画', label: '原画', value: '', url: downUrl.url })
       }
       data.url = downUrl.url
       data.size = downUrl.size
@@ -157,8 +158,8 @@ export async function getRawUrl(
       file_size: data.size, quality: quality || uiVideoQuality,
       proxy_url: data.url
     })
-    if (encType) {
-      data.qualities.unshift({ quality: 'Origin', label: '原画', value: '', url: data.url })
+    if (encType && preview_type) {
+      data.qualities.unshift({ quality: 'Origin', html: '原画', label: '原画', value: '', url: data.url })
     }
   }
   return data
@@ -187,7 +188,7 @@ export async function createProxyServer(port: number) {
       let changeVideoQuality = proxyInfo && proxyInfo.videoQuality && (selectQuality !== proxyInfo.videoQuality)
       if (!proxyUrl || needRefreshUrl || changeVideoQuality) {
         // 获取地址
-        let data = await getRawUrl(user_id, drive_id, file_id, '', '', weifa, 'other', selectQuality)
+        let data = await getRawUrl(user_id, drive_id, file_id, encType, '', weifa, 'other', selectQuality)
         console.error('proxy getRawUrl', data)
         if (typeof data != 'string' && data.url) {
           let subtitleData = data.subtitles.find((sub: any) => sub.language === 'chi') || data.subtitles[0]

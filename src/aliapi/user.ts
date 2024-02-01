@@ -347,10 +347,10 @@ export default class AliUser {
             return -1
           }
           const result = rewardResp.body.result
-          reward = `获得【${result['name']}】 - ${result['description']}`
+          reward = `【${result['notice']}】`
         }
       } else {
-        reward = `获得【${sign_data['reward']['name']}】 - ${sign_data['reward']['description']}`
+        reward = `【${sign_data['reward']['notice']}】`
       }
       message.info(`【${token.nick_name || token.user_name}】本月累计签到${signInCount}次，本次签到 ${reward}`)
       return parseInt(sign_data['calendarDay'])

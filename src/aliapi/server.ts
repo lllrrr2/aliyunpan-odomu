@@ -203,7 +203,8 @@ export default class ServerHttp {
               configVer = readFileSync(localVersion, 'utf-8').replaceAll('v', '').trim()
             }
           }
-          if (useSettingStore().uiUpdateProxyUrl.length > 0) {
+          if (useSettingStore().uiUpdateProxyEnable &&
+              useSettingStore().uiUpdateProxyUrl.length > 0) {
             verData.verUrl = useSettingStore().uiUpdateProxyUrl + '/' + verData.verUrl
           }
           if (this.compareVer(remoteVer, configVer) > 0) {

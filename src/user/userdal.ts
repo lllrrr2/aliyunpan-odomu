@@ -14,6 +14,7 @@ import {
 } from '../store'
 import PanDAL from '../pan/pandal'
 import DebugLog from '../utils/debuglog'
+import { Sleep } from '../utils/format'
 
 export const UserTokenMap = new Map<string, ITokenInfo>()
 
@@ -195,6 +196,7 @@ export default class UserDAL {
       await PanDAL.aReLoadOneDirToShow(token.resource_drive_id, 'resource_root', true)
     }
     if (!useSettingStore().securityHideBackupDrive) {
+      await Sleep(1000)
       await PanDAL.aReLoadBackupDrive(token)
       await PanDAL.aReLoadOneDirToShow(token.backup_drive_id, 'backup_root', true)
     }

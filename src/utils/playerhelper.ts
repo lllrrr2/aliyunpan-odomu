@@ -14,6 +14,10 @@ import { getEncType, getProxyUrl, getRawUrl } from './proxyhelper'
 import { CleanStringForCmd } from './filehelper'
 import Db from './db'
 import { humanTime } from './format'
+import axios from '../axios'
+import { IPageVideo } from '../store/appstore'
+import { Input, Modal } from '@arco-design/web-vue'
+import { h } from 'vue'
 
 const PlayerUtils = {
   filterSubtitleFile(name: string, subTitlesList: IAliGetFileModel[]) {
@@ -28,6 +32,74 @@ const PlayerUtils = {
       return min
     }, { distance: Infinity, index: -1 })
     return (similarity.index !== -1) ? subTitlesList[similarity.index] : undefined
+  },
+
+  async getVideoDanmuList(pageVideo: IPageVideo, option: any, pos: number) {
+    let name = ''
+    if (option.matchType === 'folder') {
+      // 获取文件信息
+      const info = await AliFile.ApiFileInfo(pageVideo.user_id, pageVideo.drive_id, pageVideo.parent_file_id)
+      if (info && typeof info == 'string') {
+        return ''
+      }
+      name = info.name
+    } else {
+      name = pageVideo.file_name
+    }
+    if (option.sourceType == 'auto') {
+      let searchDmUrl = 'https://azure.leuse.top/searchdm?params=' + JSON.stringify({ name, pos: pos + 1 })
+      let urlResp = await axios.get(searchDmUrl, {
+        responseType: 'json'
+      })
+      let sourceUrl = urlResp.data.url || ''
+      if (sourceUrl) {
+        let danmuResp = await axios.get('https://fc.home999.cc/?url=' + sourceUrl, {
+          responseType: 'text'
+        })
+        return danmuResp.data
+      } else {
+        return ''
+      }
+    } else {
+      return new Promise(resolve => {
+        let sourceUrl = ''
+        // 输入网址
+        Modal.open({
+          title: '输入弹幕的网址（支持主流视频网址）',
+          bodyStyle: {
+            minWidth: '600px'
+          },
+          closable: false,
+          content: () => h(Input, {
+            type: 'text',
+            tabindex: '-1',
+            allowClear: true,
+            placeholder: '输入弹幕的网址',
+            onChange(value, ev) {
+              sourceUrl = value
+            }
+          }),
+          okText: '确认',
+          cancelText: '取消',
+          onOk: async (e: any) => {
+            console.log('sourceUrl', sourceUrl)
+            if (sourceUrl) {
+              let danmuResp = await axios.get('https://fc.home999.cc/?url=' + sourceUrl, {
+                responseType: 'text'
+              })
+              resolve(danmuResp.data)
+            } else {
+              resolve('')
+            }
+            return true
+          },
+          onCancel(e: any) {
+            resolve('')
+            return true
+          }
+        })
+      })
+    }
   },
 
   async getPlayCursor(user_id: string, drive_id: string, file_id: string) {
@@ -253,19 +325,9 @@ const PlayerUtils = {
       commandStr = `${argsToStr(command)}`
     }
     // 构造播放参数
-    let { file, subTitleFile, rawData, quality, password } = otherArgs
+    let { file, subTitleFile, play_cursor, play_duration, rawData, quality, password } = otherArgs
     let encType = getEncType(file)
     let play_url = ''
-    let play_cursor = 0
-    let play_duration = 0
-    let playCursorInfo = await this.getPlayCursor(token.user_id, file.drive_id, file.file_id)
-    if (playCursorInfo) {
-      play_cursor = playCursorInfo.play_cursor
-      play_duration = playCursorInfo.play_duration
-    } else {
-      play_cursor = file.media_play_cursor ? parseInt(file.media_play_cursor) : 0
-      play_duration = file.media_duration ? parseInt(file.media_duration) : 0
-    }
     let play_referer = token.open_api_enable ? 'https://openapi.alipan.com/' : 'https://www.aliyundrive.com/'
     let { uiVideoEnablePlayerList, uiVideoPlayerExit, uiVideoPlayerHistory, uiVideoPlayerParams } = useSettingStore()
     let playerArgs: any = []
@@ -363,7 +425,7 @@ const PlayerUtils = {
       }
       otherArgs = {}
     }
-    if (!encType) {
+    if (!encType && rawData) {
       let info: any = {
         user_id: token.user_id,
         drive_id: file.drive_id,

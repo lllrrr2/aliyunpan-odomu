@@ -151,7 +151,16 @@ async function Video(token: ITokenInfo, file: IAliGetFileModel, subTitleFile: an
     return
   }
   let desc = file.description
-  let play_cursor = file.media_play_cursor ? parseInt(file.media_play_cursor) : 0
+  let play_cursor = 0
+  let play_duration = 0
+  let playCursorInfo = await PlayerUtils.getPlayCursor(token.user_id, file.drive_id, file.file_id)
+  if (playCursorInfo) {
+    play_cursor = playCursorInfo.play_cursor
+    play_duration = playCursorInfo.play_duration
+  } else {
+    play_cursor = file.media_play_cursor ? parseInt(file.media_play_cursor) : 0
+    play_duration = file.media_duration ? parseInt(file.media_duration) : 0
+  }
   const {
     uiAutoColorVideo,
     uiVideoQuality,
@@ -188,22 +197,25 @@ async function Video(token: ITokenInfo, file: IAliGetFileModel, subTitleFile: an
     message.error('不支持的系统，操作取消')
     return
   }
-  const encType = getEncType(file)
-  let rawData: any = await getRawUrl(
-    token.user_id, file.drive_id,
-    file.file_id, encType, password,
-    file.icon == 'iconweifa', 'video'
-  )
-  if (typeof rawData == 'string') {
-    message.error('视频地址解析失败，操作取消')
-    return
-  }
-  if (rawData.url.indexOf('x-oss-additional-headers=referer') > 0) {
-    message.error('用户token已过期，请点击头像里退出按钮后重新登录账号')
-    return
+  let rawData: any = undefined
+  let encType = getEncType(file)
+  if (uiVideoQualityTips) {
+    rawData = await getRawUrl(
+      token.user_id, file.drive_id,
+      file.file_id, encType, password,
+      file.icon == 'iconweifa', 'video'
+    )
+    if (typeof rawData == 'string') {
+      message.error('视频地址解析失败，操作取消')
+      return
+    }
+    if (rawData.url.indexOf('x-oss-additional-headers=referer') > 0) {
+      message.error('用户token已过期，请点击头像里退出按钮后重新登录账号')
+      return
+    }
   }
   let otherArgs: any = {
-    file, subTitleFile,
+    file, subTitleFile, play_cursor, play_duration,
     playList: [], fileList: [], playFileListPath: '',
     rawData, password, quality: uiVideoQuality
   }

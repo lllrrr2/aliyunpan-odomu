@@ -251,51 +251,51 @@ const playerType = computed(() => {
         <a-input-search tabindex='-1' style='max-width: 378px' :readonly='true' button-text='选择播放软件' search-button
                         :model-value='settingStore.uiVideoPlayerPath' @search='handleSelectPlayer' />
       </div>
+      <div class='settingrow' :style="{ display: platform === 'darwin' ? '' : 'none', marginTop: '8px' }">
+        <a-input-search tabindex='-1' style='max-width: 378px' :readonly='true' button-text='选择播放软件' search-button
+                        :model-value='settingStore.uiVideoPlayerPath' @search='handleSelectPlayer' />
+        <a-popover position='bottom'>
+          <i class='iconfont iconbulb' />
+          <template #content>
+            <div style='min-width: 400px'>
+              <span class='opred'>macOS</span>：选择一个播放软件.app
+              <hr />
+              1.点击 选择播放软件按钮 <span class='opblue'>--></span> 弹出文件选择框，<br />
+              2.点击 左上 应用程序 <span class='opblue'>--></span> 点击一个 播放软件 <span class='opblue'>--></span> 点击
+              确定
+              <div class='hrspace'></div>
+              已测试：Mpv，Vlc，IINA，MKPlayer
+              <div class='hrspace'></div>
+              详情请参阅<span class='opblue'>帮助文档</span>
+            </div>
+          </template>
+        </a-popover>
+      </div>
+      <div class='settingrow'
+           :style="{ display:  platform == 'linux' ? '' : 'none', marginTop: '8px' }">
+        <a-auto-complete :data="['mpv', 'vlc', 'totem', 'mplayer', 'smplayer', 'xine', 'parole', 'kodi']"
+                         :style="{ width: '378px' }" placeholder='请填写一个播放软件' strict
+                         :model-value='settingStore.uiVideoPlayerPath' @change='cb({ uiVideoPlayerPath: $event })' />
+        <a-popover position='bottom'>
+          <i class='iconfont iconbulb' />
+          <template #content>
+            <div style='min-width: 400px'>
+              <span class='opred'>linux</span>：手动填写一个播放命令
+              <hr />
+              你必须先自己在电脑上安装（sudo apt install xxx），<br />
+              然后才能使用这个播放软件，直接手动填写播放软件的名字
+              <div class='hrspace'></div>
+              已测试：Mpv，Vlc，totem，mplayer，smplayer，xine，parole，kodi
+              <div class='hrspace'></div>
+              详情请参阅<span class='opblue'>帮助文档</span>
+            </div>
+          </template>
+        </a-popover>
+      </div>
     </template>
-    <div class='settingrow'
-         :style="{ display: settingStore.uiVideoPlayer === 'other' && platform === 'darwin' ? '' : 'none', marginTop: '8px' }">
-      <a-input-search tabindex='-1' style='max-width: 378px' :readonly='true' button-text='选择播放软件' search-button
-                      :model-value='settingStore.uiVideoPlayerPath' @search='handleSelectPlayer' />
-      <a-popover position='bottom'>
-        <i class='iconfont iconbulb' />
-        <template #content>
-          <div style='min-width: 400px'>
-            <span class='opred'>macOS</span>：选择一个播放软件.app
-            <hr />
-            1.点击 选择播放软件按钮 <span class='opblue'>--></span> 弹出文件选择框，<br />
-            2.点击 左上 应用程序 <span class='opblue'>--></span> 点击一个 播放软件 <span class='opblue'>--></span> 点击
-            确定
-            <div class='hrspace'></div>
-            已测试：Mpv，Vlc，IINA，MKPlayer
-            <div class='hrspace'></div>
-            详情请参阅<span class='opblue'>帮助文档</span>
-          </div>
-        </template>
-      </a-popover>
-    </div>
-
-    <div class='settingrow'
-         :style="{ display: settingStore.uiVideoPlayer == 'other' && platform == 'linux' ? '' : 'none', marginTop: '8px' }">
-      <a-auto-complete :data="['mpv', 'vlc', 'totem', 'mplayer', 'smplayer', 'xine', 'parole', 'kodi']"
-                       :style="{ width: '378px' }" placeholder='请填写一个播放软件' strict
-                       :model-value='settingStore.uiVideoPlayerPath' @change='cb({ uiVideoPlayerPath: $event })' />
-      <a-popover position='bottom'>
-        <i class='iconfont iconbulb' />
-        <template #content>
-          <div style='min-width: 400px'>
-            <span class='opred'>linux</span>：手动填写一个播放命令
-            <hr />
-            你必须先自己在电脑上安装（sudo apt install xxx），<br />
-            然后才能使用这个播放软件，直接手动填写播放软件的名字
-            <div class='hrspace'></div>
-            已测试：Mpv，Vlc，totem，mplayer，smplayer，xine，parole，kodi
-            <div class='hrspace'></div>
-            详情请参阅<span class='opblue'>帮助文档</span>
-          </div>
-        </template>
-      </a-popover>
-    </div>
   </div>
+
+
   <div class='settingcard'>
     <div class='settingspace'></div>
     <div class='settinghead'>:自动标记已看视频</div>

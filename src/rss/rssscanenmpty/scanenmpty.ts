@@ -59,45 +59,29 @@ async function TestEnmptyDir(user_id: string, PanData: IScanDriverModel, idList:
 async function ApiTestEnmptyDir(user_id: string, drive_id: string, idList: string[]) {
   const list: string[] = []
   if (!user_id || !drive_id || idList.length === 0) return []
-  let postData = '{"requests":['
   for (let i = 0, maxi = idList.length; i < maxi; i++) {
-    if (i > 0) postData = postData + ','
     let id = idList[i].includes('root') ? 'root' : idList[i]
-    const data2 = {
-      body: {
-        drive_id: drive_id,
-        query: 'parent_file_id="' + id + '"',
-        limit: 1,
-        fields: 'thumbnail'
-      },
-      headers: { 'Content-Type': 'application/json' },
-      id: id,
-      method: 'POST',
-      url: '/file/search'
+    let postData = {
+      drive_id: drive_id,
+      limit: 1,
+      query: 'parent_file_id="' + id + '"',
+      fields: 'thumbnail'
     }
-    postData = postData + JSON.stringify(data2)
-  }
-  postData += '],"resource":"file"}'
-
-  const url = 'v2/batch?jsonmask=responses(id%2Cstatus%2Cbody(next_marker%2Cpunished_file_count%2Ctotal_count%2Citems(name%2Cfile_id%2Cdrive_id%2Ctype%2Csize%2Cupdated_at%2Ccategory%2Cfile_extension%2Cparent_file_id%2Cmime_type%2Cmime_extension%2Cpunish_flag)))'
-  const resp = await AliHttp.Post(url, postData, user_id, '')
-
-  try {
-    if (AliHttp.IsSuccess(resp.code)) {
-      const responses = resp.body.responses
-      for (let j = 0, maxj = responses.length; j < maxj; j++) {
-        const status = responses[j].status as number
-        if (status >= 200 && status <= 205) {
-          const respi = responses[j]
-          if (respi.body.items.length == 0) list.push(respi.id)
+    const url = 'adrive/v3/file/search?jsonmask=next_marker%2Cpunished_file_count%2Ctotal_count%2Citems(name%2Cfile_id%2Cdrive_id%2Ctype%2Csize%2Cupdated_at%2Ccategory%2Cfile_extension%2Cparent_file_id%2Cmime_type%2Cmime_extension%2Cpunish_flag)'
+    const resp = await AliHttp.Post(url, postData, user_id, '')
+    try {
+      if (AliHttp.IsSuccess(resp.code)) {
+        const items = resp.body.items
+        if (items.length == 0) {
+          list.push(id)
         }
+        return list
+      } else if (!AliHttp.HttpCodeBreak(resp.code)) {
+        DebugLog.mSaveWarning('ApiTestEnmptyDir err=' + (resp.code || ''), resp.body)
       }
-      return list
-    } else if (!AliHttp.HttpCodeBreak(resp.code)) {
-      DebugLog.mSaveWarning('ApiTestEnmptyDir err=' + (resp.code || ''), resp.body)
+    } catch (err: any) {
+      DebugLog.mSaveWarning('ApiTestEnmptyDir', err)
     }
-  } catch (err: any) {
-    DebugLog.mSaveWarning('ApiTestEnmptyDir', err)
   }
   return list
 }
