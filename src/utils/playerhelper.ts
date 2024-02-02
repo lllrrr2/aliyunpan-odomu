@@ -14,7 +14,6 @@ import { getEncType, getProxyUrl, getRawUrl } from './proxyhelper'
 import { CleanStringForCmd } from './filehelper'
 import Db from './db'
 import { humanTime } from './format'
-import axios from '../axios'
 import { IPageVideo } from '../store/appstore'
 import { Input, Modal } from '@arco-design/web-vue'
 import { h } from 'vue'
@@ -47,19 +46,10 @@ const PlayerUtils = {
       name = pageVideo.file_name
     }
     if (option.sourceType == 'auto') {
-      let searchDmUrl = 'https://azure.leuse.top/searchdm?params=' + JSON.stringify({ name, pos: pos + 1 })
-      let urlResp = await axios.get(searchDmUrl, {
-        responseType: 'json'
-      })
-      let sourceUrl = urlResp.data.url || ''
-      if (sourceUrl) {
-        let danmuResp = await axios.get('https://fc.home999.cc/?url=' + sourceUrl, {
-          responseType: 'text'
-        })
-        return danmuResp.data
-      } else {
-        return ''
-      }
+      // let searchDmUrl = 'https://azure.leuse.top/searchdm?params=' + JSON.stringify({ name, pos: num })
+      let numMatch = pageVideo.file_name.match(/(\d+).*/)
+      pos = numMatch ? parseInt(numMatch[1]) : pos + 1
+      return { name, pos}
     } else {
       return new Promise(resolve => {
         let sourceUrl = ''
@@ -83,14 +73,7 @@ const PlayerUtils = {
           cancelText: '取消',
           onOk: async (e: any) => {
             console.log('sourceUrl', sourceUrl)
-            if (sourceUrl) {
-              let danmuResp = await axios.get('https://fc.home999.cc/?url=' + sourceUrl, {
-                responseType: 'text'
-              })
-              resolve(danmuResp.data)
-            } else {
-              resolve('')
-            }
+            resolve(sourceUrl)
             return true
           },
           onCancel(e: any) {

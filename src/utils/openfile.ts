@@ -165,6 +165,7 @@ async function Video(token: ITokenInfo, file: IAliGetFileModel, subTitleFile: an
     uiAutoColorVideo,
     uiVideoQuality,
     uiVideoQualityTips,
+    uiVideoEnablePlayerList,
     uiVideoPlayer,
     uiVideoPlayerPath
   } = useSettingStore()
@@ -199,7 +200,7 @@ async function Video(token: ITokenInfo, file: IAliGetFileModel, subTitleFile: an
   }
   let rawData: any = undefined
   let encType = getEncType(file)
-  if (uiVideoQualityTips) {
+  if (uiVideoQualityTips || !uiVideoEnablePlayerList) {
     rawData = await getRawUrl(
       token.user_id, file.drive_id,
       file.file_id, encType, password,
@@ -221,10 +222,14 @@ async function Video(token: ITokenInfo, file: IAliGetFileModel, subTitleFile: an
   }
   // 清晰度选择
   if (uiVideoQualityTips && !encType) {
-    modalSelectVideoQuality(file, rawData, async (quality: any) => {
-      otherArgs.quality = quality
-      await PlayerUtils.startPlayer(token, uiVideoPlayerPath, otherArgs)
-    })
+    if (rawData) {
+      modalSelectVideoQuality(file, rawData, async (quality: any) => {
+        otherArgs.quality = quality
+        await PlayerUtils.startPlayer(token, uiVideoPlayerPath, otherArgs)
+      })
+    } else {
+      message.error('视频地址解析失败，操作取消')
+    }
   } else {
     await PlayerUtils.startPlayer(token, uiVideoPlayerPath, otherArgs)
   }

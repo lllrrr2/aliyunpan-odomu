@@ -50,6 +50,13 @@ export default function setting(art, danmuku) {
         tooltip($ref, '弹幕开关')
         setStyle($danmuOff, 'display', 'none')
 
+        if (danmuku.isHide) {
+          setStyle($danmuOn, 'display', 'none')
+          setStyle($danmuOff, 'display', null)
+        } else {
+          setStyle($danmuOn, 'display', null)
+          setStyle($danmuOff, 'display', 'none')
+        }
         art.on('artplayerPluginDanmuku:hide', () => {
           setStyle($danmuOn, 'display', 'none')
           setStyle($danmuOff, 'display', null)
@@ -183,6 +190,7 @@ export default function setting(art, danmuku) {
           tooltip: '1/4',
           selector: [
             {
+              default: true,
               html: '1/4',
               margin: [10, '75%']
             },
@@ -191,7 +199,6 @@ export default function setting(art, danmuku) {
               margin: [10, '50%']
             },
             {
-              default: true,
               html: '3/4',
               margin: [10, '25%']
             },
@@ -237,11 +244,11 @@ export default function setting(art, danmuku) {
           width: SETTING_ITEM_WIDTH,
           html: '弹幕来源',
           icon: '',
-          tooltip: '智能选择',
+          tooltip: option.sourceType === 'auto' ? '智能搜索':  '手动输入',
           selector: [
             {
               default: true,
-              html: '智能选择',
+              html: '智能搜索',
               sourceType: 'auto'
             },
             {
@@ -260,7 +267,7 @@ export default function setting(art, danmuku) {
           width: SETTING_ITEM_WIDTH,
           html: '弹幕匹配方式',
           icon: '',
-          tooltip: '文件夹名',
+          tooltip: option.matchType === 'folder' ? '文件夹名' : '文件名',
           selector: [
             {
               default: true,

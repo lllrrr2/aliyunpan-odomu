@@ -34,7 +34,12 @@ type Option = {
   /**
    * 弹幕源，可以是弹幕数组，xml 地址或者一个返回 Promise 的函数
    */
-  danmuku: Danmu[] | string | ((option: any) => Promise<Danmu[]>) | Promise<Danmu[]>;
+  danmuku: Danmu[] | string | ((option: any) => Promise<any>) | ((option: any) => Promise<Danmu[]>) | Promise<Danmu[]>;
+
+  /**
+   * 弹幕默认是否隐藏
+   */
+  hide?: boolean;
 
   /**
    * 弹幕持续时间，单位秒，范围在[1 ~ 10]

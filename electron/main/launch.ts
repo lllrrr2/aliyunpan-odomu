@@ -75,7 +75,7 @@ export default class launch extends EventEmitter {
     app.commandLine.appendSwitch('disable-web-security')
     app.commandLine.appendSwitch('disable-renderer-backgrounding')
     app.commandLine.appendSwitch('disable-site-isolation-trials')
-    app.commandLine.appendSwitch('disable-features', 'OutOfBlinkCors,SameSiteByDefaultCookies,CookiesWithoutSameSiteMustBeSecure')
+    app.commandLine.appendSwitch('disable-features', 'OutOfBlinkCors,SameSiteByDefaultCookies,CookiesWithoutSameSiteMustBeSecure,BlockInsecurePrivateNetworkRequests')
     app.commandLine.appendSwitch('ignore-connections-limit', 'bj29.cn-beijing.data.alicloudccp.com,alicloudccp.com,api.aliyundrive.com,aliyundrive.com')
     app.commandLine.appendSwitch('ignore-certificate-errors')
     app.commandLine.appendSwitch('proxy-bypass-list', '<local>')
@@ -133,8 +133,9 @@ export default class launch extends EventEmitter {
         }
         session.defaultSession.webRequest.onBeforeSendHeaders((details, cb) => {
           const shouldGieeReferer = details.url.indexOf('gitee.com') > 0
+          const shouldBiliBili = details.url.indexOf('bilibili.com') > 0
           const shouldAliOrigin = details.url.indexOf('.aliyundrive.com') > 0 || details.url.indexOf('.alipan.com') > 0
-          const shouldAliReferer = !shouldGieeReferer && (!details.referrer || details.referrer.trim() === '' || /(\/localhost:)|(^file:\/\/)|(\/127.0.0.1:)/.exec(details.referrer) !== null)
+          const shouldAliReferer = !shouldBiliBili && !shouldGieeReferer && (!details.referrer || details.referrer.trim() === '' || /(\/localhost:)|(^file:\/\/)|(\/127.0.0.1:)/.exec(details.referrer) !== null)
           const shouldToken = details.url.includes('aliyundrive') && details.url.includes('download')
           const shouldOpenApiToken = details.url.includes('adrive/v1.0')
 
@@ -150,6 +151,10 @@ export default class launch extends EventEmitter {
               }),
               ...(shouldAliReferer && {
                 Referer: 'https://www.aliyundrive.com/'
+              }),
+              ...(shouldBiliBili && {
+                Referer: 'https://www.bilibili.com/',
+                Cookie: 'buvid_fp=4e5ab1b80f684b94efbf0d2f4721913e;buvid3=0679D9AB-1548-ED1E-B283-E0114517315E63379infoc;buvid4=990C4544-0943-1FBF-F13C-4C42A4EA97AA63379-024020214-83%2BAINcbQP917Ye0PjtrCg%3D%3D;'
               }),
               ...(shouldToken && {
                 Authorization: this.userToken.access_token

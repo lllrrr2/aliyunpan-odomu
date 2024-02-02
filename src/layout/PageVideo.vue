@@ -108,7 +108,7 @@ const playM3U8 = (video: HTMLMediaElement, url: string, art: Artplayer) => {
           if (pageVideo.expire_time && pageVideo.expire_time <= Date.now()) {
             await getVideoInfo(art)
           } else {
-            art.emit('video:ended', data)
+            art.emit('video:error', data)
           }
         } else {
           hls.destroy()
@@ -223,6 +223,9 @@ const initEvent = (art: Artplayer) => {
         await updateVideoTime()
         await refreshSetting(art, item)
         await refreshPlayList(art, item.file_id)
+        // 重新载入弹幕
+        await art.plugins.artplayerPluginDanmuku.stop()
+        await art.plugins.artplayerPluginDanmuku.load()
       }
     }
   })
@@ -450,7 +453,7 @@ const getVideoInfo = async (art: Artplayer) => {
     }
     if (isBigFile && defaultQuality.html == '原画') {
       if (pageVideo.encType) {
-        art.emit('video:ended')
+        art.emit('video:error')
         message.error('加密文件超过3GB，请使用自定义播放器播放')
         return
       }
@@ -498,7 +501,7 @@ const getVideoInfo = async (art: Artplayer) => {
   } else {
     art.url = ''
     art.notice.show = '获取视频链接失败'
-    art.emit('video:ended')
+    art.emit('video:error', '获取视频链接失败')
   }
 }
 

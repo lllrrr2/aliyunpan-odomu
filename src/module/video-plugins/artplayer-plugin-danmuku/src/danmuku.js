@@ -1,4 +1,4 @@
-import { UniversalDanmuParseFromUrl, UniversalDanmuParseFromXml } from './danmuParse'
+import { UniversalDanmuParseFromSearch, UniversalDanmuParseFromUrl } from './danmuParse'
 import getDanmuTop from './getDanmuTop'
 
 export default class Danmuku {
@@ -13,10 +13,10 @@ export default class Danmuku {
     this.art = art
     this.danmus = []
     this.queue = []
-    this.option = {}
+    this.option = art.storage.get('danmuku') || {}
     this.$refs = []
     this.isStop = false
-    this.isHide = false
+    this.isHide = this.option.hide || true
     this.timer = null
     this.config(option)
 
@@ -40,12 +40,15 @@ export default class Danmuku {
     art.on('resize', this.reset)
     art.on('destroy', this.destroy)
 
-    this.load()
+    if (!this.isHide) {
+      this.load()
+    }
   }
 
   static get option() {
     return {
       danmuku: [],
+      hide: true,
       speed: 7.5,
       margin: [10, '75%'],
       opacity: 1,
@@ -56,14 +59,14 @@ export default class Danmuku {
       useWorker: true,
       synchronousPlayback: false,
       sourceType: 'auto',
-      matchType: 'folder',
-      points: []
+      matchType: 'folder'
     }
   }
 
   static get scheme() {
     return {
       danmuku: 'array|function|string',
+      hide: 'boolean',
       speed: 'number',
       margin: 'array',
       opacity: 'number',
@@ -74,8 +77,7 @@ export default class Danmuku {
       useWorker: 'boolean',
       synchronousPlayback: 'boolean',
       sourceType: 'string',
-      matchType: 'string',
-      points: 'array'
+      matchType: 'string'
     }
   }
 
@@ -223,8 +225,7 @@ export default class Danmuku {
   async load() {
     try {
       if (typeof this.option.danmuku === 'function') {
-        let resp = await this.option.danmuku(this.option)
-        this.danmus = UniversalDanmuParseFromXml(resp, this.option)
+        this.danmus = await this.option.danmuku(this.option)
       } else if (typeof this.option.danmuku.then === 'function') {
         this.danmus = await this.option.danmuku
       } else if (typeof this.option.danmuku === 'string') {
@@ -232,13 +233,18 @@ export default class Danmuku {
       } else {
         this.danmus = this.option.danmuku
       }
+      if (typeof this.danmus === 'string') {
+        this.danmus = await UniversalDanmuParseFromUrl(this.danmus, this.option)
+      } else if ('name' in this.danmus) {
+        this.danmus = await UniversalDanmuParseFromSearch(this.danmus, this.option)
+      }
       this.art.emit('artplayerPluginDanmuku:loaded', this.danmus)
       this.queue = []
       this.$danmuku.innerText = ''
       this.danmus.forEach((danmu) => this.emit(danmu))
     } catch (error) {
       this.art.emit('artplayerPluginDanmuku:error', error)
-      this.art.notice.show = '弹幕加载失败'
+      this.art.notice.show = '弹幕加载失败：' + error
     }
     return this
   }
@@ -261,9 +267,8 @@ export default class Danmuku {
       this.reset()
       this.load()
     }
-
     this.art.emit('artplayerPluginDanmuku:config', this.option)
-
+    this.art.storage.set('danmuku', this.option)
     return this
   }
 
@@ -428,6 +433,10 @@ export default class Danmuku {
 
   show() {
     this.isHide = false
+    this.config({ hide: false })
+    if (this.danmus.length === 0) {
+      this.load()
+    }
     this.start()
     this.$danmuku.style.display = 'block'
     this.art.emit('artplayerPluginDanmuku:show')
@@ -436,6 +445,7 @@ export default class Danmuku {
 
   hide() {
     this.isHide = true
+    this.config({ hide: true })
     this.stop()
     this.queue.forEach((item) => this.makeWait(item))
     this.$danmuku.style.display = 'none'

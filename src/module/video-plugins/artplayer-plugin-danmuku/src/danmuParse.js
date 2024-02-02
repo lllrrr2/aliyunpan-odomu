@@ -1,3 +1,6 @@
+import { resolveDanmu, searchVideo } from './api'
+import axios from 'axios'
+
 export function getMode(key) {
   switch (key) {
     case 1:
@@ -18,7 +21,7 @@ export function UniversalDanmuParseFromXml(xmlString, option) {
   return Array.from(matches)
     .map((match) => {
       const attr = match.groups.p.split(',')
-      if (attr.length >= 8) {
+      if (attr.length >= 3) {
         const text = match.groups.text
           .trim()
           .replaceAll('&quot;', '"')
@@ -42,8 +45,40 @@ export function UniversalDanmuParseFromXml(xmlString, option) {
     .filter(Boolean)
 }
 
+export function UniversalDanmuParseFromSearch({ name, pos }, option) {
+  return searchVideo(name, pos).then(async (res) => {
+    if (!res.msg) {
+      let video_url = res.url
+      if (video_url && video_url.includes('so.iqiyi.com/links')) {
+        // 获取重定向后的地址
+        video_url = await axios.get(video_url.url).then((res) => res.data.match(/URL='(.*)'/)[1])
+      }
+      if (video_url) {
+        return UniversalDanmuParseFromUrl(video_url, option)
+      } else {
+        return []
+      }
+    } else {
+      throw res.msg
+    }
+  })
+}
+
 export function UniversalDanmuParseFromUrl(url, option) {
-  return fetch(url)
-    .then((res) => res.text())
-    .then((xmlString) => UniversalDanmuParseFromXml(xmlString, option))
+  return resolveDanmu(url).then(async (res) => {
+    console.log('resolveDanmu', res)
+    if (res.msg === 'ok') {
+      if (res.url) {
+        return await fetch(res.url)
+          .then((res) => res.text())
+          .then((xmlString) => UniversalDanmuParseFromXml(xmlString, option))
+      } else if (res.content) {
+        return res.content
+      } else {
+        return []
+      }
+    } else {
+      throw res.msg
+    }
+  })
 }

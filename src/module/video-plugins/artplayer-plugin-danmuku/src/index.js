@@ -13,6 +13,7 @@ export default function artplayerPluginDanmuku(option) {
       hide: danmuku.hide.bind(danmuku),
       show: danmuku.show.bind(danmuku),
       reset: danmuku.reset.bind(danmuku),
+      stop: danmuku.stop.bind(danmuku),
       get option() {
         return danmuku.option
       },
