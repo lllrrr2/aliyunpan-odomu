@@ -39,12 +39,12 @@ class Iqiyi {
       if (this.dropThis(item)) {
         continue
       }
-      let videoinfos = item.videoinfos
+      let videoinfos = item.videoinfos || item.albumDocInfo.videoinfos
       let videoEpisode = videoinfos && videoinfos.find(info => info.itemNumber === pos)
       if (videoEpisode) {
         return {
-          url: videoinfos.itemLink,
-          title: videoinfos.itemTitle
+          url: videoEpisode.itemLink,
+          title: videoEpisode.itemTitle
         }
       }
     }

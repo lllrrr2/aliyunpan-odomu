@@ -46,11 +46,11 @@ const PlayerUtils = {
       name = pageVideo.file_name
     }
     if (option.sourceType == 'auto') {
-      // let searchDmUrl = 'https://azure.leuse.top/searchdm?params=' + JSON.stringify({ name, pos: num })
       let numMatch = pageVideo.file_name.match(/(\d+).*/)
-      pos = numMatch ? parseInt(numMatch[1]) : pos + 1
-      return { name, pos}
-    } else {
+      let num = numMatch ? parseInt(numMatch[1]) : pos + 1
+      // let searchDmUrl = 'https://azure.leuse.top/searchdm?params=' + JSON.stringify({ name, pos: num })
+      return { name, pos: num }
+    } else if (option.sourceType == 'input') {
       return new Promise(resolve => {
         let sourceUrl = ''
         // 输入网址
@@ -78,6 +78,37 @@ const PlayerUtils = {
           },
           onCancel(e: any) {
             resolve('')
+            return true
+          }
+        })
+      })
+    } else if (option.sourceType == 'search') {
+      return new Promise(resolve => {
+        let name = ''
+        Modal.open({
+          title: '输入搜索的关键字，空格分割集数',
+          bodyStyle: {
+            minWidth: '600px'
+          },
+          closable: false,
+          content: () => h(Input, {
+            type: 'text',
+            tabindex: '-1',
+            allowClear: true,
+            placeholder: '输入搜索的关键字，空格分割集数',
+            onChange(value, ev) {
+              name = value
+            }
+          }),
+          okText: '确认',
+          cancelText: '取消',
+          onOk: async (e: any) => {
+            let pos = name.split(' ')[1] || 1
+            resolve({ name, pos })
+            return true
+          },
+          onCancel(e: any) {
+            resolve({})
             return true
           }
         })

@@ -154,7 +154,8 @@ export default class launch extends EventEmitter {
               }),
               ...(shouldBiliBili && {
                 Referer: 'https://www.bilibili.com/',
-                Cookie: 'buvid_fp=4e5ab1b80f684b94efbf0d2f4721913e;buvid3=0679D9AB-1548-ED1E-B283-E0114517315E63379infoc;buvid4=990C4544-0943-1FBF-F13C-4C42A4EA97AA63379-024020214-83%2BAINcbQP917Ye0PjtrCg%3D%3D;'
+                Cookie: 'buvid_fp=4e5ab1b80f684b94efbf0d2f4721913e;buvid3=0679D9AB-1548-ED1E-B283-E0114517315E63379infoc;buvid4=990C4544-0943-1FBF-F13C-4C42A4EA97AA63379-024020214-83%2BAINcbQP917Ye0PjtrCg%3D%3D;',
+                'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36 Edg/121.0.0.0'
               }),
               ...(shouldToken && {
                 Authorization: this.userToken.access_token
@@ -163,8 +164,8 @@ export default class launch extends EventEmitter {
                 Authorization: this.userToken.open_api_access_token
               }),
               ...(shouldToken && {
-                'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36 Edg/121.0.0.0',
-                'X-Canary': 'client=web,app=adrive,version=v4.9.0'
+                'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) aDrive/4.12.0 Chrome/108.0.5359.215 Electron/22.3.24 Safari/537.36',
+                'X-Canary': 'client=windows,app=adrive,version=v4.12.0'
               }),
               'Accept-Language': 'zh-CN,zh;q=0.9'
             }

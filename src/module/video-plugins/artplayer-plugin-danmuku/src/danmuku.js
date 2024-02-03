@@ -238,6 +238,16 @@ export default class Danmuku {
       } else if ('name' in this.danmus) {
         this.danmus = await UniversalDanmuParseFromSearch(this.danmus, this.option)
       }
+      if (!Array.isArray(this.danmus)) {
+        if (this.option.sourceType === 'search') {
+          this.art.notice.show = '请输入正确的关键词'
+        } else if (this.option.sourceType === 'input') {
+          this.art.notice.show = '请输入正确的网址'
+        } else {
+          this.art.notice.show = '未找到相关弹幕'
+        }
+        return this
+      }
       this.art.emit('artplayerPluginDanmuku:loaded', this.danmus)
       this.queue = []
       this.$danmuku.innerText = ''

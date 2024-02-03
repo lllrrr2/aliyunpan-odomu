@@ -46,6 +46,7 @@ export function UniversalDanmuParseFromXml(xmlString, option) {
 }
 
 export function UniversalDanmuParseFromSearch({ name, pos }, option) {
+  if (name.length === 0) return
   return searchVideo(name, pos).then(async (res) => {
     if (!res.msg) {
       let video_url = res.url
@@ -65,6 +66,7 @@ export function UniversalDanmuParseFromSearch({ name, pos }, option) {
 }
 
 export function UniversalDanmuParseFromUrl(url, option) {
+  if (url.length === 0) return
   return resolveDanmu(url).then(async (res) => {
     console.log('resolveDanmu', res)
     if (res.msg === 'ok') {

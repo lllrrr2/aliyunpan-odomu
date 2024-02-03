@@ -9,6 +9,9 @@ import axios from 'axios'
 const list = [bilibili, tencentvideo, iqiyi, youku, mgtv]
 
 export async function searchVideo(keyword, pos) {
+  if (!keyword) {
+    return { msg: '请输入关键词' }
+  }
   // 捕获所有错误并添加日志
   for (let parseHelper of list) {
     if (parseHelper.search) {

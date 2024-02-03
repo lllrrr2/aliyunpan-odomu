@@ -50,22 +50,13 @@ export default function setting(art, danmuku) {
         tooltip($ref, '弹幕开关')
         setStyle($danmuOff, 'display', 'none')
 
-        if (danmuku.isHide) {
+        if (option.hide) {
           setStyle($danmuOn, 'display', 'none')
           setStyle($danmuOff, 'display', null)
         } else {
           setStyle($danmuOn, 'display', null)
           setStyle($danmuOff, 'display', 'none')
         }
-        art.on('artplayerPluginDanmuku:hide', () => {
-          setStyle($danmuOn, 'display', 'none')
-          setStyle($danmuOff, 'display', null)
-        })
-
-        art.on('artplayerPluginDanmuku:show', () => {
-          setStyle($danmuOn, 'display', null)
-          setStyle($danmuOff, 'display', 'none')
-        })
       }
     })
   }
@@ -244,7 +235,7 @@ export default function setting(art, danmuku) {
           width: SETTING_ITEM_WIDTH,
           html: '弹幕来源',
           icon: '',
-          tooltip: option.sourceType === 'auto' ? '智能搜索':  '手动输入',
+          tooltip: option.sourceType === 'auto' ? '智能搜索' : (option.sourceType === 'search' ? '手动搜索' : '输入网址'),
           selector: [
             {
               default: true,
@@ -252,7 +243,11 @@ export default function setting(art, danmuku) {
               sourceType: 'auto'
             },
             {
-              html: '手动输入',
+              html: '手动搜索',
+              sourceType: 'search'
+            },
+            {
+              html: '输入网址',
               sourceType: 'input'
             }
           ],
