@@ -48,30 +48,39 @@ export default function setting(art, danmuku) {
         append($ref, $danmuOn)
         append($ref, $danmuOff)
         tooltip($ref, '弹幕开关')
-        setStyle($danmuOff, 'display', 'none')
 
-        if (option.hide) {
+        if (danmuku.isHide) {
           setStyle($danmuOn, 'display', 'none')
           setStyle($danmuOff, 'display', null)
         } else {
           setStyle($danmuOn, 'display', null)
           setStyle($danmuOff, 'display', 'none')
         }
+
+        art.on('artplayerPluginDanmuku:hide', () => {
+          setStyle($danmuOn, 'display', 'none')
+          setStyle($danmuOff, 'display', null)
+        })
+
+        art.on('artplayerPluginDanmuku:show', () => {
+          setStyle($danmuOn, 'display', null)
+          setStyle($danmuOff, 'display', 'none')
+        })
       }
     })
   }
 
   function addSetting() {
     art.setting.add({
-      width: 260,
+      width: 300,
       name: 'danmuku',
       html: '弹幕设置',
       tooltip: '更多设置',
       icon: $danmuConfig,
       selector: [
         {
-          width: SETTING_ITEM_WIDTH,
-          html: '播放速度',
+          width: 300,
+          html: '弹幕速度',
           icon: '',
           tooltip: '较慢',
           selector: [
@@ -105,77 +114,33 @@ export default function setting(art, danmuku) {
           }
         },
         {
-          width: SETTING_ITEM_WIDTH,
+          width: 300,
           html: '字体大小',
           icon: '',
-          tooltip: '适中',
-          selector: [
-            {
-              html: '极小',
-              fontSize: '4%'
-            },
-            {
-              html: '较小',
-              fontSize: '5%'
-            },
-            {
-              default: true,
-              html: '适中',
-              fontSize: '6%'
-            },
-            {
-              html: '较大',
-              fontSize: '7%'
-            },
-            {
-              html: '极大',
-              fontSize: '8%'
-            }
-          ],
-          onSelect: function(item) {
+          tooltip: option.fontSize + 'px',
+          range: [option.fontSize, 12, 35, 1],
+          onChange(item) {
             danmuku.config({
-              fontSize: item.fontSize
+              fontSize: item.range
             })
-            return item.html
+            return item.range + 'px'
           }
         },
         {
-          width: SETTING_ITEM_WIDTH,
+          width: 300,
           html: '不透明度',
           icon: '',
-          tooltip: '100%',
-          selector: [
-            {
-              default: true,
-              opacity: 1,
-              html: '100%'
-            },
-            {
-              opacity: 0.75,
-              html: '75%'
-            },
-            {
-              opacity: 0.5,
-              html: '50%'
-            },
-            {
-              opacity: 0.25,
-              html: '25%'
-            },
-            {
-              opacity: 0,
-              html: '0%'
-            }
-          ],
-          onSelect: function(item) {
+          tooltip: (option.opacity * 100) + '%',
+          range: [option.opacity, 0, 1, 0.25],
+          onChange(item) {
             danmuku.config({
-              opacity: item.opacity
+              opacity: item.range
             })
-            return item.html
+            return (item.range * 100) + '%'
           }
         },
         {
-          width: SETTING_ITEM_WIDTH,
+          width: 300,
           html: '显示范围',
           icon: '',
           tooltip: '1/4',
@@ -259,7 +224,7 @@ export default function setting(art, danmuku) {
           }
         },
         {
-          width: SETTING_ITEM_WIDTH,
+          width: 300,
           html: '弹幕匹配方式',
           icon: '',
           tooltip: option.matchType === 'folder' ? '文件夹名' : '文件名',

@@ -127,7 +127,6 @@ class Bilibili {
       let episodes = response.data.result.episodes
       for (let i = 0; i < episodes.length; i++) {
         if (episodes[i].ep_id == params.ep_id) {
-          console.log(episodes[i].cid)
           this.title = episodes[i].share_copy
           const cid = episodes[i].cid
           return `https://comment.bilibili.com/${cid}.xml`

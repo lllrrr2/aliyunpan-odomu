@@ -16,7 +16,7 @@ export default class Danmuku {
     this.option = art.storage.get('danmuku') || {}
     this.$refs = []
     this.isStop = false
-    this.isHide = this.option.hide || true
+    this.isHide = this.option ? this.option.hide : true
     this.timer = null
     this.config(option)
 
@@ -54,7 +54,7 @@ export default class Danmuku {
       opacity: 1,
       color: '#FFFFFF',
       mode: 0,
-      fontSize: 25,
+      fontSize: 20,
       antiOverlap: true,
       useWorker: true,
       synchronousPlayback: false,
@@ -240,9 +240,9 @@ export default class Danmuku {
       }
       if (!Array.isArray(this.danmus)) {
         if (this.option.sourceType === 'search') {
-          this.art.notice.show = '请输入正确的关键词'
+          this.art.notice.show = '未输入搜索的关键词'
         } else if (this.option.sourceType === 'input') {
-          this.art.notice.show = '请输入正确的网址'
+          this.art.notice.show = '未输入解析的网址'
         } else {
           this.art.notice.show = '未找到相关弹幕'
         }
@@ -263,6 +263,7 @@ export default class Danmuku {
     const { clamp } = this.utils
 
     this.option = Object.assign({}, Danmuku.option, this.option, option)
+
     this.validator(this.option, Danmuku.scheme)
 
     this.option.speed = clamp(this.option.speed, 1, 10)
