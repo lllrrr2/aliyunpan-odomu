@@ -37,6 +37,7 @@ export default class Danmuku {
     art.on('video:playing', this.start)
     art.on('video:pause', this.stop)
     art.on('video:waiting', this.stop)
+    art.on('video:seeked', this.reset)
     art.on('resize', this.reset)
     art.on('destroy', this.destroy)
 
@@ -504,6 +505,7 @@ export default class Danmuku {
     this.art.off('video:playing', this.start)
     this.art.off('video:pause', this.stop)
     this.art.off('video:waiting', this.stop)
+    this.art.off('video:seeked', this.reset)
     this.art.off('resize', this.reset)
     this.art.off('destroy', this.destroy)
     this.art.emit('artplayerPluginDanmuku:destroy')

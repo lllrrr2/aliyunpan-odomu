@@ -211,11 +211,11 @@ const initEvent = (art: Artplayer) => {
     }
   })
   // 视频播放完毕
-  art.on('video:ended', async (index: any) => {
+  art.on('video:ended', async () => {
     if (playList.length > 1 && art.video.readyState > art.video.HAVE_CURRENT_DATA) {
-      autoPlayNumber = index ? index : playList.findIndex(list => list.file_id == pageVideo.file_id)
+      autoPlayNumber = playList.findIndex(list => list.file_id == pageVideo.file_id)
       if (art.storage.get('autoPlayNext')) {
-        const item = index ? playList[index] : playList[++autoPlayNumber]
+        const item = playList[++autoPlayNumber]
         if (!item) {
           art.notice.show = '视频播放完毕'
           return
@@ -396,7 +396,7 @@ const defaultControls = async (art: Artplayer) => {
           art.notice.show = '已经是最后一集了'
           return
         }
-        await art.emit('video:ended', ++autoPlayNumber)
+        await art.emit('video:ended')
       }
     })
   }
@@ -449,7 +449,7 @@ const getVideoInfo = async (art: Artplayer) => {
       defaultQuality = data.qualities[0]
     } else {
       let preData = data.qualities.filter(q => q.width)
-      defaultQuality = preData.find(q => q.quality === uiVideoQuality) || preData[0]
+      defaultQuality = preData.find(q => q.quality === uiVideoQuality) || preData[0] || data.qualities[0]
     }
     if (isBigFile && defaultQuality.html == '原画') {
       if (pageVideo.encType) {

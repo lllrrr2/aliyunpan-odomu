@@ -151,16 +151,16 @@ export async function getRawUrl(
       data.size = downUrl.size
     }
   }
-  // 代理播放
-  if ((preview_type && preview_type != 'other') || encType) {
+  if (preview_type == 'other') {
+    return data
+  } else if (encType) {
+    // 代理播放
     data.url = getProxyUrl({
       user_id, drive_id, file_id, encType, password,
       file_size: data.size, quality: quality || uiVideoQuality,
       proxy_url: data.url
     })
-    if (encType && preview_type) {
-      data.qualities.unshift({ quality: 'Origin', html: '原画', label: '原画', value: '', url: data.url })
-    }
+    data.qualities.unshift({ quality: 'Origin', html: '原画', label: '原画', value: '', url: data.url })
   }
   return data
 }
