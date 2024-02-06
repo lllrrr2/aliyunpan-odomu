@@ -180,7 +180,7 @@ export default class AliFile {
         'QHD': { label: '超高清', value: '2560p' }
       }
       for (let i = 0, maxi = taskList.length; i < maxi; i++) {
-        if (taskList[i].url.indexOf('pdsapi.aliyundrive.com') > 0) {
+        if (!taskList[i].url || taskList[i].url.indexOf('pdsapi.aliyundrive.com') > 0) {
           // 非OpenApi无法播放
           continue
         }
@@ -190,6 +190,7 @@ export default class AliFile {
           data.qualities.push({
             html: quality.label + ' ' + quality.value,
             quality: templateId,
+            height: taskList[i].template_height || 0,
             width: taskList[i].template_width || 0,
             label: quality.label,
             value: quality.value,

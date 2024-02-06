@@ -18,6 +18,7 @@ export interface IVideoPreviewUrl {
   qualities: {
     html: string
     quality: string
+    height: number
     width: number
     label: string
     value: string

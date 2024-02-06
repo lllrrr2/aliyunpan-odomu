@@ -1,6 +1,7 @@
 import axios from 'axios'
 import pako from 'pako'
 import { content_template, time_to_second } from './utils'
+import cache from '../../../../../utils/cache'
 
 const example_urls = [
   'https://www.iqiyi.com/v_19rr1lm35o.html', //api lens 11
@@ -16,7 +17,14 @@ class Iqiyi {
   }
 
   async search(keyword, pos) {
-    const api = 'https://search.video.iqiyi.com/o'
+    if (cache.has(this.domain + keyword)) {
+      let data = cache.get(this.domain + keyword)
+      if ('search result is empty' in data) {
+        return {}
+      }
+      return this.handleSearchRes(data, pos)
+    }
+    const api_search = 'https://search.video.iqiyi.com/o'
     const params = {
       if: 'html5',
       key: keyword,
@@ -25,16 +33,21 @@ class Iqiyi {
       video_allow_3rd: 0
     }
 
-    const resp = await axios.get(api, { params }).catch(err => [])
+    const resp = await axios.get(api_search, { params }).catch()
     if (!resp || resp.status !== 200) {
-      return []
+      return {}
     }
 
     let data = resp.data.data
     // 没有结果
+    cache.set(this.domain + keyword, data, 60 * 60 * 2)
     if ('search result is empty' in data) {
-      return []
+      return {}
     }
+    return this.handleSearchRes(data, pos)
+  }
+
+  handleSearchRes(data, pos) {
     for (let item of data.docinfos) {
       if (this.dropThis(item)) {
         continue
@@ -75,10 +88,7 @@ class Iqiyi {
   async resolve(url) {
     const res = await axios({
       url: url,
-      method: 'get',
-      headers: {
-        'Accept-Encoding': 'gzip,deflate,compress'
-      }
+      method: 'get'
     })
     const data = res.data
     const result = data.match(/window.Q.PageInfo.playPageInfo=(.*);/)

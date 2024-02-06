@@ -2,6 +2,8 @@
 import useSettingStore from './settingstore'
 import MySwitch from '../layout/MySwitch.vue'
 import { computed } from 'vue'
+import cache from '../utils/cache'
+import message from '../utils/message'
 
 const settingStore = useSettingStore()
 const cb = (val: any) => {
@@ -32,6 +34,12 @@ function handleSelectPlayer() {
 const playerType = computed(() => {
   return settingStore.uiVideoPlayerPath.toLowerCase()
 })
+
+const handleClearDanmuCache = ()=> {
+  cache.clearSelf()
+  message.success('清理弹幕搜索缓存成功')
+}
+
 </script>
 
 <template>
@@ -97,6 +105,17 @@ const playerType = computed(() => {
         <a-option value="LD">流畅（480P）</a-option>
       </a-select>
     </div>
+    <template v-if="settingStore.uiVideoPlayer === 'web'">
+      <div class='settingspace'></div>
+      <div class='settinghead'>:弹幕搜索缓存</div>
+      <div class="settingrow">
+        <a-popconfirm content="确认要清理缓存？" @ok="handleClearDanmuCache">
+          <a-button type="outline" size="small" tabindex="-1" status="danger" style="margin-right: 16px">
+            清理缓存
+          </a-button>
+        </a-popconfirm>
+      </div>
+    </template>
     <template v-if="settingStore.uiVideoPlayer === 'other'">
       <div class='settingspace'></div>
       <div class='settinghead'>:每次播放前提示选择清晰度</div>

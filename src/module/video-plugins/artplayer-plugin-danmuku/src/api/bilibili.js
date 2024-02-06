@@ -1,8 +1,14 @@
 import urlmodule from 'url'
 import axios from 'axios'
 import crypto from 'crypto'
+import cache from '../../../../../utils/cache'
 
-const example_urls = ['https://www.bilibili.com/video/av170001', 'https://www.bilibili.com/video/av170001?p=2', 'https://www.bilibili.com/video/BV17x411w7KC?p=3', 'https://www.bilibili.com/bangumi/play/ep691614']
+const example_urls = [
+  'https://www.bilibili.com/video/av170001',
+  'https://www.bilibili.com/video/av170001?p=2',
+  'https://www.bilibili.com/video/BV17x411w7KC?p=3',
+  'https://www.bilibili.com/bangumi/play/ep691614'
+]
 
 const mixinKeyEncTab = [46, 47, 18, 2, 53, 8, 23, 32, 15, 50, 10, 31, 58, 3, 45, 35, 27, 43, 5, 49, 33, 9, 42, 19, 29, 28, 14, 39, 12, 38, 41, 13, 37, 48, 7, 16, 24, 55, 40, 61, 26, 17, 0, 1, 60, 51, 30, 4, 22, 25, 54, 21, 56, 59, 6, 63, 57, 62, 11, 36, 20, 34, 44, 52]
 // 对 imgKey 和 subKey 进行字符顺序打乱编码
@@ -42,7 +48,8 @@ class Bilibili {
   // 获取最新的 img_key 和 sub_key
   async getWbiKeys() {
     // todo 缓存 img_key 和 sub_key
-    const res = await axios.get('https://api.bilibili.com/x/web-interface/nav', {
+    const api_nav = 'https://api.bilibili.com/x/web-interface/nav'
+    const res = await axios.get(api_nav, {
       withCredentials: true,
       responseType: 'json'
     })
@@ -55,6 +62,13 @@ class Bilibili {
   }
 
   async search(keyword, pos) {
+    if (cache.has(this.domain + keyword)) {
+      let data = cache.get(this.domain + keyword)
+      if (!data.result || data.result.length === 0) {
+        return {}
+      }
+      return this.handleSearchRes(data, pos)
+    }
     const web_keys = await this.getWbiKeys()
     const img_key = web_keys.img_key
     const sub_key = web_keys.sub_key
@@ -67,14 +81,19 @@ class Bilibili {
     const resp = await axios.get(api_search + '?' + this.encWbi(params, img_key, sub_key), {
       responseType: 'json',
       withCredentials: true
-    }).catch(e => [])
+    }).catch()
     if (!resp || resp.status !== 200 || resp.data.code !== 0) {
-      return []
+      return {}
     }
     let data = resp.data.data
+    cache.set(this.domain + keyword, data, 60 * 60 * 2)
     if (!data.result || data.result.length === 0) {
-      return []
+      return {}
     }
+    return this.handleSearchRes(data, pos)
+  }
+
+  handleSearchRes(data, pos) {
     if (data.result[0] && data.result[0].eps) {
       for (let ep of data.result[0].eps) {
         if (pos === parseInt(ep.index_title)) {

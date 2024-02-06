@@ -1,12 +1,14 @@
 import bilibili from './bilibili'
 import iqiyi from './iqiyi'
 import mgtv from './mgtv'
-import tencentvideo from './tencentvideo'
+import tencent from './tencent'
 import youku from './youku'
 
 import axios from 'axios'
+import cache from '../../../../../utils/cache'
+import { md5Code } from '../../../../../utils/utils'
 
-const list = [bilibili, tencentvideo, iqiyi, youku, mgtv]
+const list = [bilibili, tencent, iqiyi, youku, mgtv]
 
 export async function searchVideo(keyword, pos) {
   if (!keyword) {
@@ -25,11 +27,16 @@ export async function searchVideo(keyword, pos) {
 }
 
 export async function resolveDanmu(url) {
+  if (!url) {
+    return { msg: '请输入链接' }
+  }
+  let md5Url = md5Code(url)
+  if (cache.has(md5Url)) {
+    return cache.get(md5Url)
+  }
   // 测试url是否能下载
   try {
-    await axios.get(url, {
-      headers: { 'Accept-Encoding': 'gzip,deflate,compress' }
-    })
+    await axios.get(url)
   } catch (e) {
     console.error('error', e)
     return { msg: '传入的链接非法！请检查链接是否能在浏览器正常打开' }
@@ -42,7 +49,9 @@ export async function resolveDanmu(url) {
   }
   // 捕获所有错误并添加日志
   try {
-    return await fc.work(url)
+    let danmuData = await fc.work(url)
+    cache.set(md5Url, danmuData, 60 * 60)
+    return danmuData
   } catch (e) {
     console.error('error', e)
     return { msg: '弹幕解析过程中程序报错退出，换条链接试试！' }

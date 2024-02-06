@@ -23,8 +23,9 @@ export interface IRawUrl {
   qualities: {
     html: string
     quality: string
-    label: string
+    height: number
     width: number
+    label: string
     value: string
     url: string
   }[]

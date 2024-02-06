@@ -158,7 +158,9 @@ export default class Danmuku {
     return this.queue.filter((danmu) => {
       return (
         danmu.$state === 'ready' ||
-        (danmu.$state === 'wait' && currentTime + 0.1 >= danmu.time && danmu.time >= currentTime - 0.1)
+        (danmu.$state === 'wait'
+          && currentTime + 0.1 >= danmu.time
+          && danmu.time >= currentTime - 0.1)
       )
     })
   }
@@ -254,8 +256,9 @@ export default class Danmuku {
       this.$danmuku.innerText = ''
       this.danmus.forEach((danmu) => this.emit(danmu))
     } catch (error) {
+      console.log('error', error)
       this.art.emit('artplayerPluginDanmuku:error', error)
-      this.art.notice.show = '弹幕加载失败：' + error
+      this.art.notice.show = '未找到相关弹幕'
     }
     return this
   }
@@ -470,6 +473,7 @@ export default class Danmuku {
       text: 'string',
       mode: 'number|undefined',
       color: 'string|undefined',
+      gradient_colors: 'array|undefined',
       time: 'number|undefined',
       border: 'boolean|undefined'
     })

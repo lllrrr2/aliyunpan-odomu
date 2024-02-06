@@ -457,8 +457,10 @@ const getVideoInfo = async (art: Artplayer) => {
         message.error('加密文件超过3GB，请使用自定义播放器播放')
         return
       }
-      art.notice.show = '原画文件超过3GB，自动切换到转码画质播放'
-      defaultQuality = data.qualities[1]
+      if (data.qualities.length > 1) {
+        art.notice.show = '原画文件超过3GB，自动切换到转码画质播放'
+        defaultQuality = data.qualities[1]
+      }
     }
     defaultQuality.default = true
     art.url = defaultQuality.url

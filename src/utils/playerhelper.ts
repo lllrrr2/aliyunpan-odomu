@@ -17,6 +17,7 @@ import { humanTime } from './format'
 import { IPageVideo } from '../store/appstore'
 import { Input, Modal } from '@arco-design/web-vue'
 import { h } from 'vue'
+import path from 'path'
 
 const PlayerUtils = {
   filterSubtitleFile(name: string, subTitlesList: IAliGetFileModel[]) {
@@ -46,10 +47,15 @@ const PlayerUtils = {
       name = pageVideo.file_name
     }
     if (option.sourceType == 'auto') {
-      let numMatch = pageVideo.file_name.match(/(\d+).*/)
-      let num = numMatch ? parseInt(numMatch[1]) : pos + 1
-      // let searchDmUrl = 'https://azure.leuse.top/searchdm?params=' + JSON.stringify({ name, pos: num })
-      return { name, pos: num }
+      let searchName = name
+        .replace(/\b(19|20)\d{2}\b/g, '')
+        .replace(/\b(360p|480p|720p|1080p|2160p|\d+K)\b/gi, '')
+        .replace(path.extname(name), '')
+        .replace('.', '')
+      let numMatch = searchName.match(/S(\d+)E(\d+)/i) || searchName.match(/(\d{1,3}).*/)
+      let num = numMatch ? parseInt(numMatch[2] || numMatch[1]) : pos + 1
+      console.log('search', searchName, num)
+      return { name: searchName, pos: num }
     } else if (option.sourceType == 'input') {
       return new Promise(resolve => {
         let sourceUrl = ''

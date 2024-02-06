@@ -4,8 +4,13 @@ import axios from 'axios'
 import urlmodule from 'url'
 import cookie from 'cookie'
 import crypto from 'crypto'
+import cache from '../../../../../utils/cache'
 
-const example_urls = ['https://v.youku.com/v_show/id_XNTE5NjUxNjUyOA==.html', 'https://v.youku.com/v_show/id_XMTc1OTE4ODI5Ng==.html', 'https://v.youku.com/v_show/id_XNTkxNDY2Nzg2MA==.html']
+const example_urls = [
+  'https://v.youku.com/v_show/id_XNTE5NjUxNjUyOA==.html',
+  'https://v.youku.com/v_show/id_XMTc1OTE4ODI5Ng==.html',
+  'https://v.youku.com/v_show/id_XNTkxNDY2Nzg2MA==.html'
+]
 
 class Youku {
 
@@ -16,15 +21,23 @@ class Youku {
   }
 
   async search(keyword, pos) {
-    const api = 'https://search.youku.com/search_video'
-    const resp = await axios.get(api, { params: { keyword } }).catch(err => [])
+    if (cache.has(this.domain + keyword)) {
+      return this.handleSearchRes(cache.get(this.domain + keyword), pos)
+    }
+    const api_search = 'https://search.youku.com/search_video'
+    const resp = await axios.get(api_search, { params: { keyword } }).catch()
     if (!resp || resp.status !== 200) {
-      return []
+      return {}
     }
     const html = resp.data
     const dataMatch = html.match(/__INITIAL_DATA__\s*?=\s*?({.+?});\s*?window._SSRERR_/)
     // 这是我见过最恶心的 json
     const data = JSON.parse(dataMatch[1])
+    cache.set(this.domain + keyword, data, 60 * 60 * 2)
+    return this.handleSearchRes(data, pos)
+  }
+
+  handleSearchRes(data, pos) {
     const items = data.pageComponentList
     for (const item of items) {
       const info = item.commonData
@@ -152,7 +165,7 @@ class Youku {
         'jsonpIncPrefix': 'utility'
       }
       promises.push(axios.post(api_url, { data }, {
-        headers: headers, params: params
+        headers, params
       }))
     }
     return promises

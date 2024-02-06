@@ -134,8 +134,9 @@ export default class launch extends EventEmitter {
         session.defaultSession.webRequest.onBeforeSendHeaders((details, cb) => {
           const shouldGieeReferer = details.url.indexOf('gitee.com') > 0
           const shouldBiliBili = details.url.indexOf('bilibili.com') > 0
+          const shouldQQTv = details.url.indexOf('v.qq.com') > 0 || details.url.indexOf('video.qq.com') > 0
           const shouldAliOrigin = details.url.indexOf('.aliyundrive.com') > 0 || details.url.indexOf('.alipan.com') > 0
-          const shouldAliReferer = !shouldBiliBili && !shouldGieeReferer && (!details.referrer || details.referrer.trim() === '' || /(\/localhost:)|(^file:\/\/)|(\/127.0.0.1:)/.exec(details.referrer) !== null)
+          const shouldAliReferer = !shouldBiliBili && !shouldBiliBili && !shouldGieeReferer && (!details.referrer || details.referrer.trim() === '' || /(\/localhost:)|(^file:\/\/)|(\/127.0.0.1:)/.exec(details.referrer) !== null)
           const shouldToken = details.url.includes('aliyundrive') && details.url.includes('download')
           const shouldOpenApiToken = details.url.includes('adrive/v1.0')
 
@@ -156,6 +157,11 @@ export default class launch extends EventEmitter {
                 Referer: 'https://www.bilibili.com/',
                 Cookie: 'buvid_fp=4e5ab1b80f684b94efbf0d2f4721913e;buvid3=0679D9AB-1548-ED1E-B283-E0114517315E63379infoc;buvid4=990C4544-0943-1FBF-F13C-4C42A4EA97AA63379-024020214-83%2BAINcbQP917Ye0PjtrCg%3D%3D;',
                 'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36 Edg/121.0.0.0'
+              }),
+              ...(shouldQQTv && {
+                Referer: 'https://m.v.qq.com/',
+                Origin: 'https://m.v.qq.com',
+                'user-agent': 'Mozilla/5.0 (Linux; Android 13; SM-G981B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Mobile Safari/537.36 Edg/121.0.0.0'
               }),
               ...(shouldToken && {
                 Authorization: this.userToken.access_token
