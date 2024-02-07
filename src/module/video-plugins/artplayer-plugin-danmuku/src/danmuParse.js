@@ -69,7 +69,7 @@ export function UniversalDanmuParseFromUrl(url, option) {
   if (url.length === 0) return
   return resolveDanmu(url).then(async (res) => {
     console.log('resolveDanmu', res)
-    if (res.msg === 'ok') {
+    if (res && res.msg === 'ok') {
       if (res.url) {
         return await fetch(res.url)
           .then((res) => res.text())

@@ -473,7 +473,6 @@ export default class Danmuku {
       text: 'string',
       mode: 'number|undefined',
       color: 'string|undefined',
-      gradient_colors: 'array|undefined',
       time: 'number|undefined',
       border: 'boolean|undefined'
     })

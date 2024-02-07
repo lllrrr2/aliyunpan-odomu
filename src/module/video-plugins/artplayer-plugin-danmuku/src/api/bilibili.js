@@ -62,12 +62,8 @@ class Bilibili {
   }
 
   async search(keyword, pos) {
-    if (cache.has(this.domain + keyword)) {
-      let data = cache.get(this.domain + keyword)
-      if (!data.result || data.result.length === 0) {
-        return {}
-      }
-      return this.handleSearchRes(data, pos)
+    if (cache.has(this.domain + keyword + pos)) {
+      return this.handleSearchRes(cache.get(this.domain + keyword + pos), pos)
     }
     const web_keys = await this.getWbiKeys()
     const img_key = web_keys.img_key
@@ -86,14 +82,14 @@ class Bilibili {
       return {}
     }
     let data = resp.data.data
-    cache.set(this.domain + keyword, data, 60 * 60 * 2)
-    if (!data.result || data.result.length === 0) {
-      return {}
-    }
+    cache.set(this.domain + keyword + pos, data, 60 * 60 * 2)
     return this.handleSearchRes(data, pos)
   }
 
   handleSearchRes(data, pos) {
+    if (!data || !data.result) {
+      return {}
+    }
     if (data.result[0] && data.result[0].eps) {
       for (let ep of data.result[0].eps) {
         if (pos === parseInt(ep.index_title)) {

@@ -21,8 +21,8 @@ class Youku {
   }
 
   async search(keyword, pos) {
-    if (cache.has(this.domain + keyword)) {
-      return this.handleSearchRes(cache.get(this.domain + keyword), pos)
+    if (cache.has(this.domain + keyword + pos)) {
+      return this.handleSearchRes(cache.get(this.domain + keyword + pos), pos)
     }
     const api_search = 'https://search.youku.com/search_video'
     const resp = await axios.get(api_search, { params: { keyword } }).catch()
@@ -33,7 +33,7 @@ class Youku {
     const dataMatch = html.match(/__INITIAL_DATA__\s*?=\s*?({.+?});\s*?window._SSRERR_/)
     // 这是我见过最恶心的 json
     const data = JSON.parse(dataMatch[1])
-    cache.set(this.domain + keyword, data, 60 * 60 * 2)
+    cache.set(this.domain + keyword + pos, data, 60 * 60 * 2)
     return this.handleSearchRes(data, pos)
   }
 

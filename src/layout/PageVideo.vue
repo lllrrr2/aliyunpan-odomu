@@ -77,18 +77,16 @@ const options: Option = {
     })
   ],
   customType: {
-    m3u8: (video: HTMLMediaElement, url: string) => playM3U8(video, url, ArtPlayerRef)
+    m3u8: (video: HTMLMediaElement, url: string, art: Artplayer) => playByHls(video, url, art),
+    ts: (video: HTMLMediaElement, url: string, art: Artplayer) => playByHls(video, url, art),
   }
 }
 
-const playM3U8 = (video: HTMLMediaElement, url: string, art: Artplayer) => {
+const playByHls = (video: HTMLMediaElement, url: string, art: Artplayer) => {
   if (HlsJs.isSupported()) {
     // @ts-ignore
     if (art.hls) art.hls.destroy()
-    const hls = new HlsJs({
-      maxBufferLength: 50,
-      maxBufferSize: 60 * 1000 * 1000
-    })
+    const hls = new HlsJs()
     hls.detachMedia()
     hls.loadSource(url)
     hls.attachMedia(video)
@@ -156,12 +154,12 @@ onMounted(async () => {
 
 const createVideo = async (name: string) => {
   // 初始化
-  ArtPlayerRef = new Artplayer(options)
-  ArtPlayerRef.title = name
   Artplayer.SETTING_WIDTH = 300
   Artplayer.SETTING_ITEM_WIDTH = 300
   Artplayer.NOTICE_TIME = 3000
   Artplayer.LOG_VERSION = false
+  ArtPlayerRef = new Artplayer(options)
+  ArtPlayerRef.title = name
   // 获取用户配置
   initStorage(ArtPlayerRef)
   initEvent(ArtPlayerRef)
@@ -473,14 +471,7 @@ const getVideoInfo = async (art: Artplayer) => {
       html: defaultQuality ? defaultQuality.html : '',
       selector: data.qualities,
       onSelect: async (item: selectorItem) => {
-        if (item.html === '原画') {
-          art.once('video:canplay', () => {
-            art.switchUrl(item.url)
-            art.play()
-          })
-        } else {
-          await art.switchQuality(item.url)
-        }
+        await art.switchQuality(item.url)
       }
     })
     // 内嵌字幕

@@ -174,14 +174,13 @@ export default class AliFile {
       const taskList = resp.body.video_preview_play_info?.live_transcoding_task_list || []
       const qualityMap: any = {
         'LD': { label: '低清', value: '480p' },
-        'SD': { label: '标清', value: '720p' },
-        'HD': { label: '高清', value: '1080p' },
+        'SD': { label: '标清', value: '540P' },
+        'HD': { label: '高清', value: '720P' },
         'FHD': { label: '全高清', value: '1080p' },
         'QHD': { label: '超高清', value: '2560p' }
       }
       for (let i = 0, maxi = taskList.length; i < maxi; i++) {
-        if (!taskList[i].url || taskList[i].url.indexOf('pdsapi.aliyundrive.com') > 0) {
-          // 非OpenApi无法播放
+        if (!taskList[i].url) {
           continue
         }
         let templateId = taskList[i].template_id

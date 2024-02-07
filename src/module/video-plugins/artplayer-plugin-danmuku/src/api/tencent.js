@@ -23,8 +23,8 @@ class Tencent {
 
   async search(keyword, pos) {
     // 缓存搜索结果
-    if (cache.has(this.domain + keyword)) {
-      return this.handleSearchRes(cache.get(this.domain + keyword), pos)
+    if (cache.has(this.domain + keyword + pos)) {
+      return this.handleSearchRes(cache.get(this.domain + keyword + pos), pos)
     }
     const api_search = 'https://pbaccess.video.qq.com/trpc.videosearch.mobile_search.HttpMobileRecall/MbSearchHttp'
     const params = {
@@ -73,12 +73,12 @@ class Tencent {
       return {}
     }
     const data = new Function(`return ${dataMatch[1]};`)()
-    cache.set(this.domain + keyword, data, 60 * 60 * 2)
+    cache.set(this.domain + keyword + pos, data, 60 * 60 * 2)
     return this.handleSearchRes(data, pos)
   }
 
   handleSearchRes(data, pos) {
-    if (data.episodeMain && data.episodeMain.listData) {
+    if (data && data.episodeMain && data.episodeMain.listData) {
       let listData = data.episodeMain.listData.filter(Boolean)[0].list[0]
       for (const item of listData) {
         if ((item.index + 1) === pos) {
@@ -141,7 +141,7 @@ class Tencent {
             content.color = content_style.color
           }
           if (content_style.gradient_colors) {
-            content.gradient_colors = content_style.gradient_colors
+            content.color = content_style.gradient_colors[0]
           }
         }
         content.text = item.content

@@ -17,12 +17,8 @@ class Iqiyi {
   }
 
   async search(keyword, pos) {
-    if (cache.has(this.domain + keyword)) {
-      let data = cache.get(this.domain + keyword)
-      if ('search result is empty' in data) {
-        return {}
-      }
-      return this.handleSearchRes(data, pos)
+    if (cache.has(this.domain + keyword + pos)) {
+      return this.handleSearchRes(cache.get(this.domain + keyword + pos), pos)
     }
     const api_search = 'https://search.video.iqiyi.com/o'
     const params = {
@@ -40,14 +36,14 @@ class Iqiyi {
 
     let data = resp.data.data
     // 没有结果
-    cache.set(this.domain + keyword, data, 60 * 60 * 2)
-    if ('search result is empty' in data) {
-      return {}
-    }
+    cache.set(this.domain + keyword + pos, data, 60 * 60 * 2)
     return this.handleSearchRes(data, pos)
   }
 
   handleSearchRes(data, pos) {
+    if ('search result is empty' in data) {
+      return {}
+    }
     for (let item of data.docinfos) {
       if (this.dropThis(item)) {
         continue
@@ -70,7 +66,7 @@ class Iqiyi {
       return true
     }
     // 经常出现无关内容
-    if (item.channel.includes('生活')) {
+    if (item.channel.includes('生活') || item.channel.includes('教育')) {
       return true
     }
     // 没有用的视频
