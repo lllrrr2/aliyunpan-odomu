@@ -38,7 +38,7 @@ export default class Danmuku {
     art.on('video:pause', this.stop)
     art.on('video:waiting', this.stop)
     art.on('video:seeked', this.reset)
-    art.on('resize', this.reset)
+    // art.on('resize', this.reset)
     art.on('destroy', this.destroy)
 
     if (!this.isHide) {
@@ -46,7 +46,7 @@ export default class Danmuku {
     }
   }
 
-  static get option() {
+  static get option () {
     return {
       danmuku: [],
       hide: true,
@@ -60,11 +60,12 @@ export default class Danmuku {
       useWorker: true,
       synchronousPlayback: false,
       sourceType: 'auto',
-      matchType: 'folder'
+      matchType: 'folder',
+      matchEsp: 'auto',
     }
   }
 
-  static get scheme() {
+  static get scheme () {
     return {
       danmuku: 'array|function|string',
       hide: 'boolean',
@@ -78,15 +79,16 @@ export default class Danmuku {
       useWorker: 'boolean',
       synchronousPlayback: 'boolean',
       sourceType: 'string',
-      matchType: 'string'
+      matchType: 'string',
+      matchEsp: 'number|string'
     }
   }
 
-  get isRotate() {
+  get isRotate () {
     return this.art.plugins.autoOrientation && this.art.plugins.autoOrientation.state
   }
 
-  get marginTop() {
+  get marginTop () {
     const { clamp } = this.utils
     const value = this.option.margin[0]
     const { clientHeight } = this.$player
@@ -103,7 +105,7 @@ export default class Danmuku {
     return Danmuku.option.margin[0]
   }
 
-  get marginBottom() {
+  get marginBottom () {
     const { clamp } = this.utils
     const value = this.option.margin[1]
     const { clientHeight } = this.$player
@@ -120,16 +122,16 @@ export default class Danmuku {
     return Danmuku.option.margin[1]
   }
 
-  filter(state, callback) {
+  filter (state, callback) {
     return this.queue.filter((danmu) => danmu.$state === state).map(callback)
   }
 
-  getLeft($ref) {
+  getLeft ($ref) {
     const rect = $ref.getBoundingClientRect()
     return this.isRotate ? rect.top : rect.left
   }
 
-  getRef() {
+  getRef () {
     const $refCache = this.$refs.pop()
     if ($refCache) return $refCache
 
@@ -153,7 +155,7 @@ export default class Danmuku {
     return $ref
   }
 
-  getReady() {
+  getReady () {
     const { currentTime } = this.art
     return this.queue.filter((danmu) => {
       return (
@@ -165,7 +167,7 @@ export default class Danmuku {
     })
   }
 
-  getEmits() {
+  getEmits () {
     const result = []
     const { clientWidth } = this.$player
     const clientLeft = this.getLeft(this.$player)
@@ -191,7 +193,7 @@ export default class Danmuku {
     return result
   }
 
-  getFontSize(fontSize) {
+  getFontSize (fontSize) {
     const { clamp } = this.utils
     const { clientHeight } = this.$player
 
@@ -207,7 +209,7 @@ export default class Danmuku {
     return Danmuku.option.fontSize
   }
 
-  postMessage(message = {}) {
+  postMessage (message = {}) {
     return new Promise((resolve) => {
       if (this.option.useWorker && this.worker && this.worker.postMessage) {
         message.id = Date.now()
@@ -225,7 +227,7 @@ export default class Danmuku {
     })
   }
 
-  async load() {
+  async load () {
     try {
       if (typeof this.option.danmuku === 'function') {
         this.danmus = await this.option.danmuku(this.option)
@@ -239,6 +241,12 @@ export default class Danmuku {
       if (typeof this.danmus === 'string') {
         this.danmus = await UniversalDanmuParseFromUrl(this.danmus, this.option)
       } else if ('name' in this.danmus) {
+        if (!this.danmus.pos) {
+          return this
+        }
+        if (typeof this.option.matchEsp === 'number') {
+          this.danmus.pos = this.option.matchEsp
+        }
         this.danmus = await UniversalDanmuParseFromSearch(this.danmus, this.option)
       }
       if (!Array.isArray(this.danmus)) {
@@ -263,14 +271,17 @@ export default class Danmuku {
     return this
   }
 
-  config(option) {
+  config (option) {
     const { clamp } = this.utils
 
     this.option = Object.assign({}, Danmuku.option, this.option, option)
 
     this.validator(this.option, Danmuku.scheme)
 
-    this.option.speed = clamp(this.option.speed, 1, 10)
+    if (option.speed) {
+      this.option.speed = clamp(this.option.speed, 1, 10)
+      this.reset()
+    }
     this.option.opacity = clamp(this.option.opacity, 0, 1)
 
     if (option.fontSize) {
@@ -278,7 +289,7 @@ export default class Danmuku {
       this.reset()
     }
 
-    if (option.sourceType || option.matchType) {
+    if (option.sourceType || option.matchType || option.matchEsp) {
       this.reset()
       this.load()
     }
@@ -287,7 +298,7 @@ export default class Danmuku {
     return this
   }
 
-  makeWait(danmu) {
+  makeWait (danmu) {
     danmu.$state = 'wait'
     if (danmu.$ref) {
       danmu.$ref.style.visibility = 'hidden'
@@ -299,7 +310,7 @@ export default class Danmuku {
     }
   }
 
-  continue() {
+  continue () {
     const { clientWidth } = this.$player
     this.filter('stop', (danmu) => {
       danmu.$state = 'emit'
@@ -319,7 +330,7 @@ export default class Danmuku {
     return this
   }
 
-  suspend() {
+  suspend () {
     const { clientWidth } = this.$player
     this.filter('emit', (danmu) => {
       danmu.$state = 'stop'
@@ -338,12 +349,12 @@ export default class Danmuku {
     return this
   }
 
-  reset() {
+  reset () {
     this.queue.forEach((danmu) => this.makeWait(danmu))
     return this
   }
 
-  update() {
+  update () {
     this.timer = window.requestAnimationFrame(async () => {
       if (this.art.playing && !this.isHide) {
         this.filter('emit', (danmu) => {
@@ -430,7 +441,7 @@ export default class Danmuku {
     return this
   }
 
-  stop() {
+  stop () {
     this.isStop = true
     this.suspend()
     window.cancelAnimationFrame(this.timer)
@@ -438,7 +449,7 @@ export default class Danmuku {
     return this
   }
 
-  start() {
+  start () {
     this.isStop = false
     this.continue()
     this.update()
@@ -446,7 +457,7 @@ export default class Danmuku {
     return this
   }
 
-  show() {
+  show () {
     this.isHide = false
     this.config({ hide: false })
     if (this.danmus.length === 0) {
@@ -458,7 +469,7 @@ export default class Danmuku {
     return this
   }
 
-  hide() {
+  hide () {
     this.isHide = true
     this.config({ hide: true })
     this.stop()
@@ -468,7 +479,7 @@ export default class Danmuku {
     return this
   }
 
-  emit(danmu) {
+  emit (danmu) {
     this.validator(danmu, {
       text: 'string',
       mode: 'number|undefined',
@@ -501,7 +512,7 @@ export default class Danmuku {
     return this
   }
 
-  destroy() {
+  destroy () {
     this.stop()
     if (this.worker && this.worker.terminate) this.worker.terminate()
     this.art.off('video:play', this.start)
@@ -509,7 +520,7 @@ export default class Danmuku {
     this.art.off('video:pause', this.stop)
     this.art.off('video:waiting', this.stop)
     this.art.off('video:seeked', this.reset)
-    this.art.off('resize', this.reset)
+    // this.art.off('resize', this.reset)
     this.art.off('destroy', this.destroy)
     this.art.emit('artplayerPluginDanmuku:destroy')
   }

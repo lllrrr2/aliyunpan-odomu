@@ -15,66 +15,67 @@ import { CleanStringForCmd } from './filehelper'
 import Db from './db'
 import { humanTime } from './format'
 import { IPageVideo } from '../store/appstore'
-import { Input, Modal } from '@arco-design/web-vue'
+import { Input, InputNumber, Modal } from '@arco-design/web-vue'
 import { h } from 'vue'
 import path from 'path'
 
 const PlayerUtils = {
   filterSubtitleFile(name: string, subTitlesList: IAliGetFileModel[]) {
     // 自动加载同名字幕
-    const similarity: any = subTitlesList.reduce((min: any, item, index) => {
-      // 莱文斯坦距离算法(计算相似度)
-      const distance = levenshtein.get(name, item.name, { useCollator: true })
-      if (distance < min.distance) {
-        min.distance = distance
-        min.index = index
-      }
-      return min
-    }, { distance: Infinity, index: -1 })
-    return (similarity.index !== -1) ? subTitlesList[similarity.index] : undefined
+    const similarity: any = subTitlesList.reduce(
+      (min: any, item, index) => {
+        // 莱文斯坦距离算法(计算相似度)
+        const distance = levenshtein.get(name, item.name, { useCollator: true })
+        if (distance < min.distance) {
+          min.distance = distance
+          min.index = index
+        }
+        return min
+      },
+      { distance: Infinity, index: -1 }
+    )
+    return similarity.index !== -1 ? subTitlesList[similarity.index] : undefined
   },
 
   async getVideoDanmuList(pageVideo: IPageVideo, option: any, pos: number) {
     let name = ''
+    // console.log('getVideoDanmuList', pageVideo, option, pos)
     if (option.matchType === 'folder') {
-      // 获取文件信息
-      const info = await AliFile.ApiFileInfo(pageVideo.user_id, pageVideo.drive_id, pageVideo.parent_file_id)
-      if (info && typeof info == 'string') {
-        return ''
-      }
-      name = info.name
+      name = pageVideo.parent_file_name
     } else {
       name = pageVideo.file_name
     }
-    if (option.sourceType == 'auto') {
-      let searchName = name
-        .replace(/\b(19|20)\d{2}\b/g, '')
-        .replace(/\b(360p|480p|720p|1080p|2160p|\d+K)\b/gi, '')
-        .replace(path.extname(name), '')
-        .replace('.', '')
-      let numMatch = searchName.match(/S(\d+)E(\d+)/i) || searchName.match(/(\d{1,3}).*/)
-      let num = numMatch ? parseInt(numMatch[2] || numMatch[1]) : pos + 1
-      console.log('search', searchName, num)
+    let searchName = name
+      .replace(/\b(19|20)\d{2}\b/g, '')
+      .replace(/\b(360p|480p|720p|1080p|2160p|\d+K)\b/gi, '')
+      .replace(path.extname(name), '')
+      .replace('.', '')
+    let numMatch = searchName.match(/(\d{1,3}).*/) || searchName.match(/S(\d+)E(\d+)/i)
+    let num = numMatch ? parseInt(numMatch[1] || numMatch[2]) : pos + 1
+    console.log('search', searchName, num)
+    pageVideo.play_esposide = num
+    if (option.sourceType == 'auto' && option.matchEsp == 'auto') {
       return { name: searchName, pos: num }
-    } else if (option.sourceType == 'input') {
-      return new Promise(resolve => {
+    }
+    if (option.sourceType == 'input') {
+      return new Promise((resolve) => {
         let sourceUrl = ''
         // 输入网址
         Modal.open({
           title: '输入弹幕的网址（支持主流视频网址）',
           bodyStyle: {
-            minWidth: '600px'
+            minWidth: '500px'
           },
-          closable: false,
-          content: () => h(Input, {
-            type: 'text',
-            tabindex: '-1',
-            allowClear: true,
-            placeholder: '输入弹幕的网址',
-            onChange(value, ev) {
-              sourceUrl = value
-            }
-          }),
+          content: () =>
+            h(Input, {
+              type: 'text',
+              tabindex: '-1',
+              allowClear: true,
+              placeholder: '输入弹幕的网址',
+              onChange(value, ev) {
+                sourceUrl = value
+              }
+            }),
           okText: '确认',
           cancelText: '取消',
           onOk: async (e: any) => {
@@ -88,33 +89,70 @@ const PlayerUtils = {
           }
         })
       })
-    } else if (option.sourceType == 'search') {
-      return new Promise(resolve => {
+    }
+    if (option.sourceType == 'search') {
+      return new Promise((resolve) => {
         let name = ''
         Modal.open({
           title: '输入搜索的关键字，空格分割集数',
           bodyStyle: {
-            minWidth: '600px'
+            minWidth: '400px'
           },
-          closable: false,
-          content: () => h(Input, {
-            type: 'text',
-            tabindex: '-1',
-            allowClear: true,
-            placeholder: '输入搜索的关键字，空格分割集数',
-            onChange(value, ev) {
-              name = value
-            }
-          }),
+          content: () =>
+            h(Input, {
+              type: 'text',
+              tabindex: '-1',
+              allowClear: true,
+              placeholder: '输入搜索的关键字，空格分割集数',
+              onChange(value, ev) {
+                name = value
+              }
+            }),
           okText: '确认',
           cancelText: '取消',
           onOk: async (e: any) => {
-            let pos = name.split(' ')[1] || 1
+            let pos = parseInt(name.split(' ')[1]) || 1
+            pageVideo.play_esposide = pos
             resolve({ name, pos })
             return true
           },
           onCancel(e: any) {
             resolve({})
+            return true
+          }
+        })
+      })
+    }
+    if (option.matchEsp == 'input') {
+      return new Promise((resolve) => {
+        let espisode: any = 1
+        Modal.open({
+          title: '输入需要匹配的集数',
+          bodyStyle: {
+            minWidth: '400px'
+          },
+          content: () =>
+            h(InputNumber, {
+              defaultValue: pageVideo.play_esposide ? pageVideo.play_esposide : 1,
+              tabindex: '-1',
+              allowClear: true,
+              mode: 'button',
+              step: 1,
+              placeholder: '输入需要匹配的集数',
+              onChange(value, ev) {
+                espisode = value
+              }
+            }),
+          okText: '确认',
+          cancelText: '取消',
+          onOk: async (e: any) => {
+            pageVideo.play_esposide = espisode
+            resolve({ name, pos: espisode })
+            return true
+          },
+          onCancel(e: any) {
+            pageVideo.play_esposide = num
+            resolve({ name: searchName, pos: num })
             return true
           }
         })
@@ -145,8 +183,7 @@ const PlayerUtils = {
       }
     }
     // 防止意外跳转
-    if (play_duration > 0 && play_duration > 0
-      && play_cursor >= play_duration - 10) {
+    if (play_duration > 0 && play_duration > 0 && play_cursor >= play_duration - 10) {
       play_cursor = play_duration - 10
     }
     return { play_duration, play_cursor }
@@ -160,8 +197,7 @@ const PlayerUtils = {
     }
     return curDirFileList.sort((a, b) => a.name.localeCompare(b.name, 'zh-CN'))
   },
-  async createPlayListFile(user_id: string, file_id: string, duration: number, quality: string,
-                           play_cursor: number, fileExt: string, fileList: IAliGetFileModel[]) {
+  async createPlayListFile(user_id: string, file_id: string, duration: number, quality: string, play_cursor: number, fileExt: string, fileList: IAliGetFileModel[]) {
     let contentStr = ''
     if (fileExt.includes('m3u')) {
       let header = '#EXTM3U\r\n#EXT-X-ALLOW-CACHE:NO\r\n'
@@ -222,40 +258,36 @@ const PlayerUtils = {
   async mpvPlayer(token: ITokenInfo, binary: string, playArgs: any, otherArgs: any, options: SpawnOptions, exitCallBack: any) {
     let { file, fileList, playList, playFileListPath } = otherArgs
     // console.log('otherArgs', otherArgs)
-    let {
-      uiAutoColorVideo,
-      uiVideoEnablePlayerList,
-      uiVideoPlayerHistory,
-      uiVideoPlayerExit,
-      uiVideoSubtitleMode
-    } = useSettingStore()
+    let { uiAutoColorVideo, uiVideoEnablePlayerList, uiVideoPlayerHistory, uiVideoPlayerExit, uiVideoSubtitleMode } = useSettingStore()
     let socketPath = is.windows() ? '\\\\.\\pipe\\mpvserver' : '/tmp/mpvserver.sock'
     let currentTime = 0
     let currentFileId = file.file_id
-    let mpv: mpvAPI = new mpvAPI({
-      debug: false,
-      verbose: false,
-      binary: binary,
-      socket: socketPath,
-      spawnOptions: options
-    }, playArgs)
+    let mpv: mpvAPI = new mpvAPI(
+      {
+        debug: false,
+        verbose: false,
+        binary: binary,
+        socket: socketPath,
+        spawnOptions: options
+      },
+      playArgs
+    )
     try {
       await mpv.start()
       if (uiVideoEnablePlayerList) {
         await mpv.loadPlaylist(playFileListPath)
         await mpv.play()
-        mpv.on('status', async (status: { property: string, value: any }) => {
+        mpv.on('status', async (status: { property: string; value: any }) => {
           // console.log('status', status)
           if (status.property === 'playlist-pos' && status.value != -1) {
             // 保存历史
             const item = playList[status.value]
             await AliFile.ApiUpdateVideoTime(token.user_id, item.drive_id, currentFileId, currentTime)
-            currentFileId = item && item.file_id || undefined
+            currentFileId = (item && item.file_id) || undefined
             if (currentFileId && uiAutoColorVideo && !item.description.includes('ce74c3c')) {
-              AliFileCmd.ApiFileColorBatch(token.user_id, item.drive_id, item.description ? item.description + ',' + 'ce74c3c' : 'ce74c3c', [currentFileId])
-                .then((success) => {
-                  usePanFileStore().mColorFiles('ce74c3c', success)
-                })
+              AliFileCmd.ApiFileColorBatch(token.user_id, item.drive_id, item.description ? item.description + ',' + 'ce74c3c' : 'ce74c3c', [currentFileId]).then((success) => {
+                usePanFileStore().mColorFiles('ce74c3c', success)
+              })
             }
             mpv.once('started', async () => {
               if (currentFileId && uiVideoPlayerHistory) {
@@ -335,7 +367,7 @@ const PlayerUtils = {
       message.error(`启动失败，找不到文件, ${command}`)
       return
     }
-    const argsToStr = (args: string) => is.windows() ? `"${args}"` : `'${args}'`
+    const argsToStr = (args: string) => (is.windows() ? `"${args}"` : `'${args}'`)
     const isMPV = command.toLowerCase().includes('mpv')
     const isPotplayer = command.toLowerCase().includes('potplayer')
     let commandStr
@@ -356,7 +388,7 @@ const PlayerUtils = {
       // 加载转码的内嵌字幕
       if (rawData.subtitles && quality != 'Origin') {
         let subTitleData = rawData.subtitles.find((sub: any) => sub.language === 'chi') || rawData.subtitles[0]
-        subTitleUrl = subTitleData && subTitleData.url || ''
+        subTitleUrl = (subTitleData && subTitleData.url) || ''
       }
       if (rawData.qualities) {
         play_url = rawData.qualities.find((q: any) => q.quality === quality)?.url || rawData.qualities[0].url
@@ -371,12 +403,7 @@ const PlayerUtils = {
     }
     let options: SpawnOptions = { detached: !uiVideoPlayerExit }
     if (isPotplayer) {
-      playerArgs = [
-        '/new',
-        '/autoplay',
-        `/referer=${argsToStr(play_referer)}`,
-        `/title=${argsToStr(file.name)}`
-      ]
+      playerArgs = ['/new', '/autoplay', `/referer=${argsToStr(play_referer)}`, `/title=${argsToStr(file.name)}`]
       if (play_cursor > 0 && uiVideoPlayerHistory) {
         playerArgs.push(`/seek=${argsToStr(humanTime(play_cursor))}`)
       }
@@ -407,8 +434,7 @@ const PlayerUtils = {
       }
     }
     if (isMPV && uiVideoPlayerParams.length > 0) {
-      const params = uiVideoPlayerParams
-        .replaceAll(/\s+/g, '').split(',')
+      const params = uiVideoPlayerParams.replaceAll(/\s+/g, '').split(',')
       playerArgs.push(...params)
     }
     const playArgs: any[] = [...Array.from(new Set(playerArgs))]
@@ -422,12 +448,7 @@ const PlayerUtils = {
       otherArgs.fileList = fileList
       console.log('getDirFileList', fileList)
       otherArgs.playList = fileList.filter((v: any) => v.category.includes('video'))
-      otherArgs.playFileListPath = await this.createPlayListFile(
-        token.user_id, file.file_id,
-        play_duration, quality, play_cursor,
-        isPotplayer ? 'dpl' : 'm3u',
-        otherArgs.playList
-      )
+      otherArgs.playFileListPath = await this.createPlayListFile(token.user_id, file.file_id, play_duration, quality, play_cursor, isPotplayer ? 'dpl' : 'm3u', otherArgs.playList)
       // console.log('tmpFile', tmpFile)
       const playIndex = otherArgs.playList.findIndex((v: any) => v.file_id == file.file_id) || 0
       if (isMPV) {

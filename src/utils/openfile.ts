@@ -13,7 +13,6 @@ import { modalArchive, modalArchivePassword, modalSelectPanDir, modalSelectVideo
 import PlayerUtils from './playerhelper'
 import { getEncType, getRawUrl } from './proxyhelper'
 
-
 export async function menuOpenFile(file: IAliGetFileModel, password: string = ''): Promise<void> {
   if (clickWait('menuOpenFile', 500)) return
   const file_id = file.file_id
@@ -28,15 +27,7 @@ export async function menuOpenFile(file: IAliGetFileModel, password: string = ''
     Archive(file.drive_id, file.file_id, file.name, file.parent_file_id, file.icon == 'iconweifa')
     return
   }
-  if (file.ext == 'djvu'
-    || file.ext == 'epub'
-    || file.ext == 'azw3'
-    || file.ext == 'mobi'
-    || file.ext == 'cbr'
-    || file.ext == 'cbz'
-    || file.ext == 'cbt'
-    || file.ext == 'fb2') {
-
+  if (file.ext == 'djvu' || file.ext == 'epub' || file.ext == 'azw3' || file.ext == 'mobi' || file.ext == 'cbr' || file.ext == 'cbz' || file.ext == 'cbt' || file.ext == 'fb2') {
   }
 
   if (file.category.startsWith('doc')) {
@@ -67,14 +58,20 @@ export async function menuOpenFile(file: IAliGetFileModel, password: string = ''
     let subTitleFile: any
     const { uiVideoPlayer, uiVideoSubtitleMode, uiVideoQualityTips } = useSettingStore()
     const listDataRaw: IAliGetFileModel[] = usePanFileStore().ListDataRaw || []
-    const subTitlesList: IAliGetFileModel[] = listDataRaw.filter(file => /srt|vtt|ass/.test(file.ext))
+    const subTitlesList: IAliGetFileModel[] = listDataRaw.filter((file) => /srt|vtt|ass/.test(file.ext))
     if (uiVideoPlayer === 'other') {
       if (uiVideoSubtitleMode === 'auto') {
         subTitleFile = PlayerUtils.filterSubtitleFile(file.name, subTitlesList)
       } else if (uiVideoSubtitleMode === 'select') {
-        modalSelectPanDir('select', parent_file_id, async (_user_id: string, _drive_id: string, selectFile: any) => {
-          await Video(token, file, selectFile, password)
-        }, '', /srt|vtt|ass/)
+        modalSelectPanDir(
+          'select',
+          parent_file_id,
+          async (_user_id: string, _drive_id: string, selectFile: any) => {
+            await Video(token, file, selectFile, password)
+          },
+          '',
+          /srt|vtt|ass/
+        )
         return
       }
     }
@@ -161,21 +158,19 @@ async function Video(token: ITokenInfo, file: IAliGetFileModel, subTitleFile: an
     play_cursor = file.media_play_cursor ? parseInt(file.media_play_cursor) : 0
     play_duration = file.media_duration ? parseInt(file.media_duration) : 0
   }
-  const {
-    uiAutoColorVideo,
-    uiVideoQuality,
-    uiVideoQualityTips,
-    uiVideoEnablePlayerList,
-    uiVideoPlayer,
-    uiVideoPlayerPath
-  } = useSettingStore()
+  const { uiAutoColorVideo, uiVideoQuality, uiVideoQualityTips, uiVideoEnablePlayerList, uiVideoPlayer, uiVideoPlayerPath } = useSettingStore()
   if (uiAutoColorVideo && !desc.includes('ce74c3c')) {
-    AliFileCmd.ApiFileColorBatch(token.user_id, file.drive_id, desc ? desc + ',' + 'ce74c3c' : 'ce74c3c', [file.file_id])
-      .then((success) => {
-        usePanFileStore().mColorFiles('ce74c3c', success)
-      })
+    AliFileCmd.ApiFileColorBatch(token.user_id, file.drive_id, desc ? desc + ',' + 'ce74c3c' : 'ce74c3c', [file.file_id]).then((success) => {
+      usePanFileStore().mColorFiles('ce74c3c', success)
+    })
   }
   if (uiVideoPlayer == 'web') {
+    // 获取文件夹信息
+    const info = await AliFile.ApiFileInfo(token.user_id, file.drive_id, file.parent_file_id)
+    let parent_file_name = ''
+    if (info && typeof info !== 'string') {
+      parent_file_name = info.name
+    }
     const pageVideo: IPageVideo = {
       user_id: token.user_id,
       file_name: file.name,
@@ -183,6 +178,7 @@ async function Video(token: ITokenInfo, file: IAliGetFileModel, subTitleFile: an
       drive_id: file.drive_id,
       file_id: file.file_id,
       parent_file_id: file.parent_file_id,
+      parent_file_name: parent_file_name,
       expire_time: 0,
       password: password,
       encType: getEncType(file),
@@ -201,11 +197,7 @@ async function Video(token: ITokenInfo, file: IAliGetFileModel, subTitleFile: an
   let rawData: any = undefined
   let encType = getEncType(file)
   if (uiVideoQualityTips || !uiVideoEnablePlayerList) {
-    rawData = await getRawUrl(
-      token.user_id, file.drive_id,
-      file.file_id, encType, password,
-      file.icon == 'iconweifa', 'video'
-    )
+    rawData = await getRawUrl(token.user_id, file.drive_id, file.file_id, encType, password, file.icon == 'iconweifa', 'video')
     if (typeof rawData == 'string') {
       message.error('视频地址解析失败，操作取消')
       return
@@ -216,9 +208,16 @@ async function Video(token: ITokenInfo, file: IAliGetFileModel, subTitleFile: an
     }
   }
   let otherArgs: any = {
-    file, subTitleFile, play_cursor, play_duration,
-    playList: [], fileList: [], playFileListPath: '',
-    rawData, password, quality: uiVideoQuality
+    file,
+    subTitleFile,
+    play_cursor,
+    play_duration,
+    playList: [],
+    fileList: [],
+    playFileListPath: '',
+    rawData,
+    password,
+    quality: uiVideoQuality
   }
   // 清晰度选择
   if (uiVideoQualityTips && !encType) {
@@ -244,7 +243,7 @@ async function Image(drive_id: string, file_id: string, name: string, password: 
   }
   message.loading('加载中...', 2)
   const fileList = usePanFileStore().ListDataRaw
-  const imageList = fileList.filter(v => v.category == 'image' || v.category == 'image2')
+  const imageList = fileList.filter((v) => v.category == 'image' || v.category == 'image2')
   if (imageList.length == 0) {
     message.error('获取文件预览链接失败，操作取消')
     return
@@ -364,7 +363,6 @@ export function PrismExt(fileExt: string): string {
   if (iscode) {
     codeext = fext
   } else {
-
     switch (fext) {
       case 'prettierrc':
         codeext = 'json'

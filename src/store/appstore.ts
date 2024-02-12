@@ -45,12 +45,14 @@ export interface IPageVideo {
   drive_id: string
   file_id: string
   parent_file_id: string
+  parent_file_name: string
   file_name: string
   html: string
   encType: string
   password: string
   expire_time: number
   play_cursor: number
+  play_esposide?: number
 }
 
 export interface AppState {

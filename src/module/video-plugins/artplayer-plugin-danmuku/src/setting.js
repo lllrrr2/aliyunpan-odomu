@@ -1,4 +1,4 @@
-export default function setting(art, danmuku) {
+export default function setting (art, danmuku) {
   const { option } = danmuku
   const {
     template: { $controlsCenter, $player },
@@ -27,11 +27,11 @@ export default function setting(art, danmuku) {
     '    <path d="M20.587 13.696l-.787-.131a3.503 3.503 0 00-.593-1.051l.301-.804a.46.46 0 00-.21-.56l-1.005-.581a.52.52 0 00-.656.113l-.499.607a3.53 3.53 0 00-1.276 0l-.499-.607a.52.52 0 00-.656-.113l-1.005.581a.46.46 0 00-.21.56l.301.804c-.254.31-.456.665-.593 1.051l-.787.131a.48.48 0 00-.413.465v1.209a.48.48 0 00.413.465l.811.135c.144.382.353.733.614 1.038l-.292.78a.46.46 0 00.21.56l1.005.581a.52.52 0 00.656-.113l.515-.626a3.549 3.549 0 001.136 0l.515.626a.52.52 0 00.656.113l1.005-.581a.46.46 0 00.21-.56l-.292-.78c.261-.305.47-.656.614-1.038l.811-.135A.48.48 0 0021 15.37v-1.209a.48.48 0 00-.413-.465zM16.5 16.057a1.29 1.29 0 11.002-2.582 1.29 1.29 0 01-.002 2.582z"></path>\n' +
     '</svg>')
 
-  function addControl() {
+  function addControl () {
     art.controls.add({
       position: 'right',
       name: 'danmuku',
-      click: function() {
+      click: function () {
         if (danmuku.isHide) {
           danmuku.show()
           art.notice.show = '弹幕显示'
@@ -44,7 +44,7 @@ export default function setting(art, danmuku) {
           setStyle($danmuOff, 'display', null)
         }
       },
-      mounted($ref) {
+      mounted ($ref) {
         append($ref, $danmuOn)
         append($ref, $danmuOff)
         tooltip($ref, '弹幕开关')
@@ -70,7 +70,7 @@ export default function setting(art, danmuku) {
     })
   }
 
-  function addSetting() {
+  function addSetting () {
     art.setting.add({
       width: 300,
       name: 'danmuku',
@@ -85,30 +85,34 @@ export default function setting(art, danmuku) {
           tooltip: '较慢',
           selector: [
             {
+              default: option.speed == 10,
               html: '极慢',
-              time: 10
+              speed: 10
             },
             {
-              default: true,
+              default: option.speed == 7.5,
               html: '较慢',
-              time: 7.5
+              speed: 7.5
             },
             {
+              default: option.speed == 5,
               html: '适中',
-              time: 5
+              speed: 5
             },
             {
+              default: option.speed == 2.5,
               html: '较快',
-              time: 2.5
+              speed: 2.5
             },
             {
+              default: option.speed == 1,
               html: '极快',
-              time: 1
+              speed: 1
             }
           ],
-          onSelect: function(item) {
+          onSelect: function (item) {
             danmuku.config({
-              speed: item.time
+              speed: item.speed
             })
             return item.html
           }
@@ -119,7 +123,7 @@ export default function setting(art, danmuku) {
           icon: '',
           tooltip: option.fontSize + 'px',
           range: [option.fontSize, 12, 35, 1],
-          onChange(item) {
+          onChange (item) {
             danmuku.config({
               fontSize: item.range
             })
@@ -132,7 +136,7 @@ export default function setting(art, danmuku) {
           icon: '',
           tooltip: (option.opacity * 100) + '%',
           range: [option.opacity, 0, 1, 0.25],
-          onChange(item) {
+          onChange (item) {
             danmuku.config({
               opacity: item.range
             })
@@ -146,24 +150,27 @@ export default function setting(art, danmuku) {
           tooltip: '1/4',
           selector: [
             {
-              default: true,
+              default: option.margin[1] == '75%',
               html: '1/4',
               margin: [10, '75%']
             },
             {
+              default: option.margin[1] == '50%',
               html: '半屏',
               margin: [10, '50%']
             },
             {
+              default: option.margin[1] == '25%',
               html: '3/4',
               margin: [10, '25%']
             },
             {
+              default: option.margin[1] == 10,
               html: '满屏',
               margin: [10, 10]
             }
           ],
-          onSelect: function(item) {
+          onSelect: function (item) {
             danmuku.config({
               margin: item.margin
             })
@@ -175,7 +182,7 @@ export default function setting(art, danmuku) {
           icon: '',
           tooltip: option.antiOverlap ? '开启' : '关闭',
           switch: option.antiOverlap,
-          onSwitch(item) {
+          onSwitch (item) {
             danmuku.config({
               antiOverlap: !item.switch
             })
@@ -188,7 +195,7 @@ export default function setting(art, danmuku) {
           icon: '',
           tooltip: option.synchronousPlayback ? '开启' : '关闭',
           switch: option.synchronousPlayback,
-          onSwitch(item) {
+          onSwitch (item) {
             danmuku.config({
               synchronousPlayback: !item.switch
             })
@@ -198,25 +205,27 @@ export default function setting(art, danmuku) {
         },
         {
           width: SETTING_ITEM_WIDTH,
-          html: '弹幕来源',
+          html: '搜索方式',
           icon: '',
-          tooltip: option.sourceType === 'auto' ? '智能搜索' : (option.sourceType === 'search' ? '手动搜索' : '输入网址'),
+          tooltip: option.sourceType == 'auto' ? '智能搜索' : (option.sourceType === 'search' ? '手动搜索' : '输入网址'),
           selector: [
             {
-              default: true,
+              default: option.sourceType == 'auto',
               html: '智能搜索',
               sourceType: 'auto'
             },
             {
+              default: option.sourceType == 'search',
               html: '手动搜索',
               sourceType: 'search'
             },
             {
+              default: option.sourceType == 'input',
               html: '输入网址',
               sourceType: 'input'
             }
           ],
-          onSelect: function(item) {
+          onSelect: function (item) {
             danmuku.config({
               sourceType: item.sourceType
             })
@@ -225,23 +234,48 @@ export default function setting(art, danmuku) {
         },
         {
           width: 300,
-          html: '弹幕匹配方式',
+          html: '匹配标题',
           icon: '',
-          tooltip: option.matchType === 'folder' ? '文件夹名' : '文件名',
+          tooltip: option.matchType == 'folder' ? '文件夹名' : '文件名',
           selector: [
             {
-              default: true,
+              default: option.matchType == 'folder',
               html: '文件夹名',
               matchType: 'folder'
             },
             {
+              default: option.matchType == 'filename',
               html: '文件名',
               matchType: 'filename'
             }
           ],
-          onSelect: function(item) {
+          onSelect: function (item) {
             danmuku.config({
               matchType: item.matchType
+            })
+            return item.html
+          }
+        },
+        {
+          width: 300,
+          html: '匹配集数',
+          icon: '',
+          tooltip: option.matchEsp == 'auto' ? '自动匹配' : '手动输入',
+          selector: [
+            {
+              default: option.matchEsp == 'auto',
+              html: '自动匹配',
+              matchEsp: 'auto'
+            },
+            {
+              default: option.matchEsp == 'input',
+              html: '手动输入',
+              matchEsp: 'input'
+            }
+          ],
+          onSelect: function (item) {
+            danmuku.config({
+              matchEsp: item.matchEsp
             })
             return item.html
           }

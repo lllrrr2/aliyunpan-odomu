@@ -71,11 +71,6 @@ const options: Option = {
     'webkit-playsinline': true,
     playsInline: true
   },
-  plugins: [
-    artplayerPluginDanmuku({
-      danmuku: async (option) => PlayerUtils.getVideoDanmuList(pageVideo, option, autoPlayNumber)
-    })
-  ],
   customType: {
     m3u8: (video: HTMLMediaElement, url: string, art: Artplayer) => playByHls(video, url, art),
     ts: (video: HTMLMediaElement, url: string, art: Artplayer) => playByHls(video, url, art),
@@ -150,6 +145,7 @@ onMounted(async () => {
   // 加载设置
   await defaultSettings(ArtPlayerRef)
   await defaultControls(ArtPlayerRef)
+  await loadPlugins(ArtPlayerRef)
 })
 
 const createVideo = async (name: string) => {
@@ -211,19 +207,12 @@ const initEvent = (art: Artplayer) => {
   // 视频播放完毕
   art.on('video:ended', async () => {
     if (playList.length > 1 && art.video.readyState > art.video.HAVE_CURRENT_DATA) {
-      autoPlayNumber = playList.findIndex(list => list.file_id == pageVideo.file_id)
+      if (autoPlayNumber + 1 >= playList.length) {
+        art.notice.show = '视频播放完毕'
+        return
+      }
       if (art.storage.get('autoPlayNext')) {
-        const item = playList[++autoPlayNumber]
-        if (!item) {
-          art.notice.show = '视频播放完毕'
-          return
-        }
-        await updateVideoTime()
-        await refreshSetting(art, item)
-        await refreshPlayList(art, item.file_id)
-        // 重新载入弹幕
-        await art.plugins.artplayerPluginDanmuku.stop()
-        await art.plugins.artplayerPluginDanmuku.load()
+        await jumpToNextVideo(art)
       }
     }
   })
@@ -252,11 +241,31 @@ const initEvent = (art: Artplayer) => {
       const endDuration = art.storage.get('autoSkipEnd')
       if (currentTime > 0 && endDuration > 0) {
         if (endDuration <= currentTime) {
-          await art.emit('video:ended')
+          if (art.storage.get('autoPlayNext')) {
+            await jumpToNextVideo(art)
+          }
         }
       }
     }
   })
+}
+
+const jumpToNextVideo = async (art: Artplayer) => {
+  autoPlayNumber = playList.findIndex(list => list.file_id == pageVideo.file_id)
+  if (autoPlayNumber + 1 >= playList.length) {
+    art.notice.show = '已经是最后一集了'
+    return
+  }
+  const item = playList[++autoPlayNumber]
+  // 刷新视频
+  await updateVideoTime()
+  await refreshSetting(art, item)
+  await refreshPlayList(art, item.file_id)
+  // 重新载入弹幕
+  if (!art.plugins.artplayerPluginDanmuku.isHide) {
+    await art.plugins.artplayerPluginDanmuku.stop()
+    await art.plugins.artplayerPluginDanmuku.load()
+  }
 }
 
 const curDirFileList: any[] = []
@@ -388,13 +397,7 @@ const defaultControls = async (art: Artplayer) => {
       html: '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-skip-forward"><polygon points="5 4 15 12 5 20 5 4"></polygon><line x1="19" x2="19" y1="5" y2="19"></line></svg>',
       tooltip: '下一集',
       click: async () => {
-        autoPlayNumber = playList.findIndex(list => list.file_id == pageVideo.file_id)
-        if (autoPlayNumber + 1 >= playList.length) {
-          // 提示
-          art.notice.show = '已经是最后一集了'
-          return
-        }
-        await art.emit('video:ended')
+        await jumpToNextVideo(art)
       }
     })
   }
@@ -435,6 +438,13 @@ const defaultControls = async (art: Artplayer) => {
   })
 }
 
+const loadPlugins = async (art: Artplayer) => {
+  // 加载弹幕插件
+  ArtPlayerRef.plugins.add(artplayerPluginDanmuku({
+    danmuku: async (option) => PlayerUtils.getVideoDanmuList(pageVideo, option, autoPlayNumber)
+  }))
+}
+ 
 const getVideoInfo = async (art: Artplayer) => {
   // 获取视频链接
   const data: string | IRawUrl = await getRawUrl(pageVideo.user_id, pageVideo.drive_id, pageVideo.file_id, pageVideo.encType, pageVideo.password, false, 'video')
@@ -477,6 +487,7 @@ const getVideoInfo = async (art: Artplayer) => {
     // 内嵌字幕
     const subtitles = data.subtitles || []
     if (subtitles.length > 0) {
+      embedSubSelector = []
       for (let i = 0; i < subtitles.length; i++) {
         embedSubSelector.push({
           html: '内嵌:  ' + subtitles[i].language,
@@ -625,7 +636,7 @@ const renderAssSubtitle = async (art: Artplayer, assText: string) => {
 }
 
 // 内嵌字幕
-const embedSubSelector: selectorItem[] = []
+let embedSubSelector: selectorItem[] = []
 const getSubTitleList = async (art: Artplayer) => {
   // 尝试加载当前文件夹字幕文件
   let subSelector: selectorItem[]
@@ -805,8 +816,8 @@ onBeforeUnmount(() => {
         </a-button>
         <div class='title'>{{ pageVideo?.file_name || '视频在线预览' }}</div>
         <div class='flexauto'></div>
-        <a-button type='text' tabindex='-1' :title="(isTop ? '取消置顶': '置顶') + 'Alt+T'" @click='handleTop'>
-          <i :class="'iconfont '+ (isTop ? 'iconquxiaozhiding': 'iconzhiding')" />
+        <a-button type='text' tabindex='-1' :title="(isTop ? '取消置顶' : '置顶') + 'Alt+T'" @click='handleTop'>
+          <i :class="'iconfont ' + (isTop ? 'iconquxiaozhiding' : 'iconzhiding')" />
         </a-button>
         <a-button type='text' tabindex='-1' title='最小化 Alt+M' @click='handleMinClick'>
           <i class='iconfont iconzuixiaohua'></i>

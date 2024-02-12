@@ -247,9 +247,7 @@ const handleCheckVer = () => {
         <div class='footinfo'>
           {{ footStore.GetSpaceInfo }}
         </div>
-        <div class='flexauto'>
-          <audio id='ddsound' src='notify.wav'></audio>
-        </div>
+        <div class='flexauto'/>
         <div :style="{ display: 'flex', paddingRight: '16px', flexShrink: 0, flexGrow: 0 }">
           <div class='flexauto'></div>
           <div class='footinfo'>
