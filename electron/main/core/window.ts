@@ -16,7 +16,7 @@ import is from 'electron-is'
 import { ShowErrorAndRelaunch } from './dialog'
 
 const DEBUGGING = !app.isPackaged
-export const ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.5005.63 Safari/537.36 Edg/102.0.1245.33'
+export const ua = 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) aDrive/4.12.0 Chrome/108.0.5359.215 Electron/22.3.24 Safari/537.36'
 export const Referer = 'https://www.aliyundrive.com/'
 export const AppWindow: {
   mainWindow: BrowserWindow | undefined

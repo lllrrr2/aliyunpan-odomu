@@ -8,7 +8,7 @@ export default class AliTrash {
 
   static async ApiTrashFileListOnePageForClean(orderby: string, order: string, dir: IAliFileResp): Promise<boolean> {
     const url =
-      'v2/recyclebin/list?jsonmask=next_marker%2Cpunished_file_count%2Ctotal_count%2Citems(category%2Ccreated_at%2Cdomain_id%2Cdrive_id%2Cfile_extension%2Cfile_id%2Chidden%2Cmime_extension%2Cmime_type%2Cname%2Cparent_file_id%2Cpunish_flag%2Csize%2Cstarred%2Ctype%2Cupdated_at%2Cdescription)'
+      'v2/recyclebin/list?jsonmask=next_marker%2Citems(category%2Ccreated_at%2Cdrive_id%2Cfile_extension%2Cfile_id%2Chidden%2Cmime_extension%2Cmime_type%2Cname%2Cparent_file_id%2Cpunish_flag%2Csize%2Cstarred%2Ctype%2Cupdated_at%2Cdescription)'
     const postData = {
       drive_id: dir.m_drive_id,
       marker: dir.next_marker,
@@ -26,7 +26,7 @@ export default class AliTrash {
 
   static async ApiFavorFileListOnePageForClean(orderby: string, order: string, dir: IAliFileResp): Promise<boolean> {
     const url =
-      'v2/file/list_by_custom_index_key?jsonmask=next_marker%2Cpunished_file_count%2Ctotal_count%2Citems(category%2Ccreated_at%2Cdomain_id%2Cdrive_id%2Cfile_extension%2Cfile_id%2Chidden%2Cmime_extension%2Cmime_type%2Cname%2Cparent_file_id%2Cpunish_flag%2Csize%2Cstarred%2Ctype%2Cupdated_at%2Cdescription)'
+      'v2/file/list_by_custom_index_key?jsonmask=next_marker%2Citems(category%2Ccreated_at%2Cdrive_id%2Cfile_extension%2Cfile_id%2Chidden%2Cmime_extension%2Cmime_type%2Cname%2Cparent_file_id%2Cpunish_flag%2Csize%2Cstarred%2Ctype%2Cupdated_at%2Cdescription)'
     const postData = {
       drive_id: dir.m_drive_id,
       marker: dir.next_marker,
@@ -72,7 +72,7 @@ export default class AliTrash {
 
   static async _ApiDirFileListOnePage(orderby: string, order: string, dir: IAliFileResp, type: string = ''): Promise<boolean> {
     const url =
-      'adrive/v3/file/list?jsonmask=next_marker%2Cpunished_file_count%2Ctotal_count%2Citems(category%2Ccreated_at%2Cdomain_id%2Cdrive_id%2Cfile_extension%2Cfile_id%2Chidden%2Cmime_extension%2Cmime_type%2Cname%2Cparent_file_id%2Cpunish_flag%2Csize%2Cstarred%2Ctype%2Cupdated_at%2Cdescription)'
+      'adrive/v3/file/list?jsonmask=next_marker%2Citems(category%2Ccreated_at%2Cdrive_id%2Cfile_extension%2Cfile_id%2Chidden%2Cmime_extension%2Cmime_type%2Cname%2Cparent_file_id%2Cpunish_flag%2Csize%2Cstarred%2Ctype%2Cupdated_at%2Cdescription)'
     let postData = {
       drive_id: dir.m_drive_id,
       parent_file_id: dir.dirID.includes('root') ? 'root': dir.dirID,

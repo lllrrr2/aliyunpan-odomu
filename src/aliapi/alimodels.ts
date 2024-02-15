@@ -62,6 +62,7 @@ export interface IAliFileItem {
   category: string
   encrypt_mode: string
   punish_flag: number
+  from_share_id?: string
   thumbnail?: string
   mime_extension: string
   mime_type: string
@@ -328,6 +329,7 @@ export interface IAliGetFileModel {
   isDir: boolean
   thumbnail: string
   punish_flag?: number
+  from_share_id?: string
   description: string
   album_id?: string
   compilation_id?: string

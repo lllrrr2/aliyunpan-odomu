@@ -20,7 +20,7 @@ export default class AliFileWalk {
     const orders = order.split(' ')
     do {
       const isGet = await AliFileWalk._ApiWalkFileListOnePage(orders[0], orders[1], dir, type)
-      if (isGet != true) {
+      if (!isGet) {
         break 
       }
       if (dir.items.length >= max && max > 0) {
@@ -32,7 +32,7 @@ export default class AliFileWalk {
   }
 
   private static async _ApiWalkFileListOnePage(orderby: string, order: string, dir: IAliFileResp, type: string = '') {
-    const url = 'v2/file/walk?jsonmask=next_marker%2Cpunished_file_count%2Ctotal_count%2Citems(category%2Ccreated_at%2Cdomain_id%2Cdrive_id%2Cfile_extension%2Cfile_id%2Chidden%2Cmime_extension%2Cmime_type%2Cname%2Cparent_file_id%2Cpunish_flag%2Csize%2Cstarred%2Ctype%2Cupdated_at%2Cdescription)'
+    const url = 'v2/file/walk?jsonmask=next_marker%2Citems(category%2Ccreated_at%2Cdrive_id%2Cfile_extension%2Cfile_id%2Chidden%2Cmime_extension%2Cmime_type%2Cname%2Cparent_file_id%2Cpunish_flag%2Csize%2Cstarred%2Ctype%2Cupdated_at%2Cdescription)'
     let postData = {
       drive_id: dir.m_drive_id,
       parent_file_id: dir.dirID,

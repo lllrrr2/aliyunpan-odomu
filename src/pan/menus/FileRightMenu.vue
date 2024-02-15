@@ -66,7 +66,7 @@ const isPic = computed(() => {
         <template #icon><i class='iconfont icondownload' /></template>
         <template #default>下载</template>
       </a-doption>
-      <a-doption v-show='inputselectType.includes("resource")'
+      <a-doption v-show='inputselectType && inputselectType.includes("resource")'
                  @click="() => menuCreatShare(istree, 'pan', 'resource_root')">
         <template #icon><i class='iconfont iconfenxiang' /></template>
         <template #default>分享</template>

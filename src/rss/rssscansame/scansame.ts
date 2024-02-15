@@ -121,7 +121,7 @@ async function ApiBatchDirFileList(user_id: string, drive_id: string, dirList: I
       fields: 'thumbnail',
       marker: dir.next_marker
     }
-    const url = 'adrive/v3/file/search?jsonmask=next_marker%2Cpunished_file_count%2Ctotal_count%2Citems(name%2Cfile_id%2Cdrive_id%2Ctype%2Csize%2Cupdated_at%2Ccategory%2Cfile_extension%2Cparent_file_id%2Cmime_type%2Cmime_extension%2Ccontent_hash%2Cpunish_flag)'
+    const url = 'adrive/v3/file/search?jsonmask=next_marker%2Citems(name%2Cfile_id%2Cdrive_id%2Ctype%2Csize%2Cupdated_at%2Ccategory%2Cfile_extension%2Cparent_file_id%2Cmime_type%2Cmime_extension%2Ccontent_hash%2Cpunish_flag)'
     const resp = await AliHttp.Post(url, postData, user_id, '')
 
     try {
@@ -153,7 +153,7 @@ async function ApiWalkDirFileList(user_id: string, drive_id: string, file_id: st
   let next_marker = ''
   let items: any[] = []
   do {
-    const url = 'v2/file/walk?jsonmask=next_marker%2Cpunished_file_count%2Ctotal_count%2Citems(name%2Cfile_id%2Cdrive_id%2Ctype%2Csize%2Cupdated_at%2Ccategory%2Cfile_extension%2Cparent_file_id%2Cmime_type%2Cmime_extension%2Ccontent_hash%2Cpunish_flag)'
+    const url = 'v2/file/walk?jsonmask=next_marker%2Citems(name%2Cfile_id%2Cdrive_id%2Ctype%2Csize%2Cupdated_at%2Ccategory%2Cfile_extension%2Cparent_file_id%2Cmime_type%2Cmime_extension%2Ccontent_hash%2Cpunish_flag)'
     let postData = {
       all: false,
       drive_id: drive_id,

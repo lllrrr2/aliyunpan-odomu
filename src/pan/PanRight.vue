@@ -256,8 +256,8 @@ const handleOpenFile = (event: Event, file: IAliGetFileModel | undefined) => {
   if (!panfileStore.ListSelected.has(file.file_id)) {
     panfileStore.mMouseSelect(file.file_id, false, false)
   }
-  let isShare = (file.user_meta === undefined) || !file.user_meta.includes('file_upload')
-  let isEncrypt = file.description.includes('xbyEncrypt')
+  let isShare = file.from_share_id != undefined
+  let isEncrypt = file.description && file.description.includes('xbyEncrypt')
   if (isEncrypt) {
     if (isShare) {
       modalPassword('input', (success, inputpassword) => {

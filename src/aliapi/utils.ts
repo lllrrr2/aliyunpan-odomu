@@ -114,7 +114,7 @@ export function DecodeEncName(user_id: string, item: IAliFileItem | IAliGetFileM
     ext = item.ext
   }
   let name = item.name
-  if (item.description?.includes('xbyEncrypt') && securityFileNameAutoDecrypt) {
+  if (item.description && item.description.includes('xbyEncrypt') && securityFileNameAutoDecrypt) {
     let encType = getEncType(item)
     let filename = item.name.replace(ext ? '.' + ext : '', '')
     let password = getEncPassword(user_id, encType, inputpassword)

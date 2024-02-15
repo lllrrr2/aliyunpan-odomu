@@ -3,10 +3,11 @@ import DebugLog from '../utils/debuglog'
 import axios from 'axios'
 import AliUpload from './upload'
 import AliUploadHashPool from './uploadhashpool'
+import { getFlowEnc } from '../utils/proxyhelper'
 
 export default class AliUploadMem {
   
-  static async UploadMem(user_id: string, drive_id: string, parent_file_id: string, CreatFileName: string, context: string) {
+  static async UploadMem(user_id: string, drive_id: string, parent_file_id: string, CreatFileName: string, context: string, encType: string = '') {
     const token = await UserDAL.GetUserTokenFromDB(user_id)
     if (!token || !token.access_token) return '账号失效，操作取消'
     let hash = 'DA39A3EE5E6B4B0D3255BFEF95601890AFD80709' 
@@ -14,13 +15,17 @@ export default class AliUploadMem {
     let buff = Buffer.from([])
     if (context.length > 0) {
       buff = Buffer.from(context, 'utf-8')
+      if (encType) {
+        let flowEnc = getFlowEnc(user_id, buff.length, encType)
+        buff = flowEnc && flowEnc.encryptBuff(buff) || buff
+      }
       const dd = await AliUploadHashPool.GetBuffHashProof(token!.access_token, buff)
       hash = dd.sha1
       proof = dd.proof_code
     }
     const size = buff.length
 
-    const upinfo = await AliUpload.UploadCreatFileWithFolders(user_id, drive_id, parent_file_id, CreatFileName, size, hash, proof, 'refuse')
+    const upinfo = await AliUpload.UploadCreatFileWithFolders(user_id, drive_id, parent_file_id, CreatFileName, size, hash, proof, 'refuse', encType)
     if (upinfo.errormsg != '') {
       return upinfo.errormsg
     }

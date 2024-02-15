@@ -97,22 +97,52 @@ const handleClickBottleFish = async () => {
       <i class='iconfont iconnotification' />好运瓶
     </a-button>
     <a-dropdown v-if='dirtype !== "pic"' trigger='hover' class='rightmenu' position='bl'>
-      <a-button v-if="!dirtype.includes('pic')" type='text' size='small' tabindex='-1'>
+      <a-button type='text' size='small' tabindex='-1'>
         <i class='iconfont iconplus' />新建<i class='iconfont icondown' />
       </a-button>
       <template #content>
-        <a-doption value='newfile' title='Ctrl+N' @click='modalCreatNewFile'>
-          <template #icon><i class='iconfont iconwenjian' /></template>
-          <template #default>新建文件</template>
-        </a-doption>
-        <a-doption value='newfolder' title='Ctrl+Shift+N' @click="() => modalCreatNewDir('folder')">
-          <template #icon><i class='iconfont iconfile-folder' /></template>
-          <template #default>新建文件夹</template>
-        </a-doption>
-        <a-doption value='newdatefolder' @click="() => modalCreatNewDir('datefolder')">
-          <template #icon><i class='iconfont iconfolderadd' /></template>
-          <template #default>日期+序号</template>
-        </a-doption>
+        <a-dgroup title="普通新建">
+          <a-doption value='newfile' title='Ctrl+N' @click='() => modalCreatNewFile()'>
+            <template #icon><i class='iconfont iconwenjian' /></template>
+            <template #default>新建文件</template>
+          </a-doption>
+          <a-doption value='newfolder' title='Ctrl+Shift+N' @click="() => modalCreatNewDir('folder')">
+            <template #icon><i class='iconfont iconfile-folder' /></template>
+            <template #default>新建文件夹</template>
+          </a-doption>
+          <a-doption value='newdatefolder' @click="() => modalCreatNewDir('datefolder')">
+            <template #icon><i class='iconfont iconfolderadd' /></template>
+            <template #default>日期+序号</template>
+          </a-doption>
+        </a-dgroup>
+        <a-dgroup title="加密新建">
+          <a-doption value='newfile' @click='() => modalCreatNewFile("xbyEncrypt1")'>
+            <template #icon><i class='iconfont iconwenjian' /></template>
+            <template #default>新建文件（加密）</template>
+          </a-doption>
+          <a-doption value='newfolder' @click="() => modalCreatNewDir('folder', 'xbyEncrypt1')">
+            <template #icon><i class='iconfont iconfile-folder' /></template>
+            <template #default>新建文件夹（加密）</template>
+          </a-doption>
+          <a-doption value='newdatefolder' @click="() => modalCreatNewDir('datefolder', 'xbyEncrypt1')">
+            <template #icon><i class='iconfont iconfolderadd' /></template>
+            <template #default>日期+序号（加密）</template>
+          </a-doption>
+        </a-dgroup>
+        <a-dgroup title="私密新建">
+          <a-doption value='newfile' @click='() => modalCreatNewFile("xbyEncrypt2")'>
+            <template #icon><i class='iconfont iconwenjian' /></template>
+            <template #default>新建文件（私密）</template>
+          </a-doption>
+          <a-doption value='newfolder' @click="() => modalCreatNewDir('folder', 'xbyEncrypt2')">
+            <template #icon><i class='iconfont iconfile-folder' /></template>
+            <template #default>新建文件夹（私密）</template>
+          </a-doption>
+          <a-doption value='newdatefolder' @click="() => modalCreatNewDir('datefolder', 'xbyEncrypt2')">
+            <template #icon><i class='iconfont iconfolderadd' /></template>
+            <template #default>日期+序号（私密）</template>
+          </a-doption>
+        </a-dgroup>
       </template>
     </a-dropdown>
     <a-button v-else-if="dirtype === 'pic' && inputpicType != 'pic_root'"

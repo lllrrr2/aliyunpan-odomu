@@ -1,11 +1,5 @@
-import axios, { AxiosInstance } from 'axios'
+import axios from 'axios'
 import { performance } from 'perf_hooks'
-
-declare module '@vue/runtime-core' {
-  interface ComponentCustomProperties {
-    $axios: AxiosInstance;
-  }
-}
 
 let QPS = 5
 // 校准本地和服务端之间的时间差
@@ -15,8 +9,7 @@ let INTERVAL = 1000
 
 const qpsMap = new Map()
 const qpsController = () => async (config: any) => {
-  if (config.url.indexOf('api.aliyundrive.com') < 0
-    && config.url.indexOf('openapi') < 0) return config
+  if (config.url.indexOf('aliyundrive') < 0 && config.url.indexOf('alipan') < 0) return config
   const now = Math.trunc(performance.timeOrigin + performance.now())
   let { count, ts } = qpsMap.get(config.url) || { count: 1, ts: now }
   // 通过位运算实现取整，提高效率

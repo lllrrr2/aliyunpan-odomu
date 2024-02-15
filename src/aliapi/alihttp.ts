@@ -101,7 +101,7 @@ export default class AliHttp {
           if (data.code == 'AccessTokenInvalid'
             || data.code == 'AccessTokenExpired') {
             if (token) {
-              const isOpenApi = config.url.includes('adrive/v1.0')
+              const isOpenApi = config.url.includes('adrive/v1.0') || config.url.includes('adrive/v1.1')
               if (!isOpenApi) {
                 return await AliUser.ApiTokenRefreshAccount(token, true, true).then((isLogin: boolean) => {
                   if (isLogin) {
@@ -198,9 +198,9 @@ export default class AliHttp {
       const headers: any = {}
       if (token) {
         headers['Authorization'] = token.token_type + ' ' + token.access_token
-        headers['x-request-id'] = v4().toString()
         headers['x-device-id'] = token.device_id
         headers['x-signature'] = token.signature
+        headers['x-request-id'] = v4().toString()
       }
       return axios
         .get(url, {
@@ -240,9 +240,9 @@ export default class AliHttp {
       const headers: any = {}
       if (token) {
         headers['Authorization'] = token.token_type + ' ' + token.access_token
-        headers['x-request-id'] = v4().toString()
         headers['x-device-id'] = token.device_id
         headers['x-signature'] = token.signature
+        headers['x-request-id'] = v4().toString()
       }
       headers.Range = 'bytes=0-' + (Math.min(fileSize, maxSize) - 1).toString()
 
@@ -327,9 +327,9 @@ export default class AliHttp {
       const headers: any = {}
       if (token) {
         headers['Authorization'] = token.token_type + ' ' + token.access_token
-        headers['x-request-id'] = v4().toString()
         headers['x-device-id'] = token.device_id
         headers['x-signature'] = token.signature
+        headers['x-request-id'] = v4().toString()
       }
       return axios
         .get(url, {
@@ -353,7 +353,11 @@ export default class AliHttp {
 
   static async Post(url: string, postData: any, user_id: string, share_token: string, need_open_api: boolean = false): Promise<IUrlRespData> {
     if (!url.startsWith('http') && !url.startsWith('https')) {
-      url = (url.includes('adrive/v1.0') ? AliHttp.baseOpenApi : AliHttp.baseApi) + url
+      if (url.includes('adrive/v1.0') || url.includes('adrive/v1.1')) {
+        url = AliHttp.baseOpenApi + url
+      } else {
+        url = AliHttp.baseApi + url
+      }
     }
     for (let i = 0; i <= 5; i++) {
       const resp = await AliHttp._Post(url, postData, user_id, share_token, need_open_api)
@@ -384,23 +388,23 @@ export default class AliHttp {
   private static _Post(url: string, postData: any, user_id: string, share_token: string, need_open_api: boolean): Promise<IUrlRespData> {
     return UserDAL.GetUserTokenFromDB(user_id).then((token) => {
       const headers: any = {}
-      if (url.includes('aliyundrive')) {
+      if (url.includes('aliyundrive') || url.includes('alipan')) {
         headers['Content-Type'] = 'application/json'
       }
       if (token) {
         let access_token = token.access_token
         if (need_open_api && token.open_api_enable && token.open_api_access_token) {
           access_token = token.open_api_access_token
+        } else {
+          headers['x-device-id'] = token.device_id
+          headers['x-signature'] = token.signature
+          headers['x-request-id'] = v4().toString()
         }
         headers['Authorization'] = token.token_type + ' ' + access_token
-        headers['x-request-id'] = v4().toString()
-        headers['x-device-id'] = token.device_id
-        headers['x-signature'] = token.signature
       }
       if (share_token) {
         headers['x-share-token'] = share_token
       }
-      if (url.includes('ali')) headers['content-type'] = 'application/json;charset-utf-8'
       let timeout = 30000
       if (url.includes('/batch')) timeout = 60000
       return axios
@@ -439,9 +443,9 @@ export default class AliHttp {
     return UserDAL.GetUserTokenFromDB(user_id).then((token) => {
       if (token) {
         headers['Authorization'] = token.token_type + ' ' + token.access_token
-        headers['x-request-id'] = v4().toString()
         headers['x-device-id'] = token.device_id
         headers['x-signature'] = token.signature
+        headers['x-request-id'] = v4().toString()
       }
       if (share_token) {
         headers['x-share-token'] = share_token

@@ -73,11 +73,14 @@ export default defineComponent({
 <template>
   <UserSpaceModal :visible="modalStore.modalName == 'userspace'" />
   <UserRewardSpace :visible="modalStore.modalName == 'userrewardspace'" :user_id="modalStore.modalData.user_id || ''" />
-  <CreatNewFileModal :visible="modalStore.modalName == 'creatfile'" />
+  <CreatNewFileModal :visible="modalStore.modalName == 'creatfile'" :encType="modalStore.modalData.encType || ''" />
   <CreatNewAlbumModal :visible="modalStore.modalName == 'creatalbum'" />
   <MoveToAlbumModal :visible="modalStore.modalName == 'movetoalbum'" :istree='modalStore.modalData.istree || false' />
-  <CreatNewDirModal :visible="modalStore.modalName == 'creatdir'" :dirtype="modalStore.modalData.dirtype || ''"
-                    :parentdirid="modalStore.modalData.parentdirid || ''" :callback='modalStore.modalData.callback' />
+  <CreatNewDirModal :visible="modalStore.modalName == 'creatdir'"
+                    :dirtype="modalStore.modalData.dirtype || ''"
+                    :encType="modalStore.modalData.encType || ''"
+                    :parentdirid="modalStore.modalData.parentdirid || ''"
+                    :callback='modalStore.modalData.callback' />
   <CreatNewShareLinkModal :visible="modalStore.modalName == 'creatshare'"
                           :sharetype="modalStore.modalData.sharetype || ''"
                           :driveType="modalStore.modalData.driveType || ''"

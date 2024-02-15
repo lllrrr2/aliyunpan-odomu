@@ -36,7 +36,6 @@ export interface PanFileState {
   ListDataShow: Item[]
   ListDataGrid: GridItem[]
 
-
   ListSelected: Set<string>
 
   ListOrderKey: string
@@ -49,7 +48,6 @@ export interface PanFileState {
 
   ListShowMode: string
   ListShowColumn: number
-
 
   scrollToFile: string
 }
@@ -174,7 +172,6 @@ const usePanFileStore = defineStore('panfile', {
   },
 
   actions: {
-
     mSaveDirFileLoading(drive_id: string, dirID: string, dirName: string, albumID: string = '') {
       const order = TreeStore.GetDirOrder(drive_id, dirID)
       if (this.DirID != dirID || this.DriveID != drive_id || this.AlbumID != albumID) {
@@ -243,7 +240,7 @@ const usePanFileStore = defineStore('panfile', {
           else fileCount++
           return true
         })
-        panInfo = '文件夹:' + dirCount + '　文件:' + fileCount + '　总:' + itemsTotal
+        panInfo = '文件夹:' + dirCount + '　文件:' + fileCount + '　总:' + (itemsTotal ? itemsTotal : dirCount + fileCount)
       }
       useFootStore().mSaveDirInfo(panInfo)
     },
@@ -385,7 +382,6 @@ const usePanFileStore = defineStore('panfile', {
         for (let i = 0, maxi = listDataRaw.length; i < maxi; i++) {
           const item = listDataRaw[i]
           if (fileMap.has(item.file_id)) {
-
             deleteCount++
             if (item.isDir) diridList.push(item.file_id)
           } else {

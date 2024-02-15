@@ -81,7 +81,7 @@ const handleOpen = () => {
     })
   } else {
     let file = fileList[0]
-    isShare.value = (file.user_meta === undefined) || !file.user_meta.includes('file_upload')
+    isShare.value = file.from_share_id !== undefined
     form.file_id = file.file_id
     form.parent_file_id = file.parent_file_id
     form.isDir = file.isDir

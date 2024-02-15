@@ -15,8 +15,8 @@ export function modalUserRewardSpace(user_id: string) {
   useModalStore().showModal('userrewardspace', { user_id })
 }
 
-export function modalCreatNewFile() {
-  useModalStore().showModal('creatfile', {})
+export function modalCreatNewFile(encType: string = '') {
+  useModalStore().showModal('creatfile', { encType })
 }
 
 export function modalCreatNewAlbum() {
@@ -27,8 +27,8 @@ export function modalMoveToAlbum() {
   useModalStore().showModal('movetoalbum', {})
 }
 
-export function modalCreatNewDir(dirtype: string, parentdirid: string = '', callback: any = undefined) {
-  useModalStore().showModal('creatdir', { dirtype, parentdirid, callback })
+export function modalCreatNewDir(dirtype: string, encType: string = '', parentdirid: string = '', callback: any = undefined) {
+  useModalStore().showModal('creatdir', { dirtype, encType, parentdirid, callback })
 }
 
 export function modalCreatNewShareLink(sharetype: string, driveType: string, filelist: IAliGetFileModel[]) {

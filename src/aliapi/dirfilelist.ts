@@ -42,9 +42,7 @@ export function NewIAliFileResp(user_id: string, drive_id: string, dirID: string
 }
 
 export default class AliDirFileList {
-
-  static LimitMax = 100
-  static ItemJsonmask = 'category%2Ccreated_at%2Cdomain_id%2Cdrive_id%2Cfile_extension%2Cfile_id%2Chidden%2Cmime_extension%2Cmime_type%2Cname%2Cparent_file_id%2Cpunish_flag%2Csize%2Cstarred%2Ctype%2Cupdated_at%2Cdescription'
+  static ItemJsonmask = 'category%2Ccreated_at%2Cdrive_id%2Cfile_extension%2Cfile_id%2Chidden%2Cmime_extension%2Cmime_type%2Cname%2Cparent_file_id%2Cpunish_flag%2Csize%2Cstarred%2Ctype%2Cupdated_at%2Cdescription%2Cfrom_share_id'
 
   static getFileInfo(user_id: string, item: IAliFileItem, downUrl: string): IAliGetFileModel {
     const size = item.size ? item.size : 0
@@ -73,6 +71,7 @@ export default class AliDirFileList {
       icon: 'iconfile-folder',
       isDir: isDir,
       thumbnail: '',
+      from_share_id: item.from_share_id,
       punish_flag: item.punish_flag,
       description: item.description || '',
       user_meta: item.user_meta || ''
@@ -226,7 +225,7 @@ export default class AliDirFileList {
         isGet = await AliDirFileList._ApiAlbumListOnePage(orders[0], orders[1], dir, pageIndex)
       } else {
         if (!needTotal) {
-          needTotal = AliDirFileList._ApiDirFileListCount(dir, dirID.includes('pic') ? 'file' : type).then((total) => {
+          needTotal = AliDirFileList._ApiDirFileListCount(dir, dirID, type).then((total) => {
             dir.itemsTotal = total
           })
         }
@@ -259,15 +258,15 @@ export default class AliDirFileList {
   private static async _ApiDirFileListOnePage(orderby: string, order: string, dir: IAliFileResp, type: string, pageIndex: number, refresh: boolean = true): Promise<boolean> {
     let url = 'adrive/v3/file/list'
     if (useSettingStore().uiShowPanMedia == false) {
-      url += '?jsonmask=next_marker%2Cpunished_file_count%2Ctotal_count%2Citems(' + AliDirFileList.ItemJsonmask + ')'
+      url += '?jsonmask=next_marker%2Citems(' + AliDirFileList.ItemJsonmask + ')'
     } else {
-      url += '?jsonmask=next_marker%2Cpunished_file_count%2Ctotal_count%2Citems(' + AliDirFileList.ItemJsonmask + '%2Cuser_meta%2Cvideo_media_metadata(duration%2Cwidth%2Cheight%2Ctime)%2Cvideo_preview_metadata%2Fduration%2Cimage_media_metadata)'
+      url += '?jsonmask=next_marker%2Citems(' + AliDirFileList.ItemJsonmask + '%2Cuser_meta%2Cvideo_media_metadata(duration%2Cwidth%2Cheight%2Ctime)%2Cvideo_preview_metadata%2Fduration%2Cimage_media_metadata)'
     }
-    let postData = {
+    let postData: any = {
       drive_id: dir.m_drive_id,
       parent_file_id: dir.dirID.includes('root') ? 'root' : dir.dirID,
       marker: dir.next_marker,
-      limit: 200,
+      limit: 100,
       all: false,
       url_expire_sec: 14400,
       fields: '*',
@@ -283,10 +282,18 @@ export default class AliDirFileList {
   }
 
 
-  private static async _ApiDirFileListCount(dir: IAliFileResp, type: string): Promise<number> {
-    const url = 'adrive/v3/file/search'
+  private static async _ApiDirFileListCount(dir: IAliFileResp, dirID: string, type: string): Promise<number> {
+    let isPic = dirID.includes('pic')
+    type = isPic ? 'file' : type
+    let need_open_api = useSettingStore().uiEnableOpenApi && !isPic
+    let url = ''
+    if (need_open_api) {
+      url = 'adrive/v1.0/openFile/search'
+    } else {
+      url = 'adrive/v3/file/search'
+    }
     let parent_file_id = dir.dirID.includes('_root') ? 'root' : dir.dirID
-    const postData = {
+    const postData: any = {
       drive_id: dir.m_drive_id,
       marker: '',
       limit: 1,
@@ -295,6 +302,10 @@ export default class AliDirFileList {
       fields: 'thumbnail',
       query: 'parent_file_id="' + parent_file_id + '"' + (type ? ' and type="' + type + '"' : ''),
       return_total_count: true
+    }
+    if (need_open_api) {
+      delete postData.all
+      delete postData.url_expire_sec
     }
     const resp = await AliHttp.Post(url, postData, dir.m_user_id, '')
     try {
@@ -337,8 +348,8 @@ export default class AliDirFileList {
 
   private static async _ApiFavorFileListOnePage(orderby: string, order: string, dir: IAliFileResp, pageIndex: number): Promise<boolean> {
     let url = 'v2/file/list_by_custom_index_key'
-    if (useSettingStore().uiShowPanMedia == false) url += '?jsonmask=next_marker%2Cpunished_file_count%2Ctotal_count%2Citems(' + AliDirFileList.ItemJsonmask + ')'
-    else url += '?jsonmask=next_marker%2Cpunished_file_count%2Ctotal_count%2Citems(' + AliDirFileList.ItemJsonmask + '%2Cuser_meta%2Cvideo_media_metadata(duration%2Cwidth%2Cheight%2Ctime)%2Cvideo_preview_metadata%2Fduration%2Cimage_media_metadata)'
+    if (useSettingStore().uiShowPanMedia == false) url += '?jsonmask=next_marker%2Citems(' + AliDirFileList.ItemJsonmask + ')'
+    else url += '?jsonmask=next_marker%2Citems(' + AliDirFileList.ItemJsonmask + '%2Cuser_meta%2Cvideo_media_metadata(duration%2Cwidth%2Cheight%2Ctime)%2Cvideo_preview_metadata%2Fduration%2Cimage_media_metadata)'
 
     const postData = {
       drive_id: dir.m_drive_id,
@@ -356,7 +367,7 @@ export default class AliDirFileList {
   }
 
   private static async _ApiTrashFileListOnePage(orderby: string, order: string, dir: IAliFileResp, pageIndex: number): Promise<boolean> {
-    const url = 'v2/recyclebin/list?jsonmask=next_marker%2Cpunished_file_count%2Ctotal_count%2Citems(' + AliDirFileList.ItemJsonmask + ')'
+    const url = 'v2/recyclebin/list?jsonmask=next_marker%2Citems(' + AliDirFileList.ItemJsonmask + ')'
 
     const postData = {
       drive_id: dir.m_drive_id,
@@ -387,8 +398,8 @@ export default class AliDirFileList {
 
   static async _ApiSearchFileListOnePage(orderby: string, order: string, dir: IAliFileResp, pageIndex: number): Promise<boolean> {
     let url = 'adrive/v3/file/search'
-    if (useSettingStore().uiShowPanMedia == false) url += '?jsonmask=next_marker%2Cpunished_file_count%2Ctotal_count%2Citems(' + AliDirFileList.ItemJsonmask + ')'
-    else url += '?jsonmask=next_marker%2Cpunished_file_count%2Ctotal_count%2Citems(' + AliDirFileList.ItemJsonmask + '%2Cuser_meta%2Cvideo_media_metadata(duration%2Cwidth%2Cheight%2Ctime)%2Cvideo_preview_metadata%2Fduration%2Cimage_media_metadata)'
+    if (useSettingStore().uiShowPanMedia == false) url += '?jsonmask=next_marker%2Citems(' + AliDirFileList.ItemJsonmask + ')'
+    else url += '?jsonmask=next_marker%2Citems(' + AliDirFileList.ItemJsonmask + '%2Cuser_meta%2Cvideo_media_metadata(duration%2Cwidth%2Cheight%2Ctime)%2Cvideo_preview_metadata%2Fduration%2Cimage_media_metadata)'
 
     let query = ''
     let drive_id_list = []
@@ -588,9 +599,15 @@ export default class AliDirFileList {
   }
 
   static async _ApiVideoListRecent(orderby: string, order: string, dir: IAliFileResp, pageIndex: number): Promise<boolean> {
-    const url = 'adrive/v2/video/recentList'
+    let need_open_api = useSettingStore().uiEnableOpenApi
+    let url = ''
+    if (need_open_api) {
+      url = 'adrive/v1.1/openFile/video/recentList'
+    } else {
+      url = 'adrive/v2/video/recentList'
+    }
     const postData = {}
-    const resp = await AliHttp.Post(url, postData, dir.m_user_id, '')
+    const resp = await AliHttp.Post(url, postData, dir.m_user_id, '', need_open_api)
     return AliDirFileList._FileListOnePage(orderby, order, dir, resp, pageIndex)
   }
 

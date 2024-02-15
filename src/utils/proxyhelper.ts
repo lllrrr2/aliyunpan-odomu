@@ -115,7 +115,7 @@ export async function getRawUrl(
     qualities: [],
     subtitles: []
   }
-  let { uiVideoQuality, uiVideoPlayer } = useSettingStore()
+  let { uiVideoQuality, uiVideoPlayer, securityPreviewAutoDecrypt } = useSettingStore()
   // 违规视频也使用转码播放
   if (!encType && preview_type) {
     if (weifa || preview_type === 'video' || (preview_type === 'other' && quality != 'Origin')) {
@@ -154,7 +154,7 @@ export async function getRawUrl(
   }
   if (preview_type == 'other') {
     return data
-  } else if (encType) {
+  } else if (encType && securityPreviewAutoDecrypt) {
     // 代理播放
     data.url = getProxyUrl({
       user_id, drive_id, file_id, encType, password,

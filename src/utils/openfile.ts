@@ -20,7 +20,7 @@ export async function menuOpenFile(file: IAliGetFileModel, password: string = ''
   if (parent_file_id.includes('root')) parent_file_id = 'root'
   const drive_id = file.drive_id
   if (file.ext == 'zip' || file.ext == 'rar' || file.ext == '7z') {
-    if (file.description.includes('xbyEncrypt')) {
+    if (file.description && file.description.includes('xbyEncrypt')) {
       message.error('不支持在线预览该格式的加密文件')
       return
     }
@@ -31,9 +31,15 @@ export async function menuOpenFile(file: IAliGetFileModel, password: string = ''
   }
 
   if (file.category.startsWith('doc')) {
-    if (file.description.includes('xbyEncrypt')) {
-      message.error('不支持在线预览该格式的加密文件')
-      return
+    if (file.description && file.description.includes('xbyEncrypt')) {
+      const codeExt = PrismExt(file.ext)
+      if (file.size < 512 * 1024 || (file.size < 5 * 1024 * 1024 && codeExt)) {
+        Code(drive_id, file_id, file.name, codeExt, file.size, file.description, password)
+        return
+      } else {
+        message.error('不支持在线预览该格式的加密文件')
+        return
+      }
     }
     Office(drive_id, file_id, file.name)
     return
@@ -158,7 +164,14 @@ async function Video(token: ITokenInfo, file: IAliGetFileModel, subTitleFile: an
     play_cursor = file.media_play_cursor ? parseInt(file.media_play_cursor) : 0
     play_duration = file.media_duration ? parseInt(file.media_duration) : 0
   }
-  const { uiAutoColorVideo, uiVideoQuality, uiVideoQualityTips, uiVideoEnablePlayerList, uiVideoPlayer, uiVideoPlayerPath } = useSettingStore()
+  const {
+    uiAutoColorVideo,
+    uiVideoQuality,
+    uiVideoQualityTips,
+    uiVideoEnablePlayerList,
+    uiVideoPlayer,
+    uiVideoPlayerPath
+  } = useSettingStore()
   if (uiAutoColorVideo && !desc.includes('ce74c3c')) {
     AliFileCmd.ApiFileColorBatch(token.user_id, file.drive_id, desc ? desc + ',' + 'ce74c3c' : 'ce74c3c', [file.file_id]).then((success) => {
       usePanFileStore().mColorFiles('ce74c3c', success)

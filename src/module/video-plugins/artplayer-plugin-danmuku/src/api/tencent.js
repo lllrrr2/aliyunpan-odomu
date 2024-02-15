@@ -53,7 +53,7 @@ class Tencent {
       return {}
     }
     let itemList = respData.data.normalList.itemList || []
-    if (!itemList) {
+    if (!itemList || itemList.length === 0) {
       return {}
     }
     // 获取详情地址
