@@ -1,4 +1,5 @@
 import bilibili from './bilibili'
+import ezdmw from './ezdmw'
 import iqiyi from './iqiyi'
 import mgtv from './mgtv'
 import tencent from './tencent'
@@ -8,7 +9,7 @@ import axios from 'axios'
 import cache from '../../../../../utils/cache'
 import { md5Code } from '../../../../../utils/utils'
 
-const list = [bilibili, tencent, iqiyi, youku, mgtv]
+const list = [bilibili, ezdmw, tencent, iqiyi, youku, mgtv]
 
 export async function searchVideo(keyword, pos) {
   if (!keyword) {

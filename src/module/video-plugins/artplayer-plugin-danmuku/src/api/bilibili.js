@@ -87,16 +87,15 @@ class Bilibili {
   }
 
   handleSearchRes(data, pos) {
-    if (!data || !data.result) {
+    if (!data || !data.result || data.result.length === 0) {
       return {}
     }
-    if (data.result[0] && data.result[0].eps) {
-      for (let ep of data.result[0].eps) {
-        if (pos === parseInt(ep.index_title)) {
-          return {
-            title: ep.long_title,
-            url: ep.url
-          }
+    let result = data.result.sort((a, b)=> b.media_score.user_count - a.media_score.user_count)
+    for (let ep of result[0].eps) {
+      if (pos === parseInt(ep.index_title)) {
+        return {
+          title: ep.long_title,
+          url: ep.url
         }
       }
     }
