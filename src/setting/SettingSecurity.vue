@@ -77,7 +77,7 @@ const disabled = computed(() => {
     </a-popover>
     <div class="settingrow">
       <a-button v-if='!settingStore.securityPassword' type='outline' size='small' tabindex='-1'
-                style='margin-right: 16px' @click='handlerPassword("input", "")'>
+                style='margin-right: 16px' @click='handlerPassword("new", "")'>
         设置安全密码
       </a-button>
       <a-button v-else type='outline' size='small' tabindex='-1' style='margin-right: 12px'

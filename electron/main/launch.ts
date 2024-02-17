@@ -138,7 +138,7 @@ export default class launch extends EventEmitter {
           const shouldAliOrigin = details.url.indexOf('.aliyundrive.com') > 0 || details.url.indexOf('.alipan.com') > 0
           const shouldAliReferer = !shouldBiliBili && !shouldBiliBili && !shouldGieeReferer && (!details.referrer || details.referrer.trim() === '' || /(\/localhost:)|(^file:\/\/)|(\/127.0.0.1:)/.exec(details.referrer) !== null)
           const shouldToken = details.url.includes('aliyundrive') && details.url.includes('download')
-          const shouldOpenApiToken = details.url.includes('adrive/v1.0')
+          const shouldOpenApiToken = details.url.includes('adrive/v1.0') || details.url.includes('adrive/v1.1')
 
           cb({
             cancel: false,

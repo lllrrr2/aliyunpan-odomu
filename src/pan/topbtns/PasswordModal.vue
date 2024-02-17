@@ -34,8 +34,7 @@ const form = reactive({
 const modalTitle = computed(() => {
   if (props.optType === 'new') {
     return '设置安全密码'
-  }
-  if (props.optType === 'input') {
+  } else if (props.optType === 'input') {
     return '输入安全密码'
   } else if (props.optType === 'modify') {
     return '修改安全密码'

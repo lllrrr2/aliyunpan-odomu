@@ -197,7 +197,7 @@ export default class PanDAL {
       treeExpandedKeys.add(dir.file_id)
     }
     panTreeStore.mShowDir(dir, dirPath, [dir.file_id], Array.from(treeExpandedKeys))
-    console.warn('selectDir', panTreeStore.selectDir)
+    // console.warn('selectDir', panTreeStore.selectDir)
     PanDAL.RefreshPanTreeAllNode(drive_id)
     const panfileStore = usePanFileStore()
     if (panfileStore.ListLoading && panfileStore.DriveID == drive_id && panfileStore.DirID == dir.file_id) {

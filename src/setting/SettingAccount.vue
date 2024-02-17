@@ -31,7 +31,7 @@ const openWebUrl = (type: string) => {
       openExternal('https://www.aliyundrive.com/developer')
       break
     case 'AList':
-      openExternal('https://alist.nn.ci/zh/guide/drivers/aliyundrive_open.html')
+      openExternal('https://alist.nn.ci/tool/aliyundrive/request.html')
       break
   }
 }
