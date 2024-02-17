@@ -559,6 +559,12 @@ const refreshPlayList = async (art: Artplayer, file_id?: string) => {
         await art.emit('video:pause')
         await refreshSetting(art, item)
         Artplayer.utils.inverseClass(element, 'art-list-icon')
+        // 重新载入弹幕
+        if (!art.plugins.artplayerPluginDanmuku.isHide) {
+          autoPlayNumber = playList.findIndex(list => list.file_id == pageVideo.file_id)
+          await art.plugins.artplayerPluginDanmuku.stop()
+          await art.plugins.artplayerPluginDanmuku.load()
+        }
         return handlerPlayTitle(item.html)
       }
     })
