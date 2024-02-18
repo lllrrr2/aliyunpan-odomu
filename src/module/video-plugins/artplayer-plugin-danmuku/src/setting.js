@@ -82,39 +82,13 @@ export default function setting (art, danmuku) {
           width: 300,
           html: '弹幕速度',
           icon: '',
-          tooltip: '较慢',
-          selector: [
-            {
-              default: option.speed == 10,
-              html: '极慢',
-              speed: 10
-            },
-            {
-              default: option.speed == 7.5,
-              html: '较慢',
-              speed: 7.5
-            },
-            {
-              default: option.speed == 5,
-              html: '适中',
-              speed: 5
-            },
-            {
-              default: option.speed == 2.5,
-              html: '较快',
-              speed: 2.5
-            },
-            {
-              default: option.speed == 1,
-              html: '极快',
-              speed: 1
-            }
-          ],
-          onSelect: function (item) {
+          tooltip: option.speed,
+          range: [option.speed, 1, 13.5, 2.5],
+          onChange (item) {
             danmuku.config({
-              speed: item.speed
+              speed: item.range
             })
-            return item.html
+            return item.range
           }
         },
         {

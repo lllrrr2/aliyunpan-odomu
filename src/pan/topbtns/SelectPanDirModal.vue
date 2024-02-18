@@ -14,6 +14,7 @@ import { treeSelectToExpand } from '../../utils/antdtree'
 import AliTrash from '../../aliapi/trash'
 import { fileiconfn } from '../pantreestore'
 import { GetDriveID } from '../../aliapi/utils'
+import { IAliGetDirModel } from '../../aliapi/alimodels'
 
 const iconfolder = h('i', { class: 'iconfont iconfile-folder' })
 const foldericonfn = () => iconfolder
@@ -73,8 +74,14 @@ const handleOpen = async () => {
   const expandedKeys: string[] = ['backup_root', 'resource_root']
   const selectid = props.selectid || localStorage.getItem('selectpandir-' + drive_id.value) || ''
   if (selectid) {
-    const backup_data = TreeStore.GetDirPath(pantreeStore.backup_drive_id, selectid)
-    const resource_data = TreeStore.GetDirPath(pantreeStore.resource_drive_id, selectid)
+    let backup_data: IAliGetDirModel[] = []
+    let resource_data: IAliGetDirModel[] = []
+    if (!useSettingStore().securityHideResourceDrive) {
+      backup_data = TreeStore.GetDirPath(pantreeStore.backup_drive_id, selectid)
+    }
+    if (!useSettingStore().securityHideResourceDrive) {
+      resource_data = TreeStore.GetDirPath(pantreeStore.resource_drive_id, selectid)
+    }
     const data = [...backup_data, ...resource_data]
     if (data && data.length > 0) {
       for (let i = 0, maxi = data.length; i < maxi; i++) {

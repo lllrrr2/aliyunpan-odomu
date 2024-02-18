@@ -16,6 +16,7 @@ import message from '../utils/message'
 import { GetExpiresTime } from '../utils/utils'
 import artplayerPluginDanmuku from '../../src/module/video-plugins/artplayer-plugin-danmuku'
 import PlayerUtils from '../utils/playerhelper'
+import { simpleToTradition, traditionToSimple } from 'chinese-simple2traditional'
 
 const appStore = useAppStore()
 const pageVideo = appStore.pageVideo!
@@ -73,7 +74,7 @@ const options: Option = {
   },
   customType: {
     m3u8: (video: HTMLMediaElement, url: string, art: Artplayer) => playByHls(video, url, art),
-    ts: (video: HTMLMediaElement, url: string, art: Artplayer) => playByHls(video, url, art),
+    ts: (video: HTMLMediaElement, url: string, art: Artplayer) => playByHls(video, url, art)
   }
 }
 
@@ -167,6 +168,7 @@ const initStorage = (art: Artplayer) => {
   if (storage.get('autoJumpCursor') === undefined) storage.set('autoJumpCursor', true)
   if (storage.get('subTitleListMode') === undefined) storage.set('subTitleListMode', false)
   if (storage.get('subtitleSize') === undefined) storage.set('subtitleSize', 30)
+  if (storage.get('subtitleTranslate') === undefined) storage.set('subtitleTranslate', 0)
   if (storage.get('autoSkipEnd') === undefined) storage.set('autoSkipEnd', 0)
   if (storage.get('autoSkipBegin') === undefined) storage.set('autoSkipBegin', 0)
   if (storage.get('videoVolume')) ArtPlayerRef.volume = parseFloat(storage.get('videoVolume'))
@@ -316,9 +318,12 @@ const refreshSetting = async (art: Artplayer, item: any) => {
       })
   }
   // 释放字幕Blob
-  if (onlineSubBlobUrl.length > 0) {
-    URL.revokeObjectURL(onlineSubBlobUrl)
-    onlineSubBlobUrl = ''
+  if (onlineSubData.dataUrl.length > 0) {
+    URL.revokeObjectURL(onlineSubData.dataUrl)
+    onlineSubData.dataUrl = ''
+    onlineSubData.data = ''
+    onlineSubData.type = ''
+    onlineSubData.name = ''
   }
   if (AssSubtitleRef) {
     AssSubtitleRef.destroy()
@@ -384,8 +389,7 @@ const defaultSettings = async (art: Artplayer) => {
         art.storage.set('autoSkipEnd', item.range)
         return item.range + 's'
       }
-    }
-    ]
+    }]
   })
 }
 
@@ -444,7 +448,7 @@ const loadPlugins = async (art: Artplayer) => {
     danmuku: async (option) => PlayerUtils.getVideoDanmuList(pageVideo, option, autoPlayNumber)
   }))
 }
- 
+
 const getVideoInfo = async (art: Artplayer) => {
   // 获取视频链接
   const data: string | IRawUrl = await getRawUrl(pageVideo.user_id, pageVideo.drive_id, pageVideo.file_id, pageVideo.encType, pageVideo.password, false, 'video')
@@ -607,18 +611,31 @@ const getVideoCursor = async (art: Artplayer, play_cursor?: number) => {
   }
 }
 
-let onlineSubBlobUrl: string = ''
+let onlineSubData: any = { name: '', data: '', dataUrl: '', type: '' }
 const loadOnlineSub = async (art: Artplayer, item: any) => {
   const data = await AliFile.ApiFileDownText(pageVideo.user_id, pageVideo.drive_id, item.file_id, -1, -1, item.encType)
   if (data) {
-    if (item.ext === 'ass') {
-      art.subtitle.show = true
-      await renderAssSubtitle(art, data)
-    } else {
-      const blob = new Blob([data], { type: item.ext })
-      onlineSubBlobUrl = URL.createObjectURL(blob)
-      await art.subtitle.switch(onlineSubBlobUrl, { name: item.name, type: item.ext, escape: false })
+    const subtitleTranslate = art.storage.get('subtitleTranslate')
+    const blob = new Blob([data], { type: item.ext })
+    onlineSubData.name = item.name
+    onlineSubData.data = data
+    onlineSubData.dataUrl = URL.createObjectURL(blob)
+    onlineSubData.ext = item.ext
+    if (subtitleTranslate === 1) {
+      onlineSubData.data = traditionToSimple(onlineSubData.data)
+    } else if (subtitleTranslate === 2) {
+      onlineSubData.data = simpleToTradition(onlineSubData.data)
     }
+    if (item.ext === 'ass') {
+      await renderAssSubtitle(art, onlineSubData.data)
+    } else {
+      await art.subtitle.switch(onlineSubData.dataUrl, {
+        name: onlineSubData.name,
+        type: onlineSubData.ext,
+        escape: false
+      })
+    }
+    art.subtitle.show = true
     art.notice.show = `切换字幕：${item.name}`
     return item.html
   } else {
@@ -684,6 +701,7 @@ const getSubTitleList = async (art: Artplayer) => {
     }
   }
   const subDefault = subSelector.find((item) => item.default) || subSelector[0]
+  const subtitleTranslate = art.storage.get('subtitleTranslate')
   // 字幕设置面板
   art.setting.update({
     name: 'Subtitle',
@@ -722,6 +740,48 @@ const getSubTitleList = async (art: Artplayer) => {
         } else {
           return false
         }
+      }
+    }, {
+      html: '繁中转换',
+      tooltip: subtitleTranslate === 0 ? '关闭' : (subtitleTranslate === 1 ? '繁转中' : '中转繁'),
+      selector: [{
+        default: subtitleTranslate == 1,
+        html: '繁转中',
+        subtitleTranslate: 1
+      }, {
+        default: subtitleTranslate == 2,
+        html: '中转繁',
+        subtitleTranslate: 2
+      }, {
+        default: subtitleTranslate == 0,
+        html: '关闭',
+        subtitleTranslate: 0
+      }],
+      onSelect: async (item: SettingOption) => {
+        art.storage.set('subtitleTranslate', item.subtitleTranslate)
+        // 字幕繁中转换
+        if (onlineSubData.data) {
+          let data = onlineSubData.data
+          if (item.subtitleTranslate === 1) {
+            data = traditionToSimple(onlineSubData.data)
+          } else if (item.subtitleTranslate === 2) {
+            data = simpleToTradition(onlineSubData.data)
+          }
+          if (onlineSubData.ext === 'ass') {
+            await renderAssSubtitle(art, data)
+          } else {
+            URL.revokeObjectURL(onlineSubData.dataUrl)
+            const blob = new Blob([data], { type: onlineSubData.ext })
+            onlineSubData.dataUrl = URL.createObjectURL(blob)
+            await art.subtitle.switch(onlineSubData.dataUrl, {
+              name: onlineSubData.name,
+              type: onlineSubData.ext,
+              escape: false
+            })
+          }
+          art.subtitle.show = true
+        }
+        return item.html
       }
     }, {
       html: '字幕列表',
@@ -799,9 +859,12 @@ const handleTop = (_e: any) => {
 
 onBeforeUnmount(() => {
   // 释放字幕Blob
-  if (onlineSubBlobUrl.length > 0) {
-    URL.revokeObjectURL(onlineSubBlobUrl)
-    onlineSubBlobUrl = ''
+  if (onlineSubData.dataUrl.length > 0) {
+    URL.revokeObjectURL(onlineSubData.dataUrl)
+    onlineSubData.name = ''
+    onlineSubData.dataUrl = ''
+    onlineSubData.data = ''
+    onlineSubData.type = ''
   }
   if (AssSubtitleRef) {
     AssSubtitleRef.destroy()
