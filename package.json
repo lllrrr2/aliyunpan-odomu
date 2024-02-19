@@ -1,7 +1,7 @@
 {
   "name": "alixby",
   "description": "阿里云盘小白羊",
-  "version": "3.24.21910",
+  "version": "3.24.21915",
   "main": "dist/electron/main/index.js",
   "author": {
     "name": "Odomu",
@@ -22,6 +22,7 @@
   "devDependencies": {
     "@arco-design/web-vue": "2.54.3",
     "@arco-themes/vue-gi-demo": "^0.0.48",
+    "@hrgui/libass-wasm-ts": "^1.0.3",
     "@types/crypto-js": "^4.2.2",
     "@types/fast-levenshtein": "^0.0.4",
     "@types/howler": "^2.2.11",
@@ -38,7 +39,6 @@
     "ant-design-vue": "3.2.20",
     "aria2-lib": "1.0.1",
     "artplayer": "^5.1.1",
-    "ass-html5": "^0.3.6",
     "axios": "^1.6.7",
     "chinese-simple2traditional": "^1.2.0",
     "consola": "^3.2.3",

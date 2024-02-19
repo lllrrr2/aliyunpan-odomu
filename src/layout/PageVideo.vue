@@ -9,12 +9,12 @@ import levenshtein from 'fast-levenshtein'
 import type { SettingOption } from 'artplayer/types/setting'
 import type { Option } from 'artplayer/types/option'
 import AliFileCmd from '../aliapi/filecmd'
-import ASS from 'ass-html5'
 import { getEncType, getRawUrl, IRawUrl } from '../utils/proxyhelper'
 import { TestAlt, TestKey } from '../utils/keyboardhelper'
 import message from '../utils/message'
 import { GetExpiresTime } from '../utils/utils'
 import artplayerPluginDanmuku from '../../src/module/video-plugins/artplayer-plugin-danmuku'
+import artplayerPluginLibass from '../../src/module/video-plugins/artplayer-plugin-libass'
 import PlayerUtils from '../utils/playerhelper'
 import { simpleToTradition, traditionToSimple } from 'chinese-simple2traditional'
 
@@ -25,7 +25,6 @@ let autoPlayNumber = 0
 let playbackRate = 1
 let longPressSpeed = 1
 let ArtPlayerRef: Artplayer
-let AssSubtitleRef: ASS
 
 const keyboardStore = useKeyboardStore()
 keyboardStore.$subscribe((_m: any, state: KeyboardState) => {
@@ -116,7 +115,7 @@ const playByHls = (video: HTMLMediaElement, url: string, art: Artplayer) => {
   } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
     video.src = url
   } else {
-    art.notice.show = 'Unsupported playback format: m3u8'
+    art.notice.show = '不支持的视频格式'
   }
 }
 
@@ -201,7 +200,6 @@ const initHotKey = (art: Artplayer) => {
     art.playbackRate = playbackRate
   })
   art.events.proxy(document, 'keydown', (event: any) => {
-    console.log('event', event)
     if (art.playing && event && (event.key === 'ArrowRight' || event.code === 'KeyD')) {
       if (event.repeat) {
         // 按下右箭头键，阻止默认行为
@@ -355,9 +353,6 @@ const refreshSetting = async (art: Artplayer, item: any) => {
     onlineSubData.type = ''
     onlineSubData.name = ''
   }
-  if (AssSubtitleRef) {
-    AssSubtitleRef.destroy()
-  }
   // 刷新信息
   await getVideoInfo(art)
   await defaultSettings(art)
@@ -487,10 +482,12 @@ const defaultControls = async (art: Artplayer) => {
 }
 
 const loadPlugins = async (art: Artplayer) => {
-  // 加载弹幕插件
+  // 弹幕插件
   ArtPlayerRef.plugins.add(artplayerPluginDanmuku({
     danmuku: async (option) => PlayerUtils.getVideoDanmuList(pageVideo, option, autoPlayNumber)
   }))
+  // 字幕插件
+  ArtPlayerRef.plugins.add(artplayerPluginLibass({}))
 }
 
 const getVideoInfo = async (art: Artplayer) => {
@@ -544,9 +541,6 @@ const getVideoInfo = async (art: Artplayer) => {
           default: i === 0
         })
       }
-      art.subtitle.url = embedSubSelector[0].url
-      let subtitleSize = art.storage.get('subtitleSize') + 'px'
-      art.subtitle.style('fontSize', subtitleSize)
     }
     // 字幕列表
     await getSubTitleList(art)
@@ -660,45 +654,27 @@ const loadOnlineSub = async (art: Artplayer, item: any) => {
   const data = await AliFile.ApiFileDownText(pageVideo.user_id, pageVideo.drive_id, item.file_id, -1, -1, item.encType)
   if (data) {
     const subtitleTranslate = art.storage.get('subtitleTranslate')
-    const blob = new Blob([data], { type: item.ext })
-    onlineSubData.name = item.name
-    onlineSubData.data = data
-    onlineSubData.dataUrl = URL.createObjectURL(blob)
-    onlineSubData.ext = item.ext
     if (subtitleTranslate === 1) {
       onlineSubData.data = traditionToSimple(onlineSubData.data)
     } else if (subtitleTranslate === 2) {
       onlineSubData.data = simpleToTradition(onlineSubData.data)
-    }
-    if (item.ext === 'ass') {
-      await renderAssSubtitle(art, onlineSubData.data)
     } else {
-      await art.subtitle.switch(onlineSubData.dataUrl, {
-        name: onlineSubData.name,
-        type: onlineSubData.ext,
-        escape: false
-      })
+      onlineSubData.data = data
     }
+    const blob = new Blob([onlineSubData.data], { type: item.ext })
+    onlineSubData.name = item.name
+    onlineSubData.dataUrl = URL.createObjectURL(blob)
+    onlineSubData.ext = item.ext
+    await art.subtitle.switch(onlineSubData.dataUrl, {
+      name: onlineSubData.name,
+      type: onlineSubData.ext,
+      escape: false
+    })
     art.subtitle.show = true
     art.notice.show = `切换字幕：${item.name}`
     return item.html
   } else {
     art.notice.show = `加载${item.name}字幕失败`
-  }
-}
-
-const renderAssSubtitle = async (art: Artplayer, assText: string) => {
-  if (AssSubtitleRef) {
-    AssSubtitleRef.destroy()
-  }
-  const ass = new ASS({
-    assText: assText,
-    video: art.video
-  })
-  await ass.init()
-  if (ass.canvas) {
-    ass.canvas.style.zIndex = '10'
-    AssSubtitleRef = ass
   }
 }
 
@@ -723,8 +699,7 @@ const getSubTitleList = async (art: Artplayer) => {
   subSelector = [...embedSubSelector, ...onlineSubSelector]
   if (subSelector.length === 0) {
     subSelector.push({ html: '无可用字幕', name: '', url: '', default: true })
-  }
-  if (embedSubSelector.length === 0 && onlineSubSelector.length > 0) {
+  } else {
     const fileName = pageVideo.file_name
     // 自动加载同名字幕
     const similarity = subSelector.reduce((min, item, index) => {
@@ -736,12 +711,15 @@ const getSubTitleList = async (art: Artplayer) => {
       }
       return min
     }, { distance: Infinity, index: -1 })
+    let subtitleSize = art.storage.get('subtitleSize') + 'px'
     if (similarity.index !== -1) {
       subSelector.forEach(v => v.default = false)
       subSelector[similarity.index].default = true
-      let subtitleSize = art.storage.get('subtitleSize') + 'px'
       art.subtitle.style('fontSize', subtitleSize)
       await loadOnlineSub(art, subSelector[similarity.index])
+    } else {
+      art.subtitle.url = embedSubSelector[0].url
+      art.subtitle.style('fontSize', subtitleSize)
     }
   }
   const subDefault = subSelector.find((item) => item.default) || subSelector[0]
@@ -763,11 +741,7 @@ const getSubTitleList = async (art: Artplayer) => {
           art.subtitle.show = !item.switch
           art.notice.show = '字幕' + item.tooltip
           let subtitleSize = art.storage.get('subtitleSize') + 'px'
-          if (AssSubtitleRef && AssSubtitleRef.canvas) {
-            AssSubtitleRef.canvas.style.display = art.subtitle.show ? '' : 'none'
-          } else {
-            art.subtitle.style('fontSize', subtitleSize)
-          }
+          art.subtitle.style('fontSize', subtitleSize)
           let currentItem = Artplayer.utils.queryAll('.art-setting-panel.art-current .art-setting-item:nth-of-type(n+3)')
           if (currentItem.length > 0) {
             currentItem.forEach((current: HTMLElement) => {
@@ -812,18 +786,14 @@ const getSubTitleList = async (art: Artplayer) => {
           } else if (item.subtitleTranslate === 2) {
             data = simpleToTradition(onlineSubData.data)
           }
-          if (onlineSubData.ext === 'ass') {
-            await renderAssSubtitle(art, data)
-          } else {
-            URL.revokeObjectURL(onlineSubData.dataUrl)
-            const blob = new Blob([data], { type: onlineSubData.ext })
-            onlineSubData.dataUrl = URL.createObjectURL(blob)
-            await art.subtitle.switch(onlineSubData.dataUrl, {
-              name: onlineSubData.name,
-              type: onlineSubData.ext,
-              escape: false
-            })
-          }
+          URL.revokeObjectURL(onlineSubData.dataUrl)
+          const blob = new Blob([data], { type: onlineSubData.ext })
+          onlineSubData.dataUrl = URL.createObjectURL(blob)
+          await art.subtitle.switch(onlineSubData.dataUrl, {
+            name: onlineSubData.name,
+            type: onlineSubData.ext,
+            escape: false
+          })
           art.subtitle.show = true
         }
         return item.html
@@ -851,7 +821,6 @@ const getSubTitleList = async (art: Artplayer) => {
       tooltip: art.storage.get('subtitleSize') + 'px',
       range: [art.storage.get('subtitleSize'), 20, 50, 5],
       onChange: (item: SettingOption) => {
-        if (AssSubtitleRef) return '无法设置'
         let size = item.range + 'px'
         art.storage.set('subtitleSize', item.range)
         art.subtitle.style('fontSize', size)
@@ -910,9 +879,6 @@ onBeforeUnmount(() => {
     onlineSubData.dataUrl = ''
     onlineSubData.data = ''
     onlineSubData.type = ''
-  }
-  if (AssSubtitleRef) {
-    AssSubtitleRef.destroy()
   }
   autoPlayNumber = 0
   playbackRate = 1
