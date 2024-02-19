@@ -2,7 +2,7 @@
 import message from '../../utils/message'
 import { computed, reactive, ref, watch } from 'vue'
 import { UserTokenMap } from '../../user/userdal'
-import { useUserStore, useWinStore } from '../../store'
+import { useSettingStore, useUserStore, useWinStore } from '../../store'
 import { ICopyTreeNode, LoadDir, NewCopyTreeInfo } from './drivecopy'
 
 import { Checkbox as AntdCheckbox, Tree as AntdTree } from 'ant-design-vue'
@@ -157,17 +157,17 @@ const handleRightUser = (driveType: any) => {
         <a-select size='small' tabindex='-1' :style="{ width: '130px' }" :disabled='copyLoading'
                   :model-value='TreeState.LeftInfo.driveType' placeholder='请选择' style='margin-right: 12px'
                   @change='handleLeftUser'>
-          <a-option value='pic'> 相册</a-option>
-          <a-option value='backup'> 备份盘</a-option>
-          <a-option value='resource'> 资源盘</a-option>
+          <a-option value='backup' :disabled="useSettingStore().securityHideBackupDrive">备份盘</a-option>
+          <a-option value='resource' :disabled="useSettingStore().securityHideResourceDrive">资源盘</a-option>
+          <a-option value='pic' :disabled="useSettingStore().securityHidePicDrive">相册</a-option>
         </a-select>
         <span class='checkedInfo' style='margin-right: 12px'>复制到</span>
         <a-select size='small' tabindex='-1' :style="{ width: '130px' }" :disabled='copyLoading'
                   :model-value='TreeState.RightInfo.driveType' placeholder='请选择' style='margin-right: 12px'
                   @update:model-value='handleRightUser'>
-          <a-option value='pic'> 相册</a-option>
-          <a-option value='backup'> 备份盘</a-option>
-          <a-option value='resource'> 资源盘</a-option>
+          <a-option value='backup' :disabled="useSettingStore().securityHideBackupDrive">备份盘</a-option>
+          <a-option value='resource' :disabled="useSettingStore().securityHideResourceDrive">资源盘</a-option>
+          <a-option value='pic' :disabled="useSettingStore().securityHidePicDrive">相册</a-option>
         </a-select>
 
         <div style='flex: auto'></div>

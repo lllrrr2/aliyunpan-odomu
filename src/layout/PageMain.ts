@@ -13,6 +13,7 @@ import { Sleep } from '../utils/format'
 import { portIsOccupied } from '../utils/utils'
 import { createProxyServer } from '../utils/proxyhelper'
 import { Server } from 'http'
+import cache from '../utils/cache'
 
 export let MainProxyPort: number = 8000
 export let MainProxyServer: Server | null
@@ -111,6 +112,7 @@ let lockResourceDirSizeTime = false
 let chkClearDownLogTime = 0
 let chkTokenTime = 0
 let chkTaskTime = 0
+let chkDanmuTime = 0
 
 /**
  * 时间事件，一但被调用每秒执行一次 <br/>
@@ -121,19 +123,21 @@ function timeEvent() {
 
   const nowTime = Math.floor(Date.now() / 1000)
 
-
+  // 24小时重置
   if (nowTime - runTime > 60 * 60 * 24) {
     runTime = nowTime
     chkBackupDirSizeTime = 0
     chkResourceDirSizeTime = 0
   }
 
+  // 启动时检查一次
   if (chkUpgradeTime1 > 0 && nowTime - chkUpgradeTime1 > 360) {
     chkUpgradeTime1 = -1
     ServerHttp.CheckConfigUpgrade().catch((err: any) => {
       DebugLog.mSaveDanger('CheckConfigUpgrade', err)
     })
   }
+  // 14300s检查一次
   if (nowTime - chkUpgradeTime2 > 14300) {
     chkUpgradeTime2 = nowTime
     ServerHttp.CheckConfigUpgrade().catch((err: any) => {
@@ -141,7 +145,7 @@ function timeEvent() {
     })
   }
 
-  // 自动刷新文件夹大小
+  // 自动刷新文件夹大小，10s检查一次
   if (settingStore.uiFolderSize
     && !lockBackupDirSizeTime
     && nowTime - runTime > 50
@@ -156,8 +160,10 @@ function timeEvent() {
         lockBackupDirSizeTime = false
       })
   } else chkBackupDirSizeTime++
-
-  if (settingStore.uiFolderSize && !lockResourceDirSizeTime && nowTime - runTime > 50
+  // 自动刷新文件夹大小，15s检查一次
+  if (settingStore.uiFolderSize
+    && !lockResourceDirSizeTime
+    && nowTime - runTime > 50
     && chkResourceDirSizeTime >= 15) {
     lockResourceDirSizeTime = true
 
@@ -171,7 +177,7 @@ function timeEvent() {
       })
   } else chkResourceDirSizeTime++
 
-  // 自动清除上传下载日志
+  // 自动清除上传下载日志，540s检查一次
   chkClearDownLogTime++
   if (nowTime - runTime > 60 && chkClearDownLogTime >= 540) {
     chkClearDownLogTime = 0
@@ -183,7 +189,7 @@ function timeEvent() {
     })
   }
 
-  // 自动刷新Token
+  // 自动刷新Token，600s检查一次
   chkTokenTime++
   if (nowTime - runTime > 10 && chkTokenTime >= 600) {
     chkTokenTime = 0
@@ -192,11 +198,18 @@ function timeEvent() {
     })
   }
 
-  // 异步任务
+  // 异步任务，2s检查一次
   chkTaskTime++
   if (nowTime - runTime > 6 && chkTaskTime >= 2) {
     chkTaskTime = 0
     useFootStore().aUpdateTask()
+  }
+
+  // 清理弹幕缓存，300s检查一次
+  chkDanmuTime++
+  if (nowTime - runTime > 6 && chkDanmuTime >= 60 * 5) {
+    chkDanmuTime = 0
+    cache.clearOutDate()
   }
 
   // 刷新下载速度

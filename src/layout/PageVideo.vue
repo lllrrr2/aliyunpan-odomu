@@ -23,6 +23,7 @@ const pageVideo = appStore.pageVideo!
 const isTop = ref(false)
 let autoPlayNumber = 0
 let playbackRate = 1
+let longPressSpeed = 1
 let ArtPlayerRef: Artplayer
 let AssSubtitleRef: ASS
 
@@ -143,10 +144,10 @@ onMounted(async () => {
   // 获取视频信息
   await refreshPlayList(ArtPlayerRef)
   await getVideoInfo(ArtPlayerRef)
+  await loadPlugins(ArtPlayerRef)
   // 加载设置
   await defaultSettings(ArtPlayerRef)
   await defaultControls(ArtPlayerRef)
-  await loadPlugins(ArtPlayerRef)
 })
 
 const createVideo = async (name: string) => {
@@ -155,6 +156,7 @@ const createVideo = async (name: string) => {
   Artplayer.SETTING_ITEM_WIDTH = 300
   Artplayer.NOTICE_TIME = 3000
   Artplayer.LOG_VERSION = false
+  Artplayer.PLAYBACK_RATE = [0.5, 1, 1.5, 2, 2.5, 3, 4]
   ArtPlayerRef = new Artplayer(options)
   ArtPlayerRef.title = name
   // 获取用户配置
@@ -170,6 +172,7 @@ const initStorage = (art: Artplayer) => {
   if (storage.get('subtitleSize') === undefined) storage.set('subtitleSize', 30)
   if (storage.get('subtitleTranslate') === undefined) storage.set('subtitleTranslate', 0)
   if (storage.get('autoSkipEnd') === undefined) storage.set('autoSkipEnd', 0)
+  if (storage.get('longPressSpeed') === undefined) storage.set('longPressSpeed', 2)
   if (storage.get('autoSkipBegin') === undefined) storage.set('autoSkipBegin', 0)
   if (storage.get('videoVolume')) ArtPlayerRef.volume = parseFloat(storage.get('videoVolume'))
   if (storage.get('videoMuted')) ArtPlayerRef.muted = storage.get('videoMuted') === 'true'
@@ -184,15 +187,42 @@ const initHotKey = (art: Artplayer) => {
   // z
   art.hotkey.add(90, () => {
     art.playbackRate = 1
-    playbackRate = 1
   })
   // x
   art.hotkey.add(88, () => {
-    art.playbackRate -= 0.5
+    art.playbackRate -= 0.25
   })
   // c
   art.hotkey.add(67, () => {
-    art.playbackRate += 0.5
+    playbackRate += 0.25
+    if (playbackRate > 4) {
+      playbackRate = 4
+    }
+    art.playbackRate = playbackRate
+  })
+  art.events.proxy(document, 'keydown', (event: any) => {
+    console.log('event', event)
+    if (art.playing && event && (event.key === 'ArrowRight' || event.code === 'KeyD')) {
+      if (event.repeat) {
+        // 按下右箭头键，阻止默认行为
+        event.stopPropagation()
+        event.preventDefault()
+        // 设置播放速度
+        art.playbackRate = art.storage.get('longPressSpeed') || 2
+        art.notice.show = `x${art.playbackRate.toFixed(1)} 倍速播放中`
+      } else {
+        longPressSpeed = art.playbackRate
+      }
+    }
+  })
+  art.events.proxy(document, 'keyup', (event: any) => {
+    if (art.playing && event && (event.key === 'ArrowRight' || event.code === 'KeyD')) {
+      // 按下右箭头键，阻止默认行为
+      event.stopPropagation()
+      event.preventDefault()
+      // 恢复倍数
+      art.playbackRate = longPressSpeed
+    }
   })
 }
 
@@ -338,10 +368,12 @@ const defaultSettings = async (art: Artplayer) => {
   let autoJumpCursor = art.storage.get('autoJumpCursor')
   let autoSkipBegin = art.storage.get('autoSkipBegin')
   let autoSkipEnd = art.storage.get('autoSkipEnd')
-  art.setting.update({
+  let longPressSpeed = art.storage.get('longPressSpeed')
+  art.setting.add({
     name: 'autoJumpCursor',
     width: 300,
     html: '自动跳转',
+    icon: art.icons.play,
     tooltip: autoJumpCursor ? '跳转到历史进度' : '关闭',
     switch: autoJumpCursor,
     onSwitch: async (item: SettingOption) => {
@@ -351,10 +383,11 @@ const defaultSettings = async (art: Artplayer) => {
     }
   })
   if (playList.length > 1) {
-    art.setting.update({
+    art.setting.add({
       name: 'autoPlayNext',
       width: 300,
       html: '自动连播',
+      icon: art.icons.airplay,
       tooltip: autoPlayNext ? '开启' : '关闭',
       switch: autoPlayNext,
       onSwitch: (item: SettingOption) => {
@@ -365,11 +398,22 @@ const defaultSettings = async (art: Artplayer) => {
       }
     })
   }
-  art.setting.update({
+  art.setting.add({
     name: 'autoSkip',
     width: 300,
     html: '更多设置',
     selector: [{
+      name: 'longPressSpeed',
+      width: 300,
+      html: '长按倍速',
+      icon: art.icons.playbackRate,
+      tooltip: 'x' + longPressSpeed,
+      range: [longPressSpeed, 1.5, 4, 0.5],
+      onChange(item: SettingOption) {
+        art.storage.set('longPressSpeed', item.range)
+        return 'x' + item.range
+      }
+    }, {
       name: 'autoSkipBegin',
       width: 300,
       html: '设置片头',
@@ -710,6 +754,7 @@ const getSubTitleList = async (art: Artplayer) => {
     tooltip: art.subtitle.show ? (subDefault.url !== '' ? '字幕开启' : subDefault.html) : '字幕关闭',
     selector: [{
       html: '字幕开关',
+      icon: art.icons.pip,
       tooltip: subDefault.url !== '' ? '开启' : '关闭',
       switch: subDefault.url !== '',
       onSwitch: (item: SettingOption) => {
@@ -871,6 +916,7 @@ onBeforeUnmount(() => {
   }
   autoPlayNumber = 0
   playbackRate = 1
+  longPressSpeed = 1
   ArtPlayerRef && ArtPlayerRef.destroy(false)
 })
 

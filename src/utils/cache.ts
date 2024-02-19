@@ -29,6 +29,8 @@ interface StorageInterface {
   remove: (key: string) => void;
   /** 移除全部缓存 */
   clear: () => void;
+  /** 移除自己前缀的过期缓存 */
+  clearOutDate: () => void;
   /** 移除自己前缀的全部缓存 */
   clearSelf: () => void;
 }
@@ -41,6 +43,8 @@ const storage: StorageInterface = {
   remove: () => {
   },
   clear: () => {
+  },
+  clearOutDate: () => {
   },
   clearSelf: () => {
   }
@@ -102,6 +106,21 @@ const extend = (s: Storage) => {
     },
     clear: () => {
       s.clear()
+    },
+    clearOutDate: () => {
+      for (let i = 0; i < s.length; i++) {
+        const key = s.key(i) as string
+        if (key.startsWith(keyPrefix)) {
+          const item = JSON.parse(s.getItem(key) as any)
+          // 如果有addTime的值，说明设置了失效时间
+          if (item && item.addTime) {
+            if (!isFresh(item)) {
+              /* 缓存过期，清除缓存 */
+              s.removeItem(key)
+            }
+          }
+        }
+      }
     },
     clearSelf: () => {
       const arr = Array.from({ length: s.length }, (_, i) => s.key(i)).filter(

@@ -3,7 +3,7 @@ import message from '../../utils/message'
 import { humanSize } from '../../utils/format'
 import { computed, ref, watch } from 'vue'
 import MyLoading from '../../layout/MyLoading.vue'
-import { useUserStore, useWinStore } from '../../store'
+import { useSettingStore, useUserStore, useWinStore } from '../../store'
 import UserDAL from '../../user/userdal'
 import AliFileCmd from '../../aliapi/filecmd'
 import {
@@ -281,8 +281,8 @@ const handleShowNoShare = () => {
         <template v-else>
           <a-select v-model:model-value='panType' size='small' tabindex='-1'
                     style='width: 100px; flex-shrink: 0; margin-right: 2px' :disabled='scanLoading'>
-            <a-option value='backup'>备份盘</a-option>
-            <a-option value='resource'>资源盘</a-option>
+            <a-option value='backup' :disabled="useSettingStore().securityHideBackupDrive">备份盘</a-option>
+            <a-option value='resource' :disabled="useSettingStore().securityHideResourceDrive">资源盘</a-option>
           </a-select>
           <a-select v-model:model-value='scanType' size='small' tabindex='-1'
                     style='width: 136px; flex-shrink: 0; margin-right: 12px' :disabled='scanLoading'>

@@ -64,7 +64,7 @@ const inputsearch = ref()
 const isresourcedrive = ref(false)
 const inputpicType = ref('pic_root')
 const inputselectType = ref('backup')
-const inputsearchType = ref(['backup', 'resource', 'pic'])
+const inputsearchType = ref<string[]>([])
 
 const appStore = useAppStore()
 const settingStore = useSettingStore()
@@ -189,7 +189,17 @@ const handleChangeDrive = (value: any) => {
   DriveID = GetDriveID(panTreeStore.user_id, value)
   handleRefresh()
 }
-
+const handleSearchCheck = ()=> {
+  if (useSettingStore().securityHideBackupDrive) {
+    inputsearchType.value = inputsearchType.value.filter((t) => t != 'backup')
+  }
+  if (useSettingStore().securityHideResourceDrive) {
+    inputsearchType.value = inputsearchType.value.filter((t) => t != 'resource')
+  }
+  if (useSettingStore().securityHidePicDrive) {
+    inputsearchType.value = inputsearchType.value.filter((t) => t != 'pic')
+  }
+}
 const handleBack = () => {
   if (!panTreeStore.PanHistoryCount) return
   PanDAL.aReLoadOneDirToShow(DriveID, 'back', false)
@@ -321,6 +331,17 @@ const onGridResize = throttle(() => {
 
 onMounted(() => {
   resizeObserver.observe(document.getElementById('panfilelist')!)
+  let searchDrive = ['backup', 'resource', 'pic']
+  if (useSettingStore().securityHideBackupDrive) {
+    searchDrive = searchDrive.filter((t) => t != 'backup')
+  }
+  if (useSettingStore().securityHideResourceDrive) {
+    searchDrive = searchDrive.filter((t) => t != 'resource')
+  }
+  if (useSettingStore().securityHidePicDrive) {
+    searchDrive = searchDrive.filter((t) => t != 'pic')
+  }
+  inputsearchType.value = searchDrive
 })
 
 const listGridColumn = ref(1)
@@ -607,19 +628,19 @@ const onPanDragEnd = (ev: any) => {
                 @update:model-value='handleChangeDrive'
                 style='width: 100px; flex-shrink: 0; margin: 0 -8px'
                 :disabled='panfileStore.ListLoading'>
-        <a-option value='backup'>备份盘</a-option>
-        <a-option value='resource'>资源盘</a-option>
-        <a-option value='pic'>相册</a-option>
+        <a-option value='backup' :disabled="useSettingStore().securityHideBackupDrive">备份盘</a-option>
+        <a-option value='resource' :disabled="useSettingStore().securityHideResourceDrive">资源盘</a-option>
+        <a-option value='pic' :disabled="useSettingStore().securityHidePicDrive">相册</a-option>
       </a-select>
     </div>
     <div v-show="panfileStore.SelectDirType == 'search' && !panfileStore.IsListSelected" class='toppanbtn'>
-      <a-dropdown style='width: 100px;'>
+      <a-dropdown style='width: 100px;' @popup-visible-change="handleSearchCheck">
         <a-button :disabled='panfileStore.ListLoading'>搜索范围</a-button>
         <template #content>
           <a-checkbox-group v-model="inputsearchType" direction="vertical">
-            <a-checkbox value="backup">备份盘</a-checkbox>
-            <a-checkbox value="resource">资源盘</a-checkbox>
-            <a-checkbox value="pic">相册</a-checkbox>
+            <a-checkbox value='backup' :disabled="useSettingStore().securityHideBackupDrive">备份盘</a-checkbox>
+            <a-checkbox value='resource' :disabled="useSettingStore().securityHideResourceDrive">资源盘</a-checkbox>
+            <a-checkbox value='pic' :disabled="useSettingStore().securityHidePicDrive">相册</a-checkbox>
           </a-checkbox-group>
         </template>
       </a-dropdown>

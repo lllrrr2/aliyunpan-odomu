@@ -50,7 +50,7 @@ export default class Danmuku {
     return {
       danmuku: [],
       hide: true,
-      speed: 11,
+      speed: 13.5,
       margin: [10, '75%'],
       opacity: 1,
       color: '#FFFFFF',
@@ -279,7 +279,7 @@ export default class Danmuku {
     this.validator(this.option, Danmuku.scheme)
 
     if (option.speed) {
-      this.option.speed = clamp(this.option.speed, 1, 13.5)
+      this.option.speed = clamp(this.option.speed, 1, 16)
       this.reset()
     }
     this.option.opacity = clamp(this.option.opacity, 0, 1)

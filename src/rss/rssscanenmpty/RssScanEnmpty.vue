@@ -2,7 +2,7 @@
 import message from '../../utils/message'
 import { computed, ref, watch } from 'vue'
 import MyLoading from '../../layout/MyLoading.vue'
-import { useUserStore, useWinStore } from '../../store'
+import { useSettingStore, useUserStore, useWinStore } from '../../store'
 import UserDAL from '../../user/userdal'
 import AliFileCmd from '../../aliapi/filecmd'
 import { LoadScanDir, NewScanDriver, ResetScanDriver, TreeNodeData, TreeSelectAll, TreeSelectOne } from '../ScanDAL'
@@ -183,8 +183,8 @@ const handleScan = () => {
         <a-button v-if="scanLoaded" type="primary" size="small" tabindex="-1" status="danger" :loading="delLoading" title="把选中的文件夹放入回收站" @click="handleDelete">删除选中</a-button>
         <template v-else>
           <a-select v-model:model-value="panType" size="small" tabindex="-1" style="width: 100px; flex-shrink: 0; margin-right: 2px" :disabled="scanLoading">
-            <a-option value="backup">备份盘</a-option>
-            <a-option value="resource">资源盘</a-option>
+            <a-option value='backup' :disabled="useSettingStore().securityHideBackupDrive">备份盘</a-option>
+            <a-option value='resource' :disabled="useSettingStore().securityHideResourceDrive">资源盘</a-option>
           </a-select>
           <a-button type='primary' size='small' tabindex='-1' :loading='scanLoading' @click='handleScan'>开始扫描
           </a-button>

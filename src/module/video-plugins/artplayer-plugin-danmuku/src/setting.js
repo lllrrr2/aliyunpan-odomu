@@ -83,7 +83,7 @@ export default function setting (art, danmuku) {
           html: '弹幕速度',
           icon: '',
           tooltip: option.speed,
-          range: [option.speed, 1, 13.5, 2.5],
+          range: [option.speed, 1, 16, 2.5],
           onChange (item) {
             danmuku.config({
               speed: item.range

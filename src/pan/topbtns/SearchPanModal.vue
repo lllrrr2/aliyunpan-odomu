@@ -1,5 +1,5 @@
 <script setup lang='ts'>
-import { usePanTreeStore } from '../../store'
+import { usePanTreeStore, useSettingStore } from '../../store'
 import message from '../../utils/message'
 import { modalCloseAll } from '../../utils/modal'
 import { nextTick, PropType, reactive, ref } from 'vue'
@@ -36,6 +36,15 @@ const handleOpen = async () => {
     formRef.value.resetFields()
     if (props.inputsearchType.length > 0) {
       form.range = [...props.inputsearchType]
+      if (useSettingStore().securityHideBackupDrive) {
+        form.range = form.range.filter((t) => t != 'backup')
+      }
+      if (useSettingStore().securityHideResourceDrive) {
+        form.range = form.range.filter((t) => t != 'resource')
+      }
+      if (useSettingStore().securityHidePicDrive) {
+        form.range = form.range.filter((t) => t != 'pic')
+      }
     } else form.range = []
   })
 }
@@ -125,9 +134,9 @@ const handleOK = () => {
         <a-form-item field='range'>
           <template #label>范围：</template>
           <a-checkbox-group v-model='form.range'>
-            <a-checkbox value='backup'>备份盘</a-checkbox>
-            <a-checkbox value='resource'>资源盘</a-checkbox>
-            <a-checkbox value='pic'>相册</a-checkbox>
+            <a-checkbox value='backup' :disabled="useSettingStore().securityHideBackupDrive">备份盘</a-checkbox>
+            <a-checkbox value='resource' :disabled="useSettingStore().securityHideResourceDrive">资源盘</a-checkbox>
+            <a-checkbox value='pic' :disabled="useSettingStore().securityHidePicDrive">相册</a-checkbox>
           </a-checkbox-group>
         </a-form-item>
         <a-form-item field='type'>

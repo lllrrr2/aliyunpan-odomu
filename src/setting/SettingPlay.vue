@@ -35,6 +35,10 @@ const playerType = computed(() => {
   return settingStore.uiVideoPlayerPath.toLowerCase()
 })
 
+const handleClearOutDateDanmuCache = ()=> {
+  cache.clearOutDate()
+  message.success('清理弹幕搜索缓存成功')
+}
 const handleClearDanmuCache = ()=> {
   cache.clearSelf()
   message.success('清理弹幕搜索缓存成功')
@@ -107,11 +111,15 @@ const handleClearDanmuCache = ()=> {
     </div>
     <template v-if="settingStore.uiVideoPlayer === 'web'">
       <div class='settingspace'></div>
-      <div class='settinghead'>:弹幕搜索缓存</div>
+      <div class='settinghead'>:弹幕缓存</div>
       <div class="settingrow">
+        <a-button type="outline" size="small" tabindex="-1" status="success" style="margin-right: 16px"
+                  @click='handleClearOutDateDanmuCache'>
+          清理过期
+        </a-button>
         <a-popconfirm content="确认要清理缓存？" @ok="handleClearDanmuCache">
           <a-button type="outline" size="small" tabindex="-1" status="danger" style="margin-right: 16px">
-            清理缓存
+            清理全部
           </a-button>
         </a-popconfirm>
       </div>
