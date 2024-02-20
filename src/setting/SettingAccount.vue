@@ -13,6 +13,7 @@ import fs from 'node:fs'
 import path from 'path'
 import { decodeName, encodeName } from '../module/flow-enc/utils'
 import { localPwd } from '../utils/aria2c'
+import * as url from 'url'
 
 const settingStore = useSettingStore()
 const qrCodeLoading = ref(false)
@@ -30,8 +31,26 @@ const openWebUrl = (type: string) => {
     case 'developer':
       openExternal('https://www.aliyundrive.com/developer')
       break
+    case 'pkce':
+      openExternal('https://www.yuque.com/aliyundrive/zpfszx/eam8ls1lmawwwksv')
+      break
     case 'AList':
       openExternal('https://alist.nn.ci/tool/aliyundrive/request.html')
+      break
+    case 'authUrl':
+      let authUrl = url.format({
+        host: 'https://openapi.alipan.com',
+        pathname: '/oauth/authorize',
+        query: {
+          client_id: settingStore.uiOpenApiClientId,
+          scope: 'user:base,file:all:read,file:all:write',
+          code_challenge: settingStore.uiOpenApiCodeChallenge,
+          code_challenge_method: settingStore.uiOpenApiCodeChallengeMethod,
+          response_type: 'code',
+          redirect_uri: 'oob'
+        }
+      })
+      openExternal(authUrl)
       break
   }
 }
@@ -167,25 +186,8 @@ const refreshQrCode = async () => {
       return
     }
     if (authCode && statusCode === 'LoginSuccess') {
-      let loginData = await AliUser.OpenApiLoginByAuthCode(token, authCode)
-      // 更新token
-      await useSettingStore().updateStore({
-        uiOpenApiAccessToken: loginData.open_api_access_token,
-        uiOpenApiRefreshToken: loginData.open_api_refresh_token
-      })
-      token.open_api_access_token = loginData.open_api_access_token
-      token.open_api_refresh_token = loginData.open_api_refresh_token
-      token.open_api_expires_in = new Date().getTime() + loginData.expires_in * 1000
-      UserDAL.SaveUserToken(token)
-      window.WebUserToken({
-        user_id: token.user_id,
-        name: token.user_name,
-        access_token: token.access_token,
-        open_api_access_token: token.open_api_access_token,
-        refresh: true
-      })
+      await AliUser.OpenApiLoginByAuthCode(token, authCode)
       clearInterval(intervalId.value)
-      message.success('登陆成功')
       refreshStatus()
     }
   }, 1500)
@@ -249,61 +251,152 @@ const closeQrCode = () => {
       </MySwitch>
       <div v-show='settingStore.uiEnableOpenApi'>
         <div class='settingspace'></div>
-        <a-radio-group v-show='settingStore.uiEnableOpenApi' type='button' tabindex='-1'
-                       :model-value='settingStore.uiOpenApi' @update:model-value='cb({ uiOpenApi: $event })'>
-          <a-radio tabindex='-1' value='inputToken'>手动输入</a-radio>
+        <a-radio-group v-show='settingStore.uiEnableOpenApi'
+                       type='button' tabindex='-1'
+                       :model-value='settingStore.uiOpenApi'
+                       @update:model-value='cb({ uiOpenApi: $event })'>
           <a-radio tabindex='-1' value='qrCode'>手机扫码</a-radio>
+          <a-radio tabindex='-1' value='inputToken'>手动输入</a-radio>
+          <a-radio tabindex='-1' value='pkce'>PKCE授权</a-radio>
         </a-radio-group>
         <div class='settingspace'></div>
-        <template v-if="settingStore.uiOpenApi === 'qrCode'">
-          <a-row class='grid-demo'>
-            <a-col flex='252px'>
-              <div class='settinghead'>:客户端ID(ClientId)</div>
-              <div class='settingrow'>
-                <a-input v-model.trim='settingStore.uiOpenApiClientId'
-                         :style="{ width: '180px' }"
-                         placeholder='客户端ID'
-                         @update:model-value='cb({ uiOpenApiClientId: $event })' />
-              </div>
-            </a-col>
-            <a-col flex='180px'>
-              <div class='settinghead'>:客户端密钥(ClientSecret)</div>
-              <div class='settingrow'>
-                <a-input
-                  v-model.trim='settingStore.uiOpenApiClientSecret'
-                  :style="{ width: '180px' }"
-                  placeholder='客户端密钥'
-                  @update:model-value='cb({ uiOpenApiClientSecret: $event })' />
-              </div>
-            </a-col>
-          </a-row>
-          <div class='settingspace'></div>
-          <div class='settinghead'>:二维码(手机扫码)</div>
-          <div class='settingrow' style='display:flex;'>
-            <a-button type='outline' size='small' tabindex='-1' :loading='qrCodeLoading' @click='refreshQrCode()'>
-              <template #icon>
-                <i class='iconfont iconreload-1-icon' />
-              </template>
-              刷新二维码
-            </a-button>
-            <a-button style='margin-left: 10px' status='success' type='outline' v-if='qrCodeUrl' size='small'
-                      tabindex='-1' @click='closeQrCode()'>
-              <template #icon>
-                <i class='iconfont iconclose' />
-              </template>
-              关闭二维码
-            </a-button>
+        <template v-if="settingStore.uiOpenApi !== 'inputToken'">
+          <div class='settinghead'>:客户端ID(ClientId)</div>
+          <div class='settingrow'>
+            <a-input v-model.trim='settingStore.uiOpenApiClientId'
+                     :style="{ width: '430px' }"
+                     placeholder='客户端ID（该项必填）'
+                     @update:model-value='cb({ uiOpenApiClientId: $event })' />
           </div>
-          <div class='settingrow' v-if='qrCodeUrl'>
+          <template v-if="settingStore.uiOpenApi === 'qrCode'">
             <div class='settingspace'></div>
-            <a-alert :type='qrCodeStatusType'> {{ qrCodeStatusTips }}</a-alert>
-            <a-image
-              width='200'
-              height='200'
-              :hide-footer='true'
-              :preview='false'
-              :src="qrCodeUrl || 'some-error.png'" />
+            <div class='settinghead'>:客户端密钥(ClientSecret)</div>
+            <div class='settingrow'>
+              <a-input
+                v-model.trim='settingStore.uiOpenApiClientSecret'
+                :style="{ width: '430px' }"
+                placeholder='客户端密钥（该项必填）'
+                @update:model-value='cb({ uiOpenApiClientSecret: $event })' />
+            </div>
+            <div class='settingspace'></div>
+            <div class='settinghead'>:二维码(手机扫码)</div>
+            <div class='settingrow' style='display:flex;'>
+              <a-button type='outline' size='small' tabindex='-1' :loading='qrCodeLoading' @click='refreshQrCode()'>
+                <template #icon>
+                  <i class='iconfont iconreload-1-icon' />
+                </template>
+                刷新二维码
+              </a-button>
+              <a-button style='margin-left: 10px' status='success' type='outline' v-if='qrCodeUrl' size='small'
+                        tabindex='-1' @click='closeQrCode()'>
+                <template #icon>
+                  <i class='iconfont iconclose' />
+                </template>
+                关闭二维码
+              </a-button>
+            </div>
+            <div class='settingrow' v-if='qrCodeUrl'>
+              <div class='settingspace'></div>
+              <a-alert :type='qrCodeStatusType'> {{ qrCodeStatusTips }}</a-alert>
+              <a-image
+                width='200'
+                height='200'
+                :hide-footer='true'
+                :preview='false'
+                :src="qrCodeUrl || 'some-error.png'" />
+            </div>
+          </template>
+          <template v-else>
+            <div class='settingspace'></div>
+            <div class='settinghead'>:校验码(CodeChallenge)</div>
+            <a-popover position='right'>
+              <i class='iconfont iconbulb' />
+              <template #content>
+                一个随机字符串（该项必填）<br />
+                <span class='opred'>注意</span>：该项必填
+              </template>
+            </a-popover>
+            <div class='settingrow'>
+              <a-input v-model.trim='settingStore.uiOpenApiCodeChallenge'
+                       :style="{ width: '430px' }"
+                       placeholder='一个随机字符串（该项必填）'
+                       @update:model-value='cb({ uiOpenApiCodeChallenge: $event })' />
+            </div>
+            <div class='settingspace'></div>
+            <div class='settinghead'>:校验码方法(CodeChallengeMethod)</div>
+            <div class='settingrow'>
+              <a-radio-group type='button' tabindex='-1'
+                             :model-value='settingStore.uiOpenApiCodeChallengeMethod'
+                             @update:model-value='cb({ uiOpenApiCodeChallengeMethod: $event })'>
+                <a-radio tabindex='-1' value='plain'>Plain</a-radio>
+                <a-radio tabindex='-1' value='S256'>S256</a-radio>
+              </a-radio-group>
+            </div>
+            <div class='settingspace'></div>
+            <div class='settinghead'>:网页授权(获取授权码)</div>
+            <a-popover position='right'>
+              <i class='iconfont iconbulb' />
+              <template #content>
+                官方文档:
+                <span class='opblue' @click="openWebUrl('pkce')">无后端服务授权模式【点击查看】</span>
+                <br />
+                <div class='hrspace'></div>
+                <span class='opred'>1. 填写授权码(Code)后无法点击，需要删除</span><br />
+                <span class='opred'>2. 多次点击会导致AccessToken失效，需要重新获取授权码(Code)</span><br />
+                3. 只能获取到AccessToken【无法自动刷新，有效期30天】
+              </template>
+            </a-popover>
+            <div class='settingrow' style='display:flex;'>
+              <a-button :disabled='settingStore.uiOpenApiAuthCode != ""'
+                        type='outline' size='small' tabindex='-1'
+                        @click='openWebUrl("authUrl")'>
+                <template #icon>
+                  <i class='iconfont iconcloud_success' />
+                </template>
+                打开授权网址
+              </a-button>
+            </div>
+            <div class='settingspace'></div>
+            <div class='settinghead'>:授权码(Code)</div>
+            <a-popover position='right'>
+              <i class='iconfont iconbulb' />
+              <template #content>
+                打开网页授权后填写返回的授权码<br />
+                <span class='opred'>注意</span>：该项必填
+              </template>
+            </a-popover>
+            <div class='settingrow'>
+              <a-input v-model.trim='settingStore.uiOpenApiAuthCode'
+                       :style="{ width: '430px' }"
+                       placeholder='网页授权后填写授权码（该项必填）'
+                       allow-clear
+                       @update:model-value='cb({ uiOpenApiAuthCode: $event })' />
+            </div>
+          </template>
+          <div class='settingspace'></div>
+          <div class='settinghead'>:AccessToken</div>
+          <div class='settingrow'>
+            <a-input v-model.trim='settingStore.uiOpenApiAccessToken'
+                     @update:model-value='cb({ uiOpenApiAccessToken: $event })'
+                     @keydown='(e:any) => e.stopPropagation()'
+                     tabindex='-1'
+                     placeholder="AccessToken（没有RefreshToken将无法自动刷新）"
+                     :style="{ width: '430px' }"
+                     disabled readonly/>
           </div>
+          <template v-if="settingStore.uiOpenApi === 'qrCode'">
+            <div class='settingspace'></div>
+            <div class='settinghead'>:RefreshToken</div>
+            <div class='settingrow'>
+              <a-input v-model.trim='settingStore.uiOpenApiRefreshToken'
+                       @update:model-value='cb({ uiOpenApiRefreshToken: $event })'
+                       @keydown='(e:any) => e.stopPropagation()'
+                       tabindex='-1'
+                       placeholder="用于刷新AccessToken"
+                       :style="{ width: '430px' }"
+                       disabled readonly />
+            </div>
+          </template>
         </template>
         <template v-else>
           <div class='settinghead'>:Oauth令牌链接</div>

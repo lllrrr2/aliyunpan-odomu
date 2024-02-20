@@ -7,6 +7,7 @@ import AliUser from './user'
 import message from '../utils/message'
 import DebugLog from '../utils/debuglog'
 import { v4 } from 'uuid'
+import { useSettingStore } from '../store'
 
 export interface IUrlRespData {
   code: number
@@ -98,8 +99,7 @@ export default class AliHttp {
           ]
           if (errCode.includes(data.code)) isNeedLog = false
           // 自动刷新Token
-          if (data.code == 'AccessTokenInvalid'
-            || data.code == 'AccessTokenExpired') {
+          if (data.code == 'AccessTokenInvalid' || data.code == 'AccessTokenExpired') {
             if (token) {
               const isOpenApi = config.url.includes('adrive/v1.0') || config.url.includes('adrive/v1.1')
               if (!isOpenApi) {
@@ -110,19 +110,41 @@ export default class AliHttp {
                   return { code: 403, header: '', body: 'NetError 账号需要重新登录' } as IUrlRespData
                 })
               } else {
-                if (token.open_api_access_token) {
-                  if (!token.open_api_refresh_token) {
-                    return { code: 403, header: '', body: '刷新OpenApiToken失败,未填写【RefreshToken】' } as IUrlRespData
+                if (useSettingStore().uiOpenApi === 'pkce') {
+                  if (!token.open_api_access_token) {
+                    return await AliUser.OpenApiLoginByAuthCode(token, useSettingStore().uiOpenApiAuthCode).then(async (flag: boolean) => {
+                      if (flag) {
+                        return { code: 401, header: '', body: '' } as IUrlRespData
+                      }
+                      await useSettingStore().updateStore({
+                        uiOpenApiAuthCode: '',
+                        uiOpenApiAccessToken: '',
+                        uiOpenApiRefreshToken: ''
+                      })
+                      return { code: 403, header: '', body: '刷新OpenApiToken失败，【请重新填写授权码】' } as IUrlRespData
+                    })
                   }
-                } else if (!token.open_api_refresh_token) {
-                  return { code: 403, header: '', body: 'OpenApi启用失败,未填写配置' } as IUrlRespData
+                  await useSettingStore().updateStore({
+                    uiOpenApiAuthCode: '',
+                    uiOpenApiAccessToken: '',
+                    uiOpenApiRefreshToken: ''
+                  })
+                  return { code: 403, header: '', body: '刷新OpenApiToken失败，【请重新填写授权码】' } as IUrlRespData
+                } else {
+                  if (token.open_api_access_token) {
+                    if (!token.open_api_refresh_token) {
+                      return { code: 403, header: '', body: '刷新OpenApiToken失败,未填写【RefreshToken】' } as IUrlRespData
+                    }
+                  } else if (!token.open_api_refresh_token) {
+                    return { code: 403, header: '', body: 'OpenApi启用失败,未填写配置' } as IUrlRespData
+                  }
+                  return await AliUser.OpenApiTokenRefreshAccount(token, true, true).then((flag: boolean) => {
+                    if (flag) {
+                      return { code: 401, header: '', body: '' } as IUrlRespData
+                    }
+                    return { code: 403, header: '', body: '刷新OpenApiToken失败，请检查配置' } as IUrlRespData
+                  })
                 }
-                return await AliUser.OpenApiTokenRefreshAccount(token, true, true).then((flag: boolean) => {
-                  if (flag) {
-                    return { code: 401, header: '', body: '' } as IUrlRespData
-                  }
-                  return { code: 403, header: '', body: '刷新OpenApiToken失败，请检查配置' } as IUrlRespData
-                })
               }
             } else {
               return { code: 402, header: '', body: 'NetError 账号需要重新登录' } as IUrlRespData
@@ -371,11 +393,7 @@ export default class AliHttp {
           || url.includes('/file/list')
           || url.includes('/file/walk')
           || url.includes('/file/scan')))  {
-        if (resp.body?.code && resp.body.code == 'BadRequest') {
-          return resp
-        } else {
-          await Sleep(2000)
-        }
+        await Sleep(2000)
       }
       else if (AliHttp.HttpCodeBreak(resp.code)) return resp
       else if (i == 5) return resp

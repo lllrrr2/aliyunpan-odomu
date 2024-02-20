@@ -121,7 +121,7 @@ export default class AliUser {
 
 
   static async OpenApiTokenRefreshAccount(token: ITokenInfo, showMessage: boolean, forceRefresh: boolean = false): Promise<boolean> {
-    if (!token.open_api_enable || isEmpty(token.open_api_refresh_token)) {
+    if (!token.open_api_enable || isEmpty(token.open_api_refresh_token) && useSettingStore().uiOpenApi !== 'pkce') {
       await useSettingStore().updateStore({
         uiEnableOpenApi: false,
         uiOpenApiAccessToken: token.open_api_access_token,
@@ -254,23 +254,43 @@ export default class AliUser {
   }
 
   static async OpenApiLoginByAuthCode(token: ITokenInfo, authCode: string): Promise<any> {
-    if (!authCode) return false
+    if (!authCode) {
+      message.error('获取OpenApi授权码失败，请检查配置')
+      return false
+    }
     // 构造请求体
-    const postData = {
+    const postData: any = {
       code: authCode,
       grant_type: 'authorization_code',
       client_id: useSettingStore().uiOpenApiClientId,
       client_secret: useSettingStore().uiOpenApiClientSecret
     }
+    // PKCE模式
+    if (useSettingStore().uiOpenApi === 'pkce') {
+      postData.code_verifier = useSettingStore().uiOpenApiCodeChallenge
+      delete postData.client_secret
+    }
     const url = 'https://openapi.alipan.com/oauth/access_token'
     const resp = await AliHttp.Post(url, postData, '', '')
     if (AliHttp.IsSuccess(resp.code)) {
-      return {
-        open_api_access_token: resp.body.access_token,
-        open_api_refresh_token: resp.body.refresh_token,
-        expires_in: resp.body.expires_in,
-        token_type: resp.body.token_type
-      }
+      const { access_token, refresh_token, token_type, expires_in } = resp.body
+      // 更新token
+      await useSettingStore().updateStore({
+        uiOpenApiAccessToken: access_token,
+        uiOpenApiRefreshToken: refresh_token
+      })
+      token.open_api_access_token = access_token
+      token.open_api_refresh_token = refresh_token
+      token.open_api_expires_in = new Date().getTime() + expires_in * 1000
+      UserDAL.SaveUserToken(token)
+      window.WebUserToken({
+        user_id: token.user_id,
+        name: token.user_name,
+        access_token: token.access_token,
+        open_api_access_token: token.open_api_access_token,
+        refresh: true
+      })
+      return true
     } else {
       message.error('获取授权码失败[' + resp.body?.message + ']')
     }

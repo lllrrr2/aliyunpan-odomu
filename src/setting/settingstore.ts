@@ -28,6 +28,9 @@ export interface SettingState {
   uiOpenApiClientId: string
   uiOpenApiClientSecret: string
   uiOpenApiOauthUrl: string
+  uiOpenApiAuthCode: string
+  uiOpenApiCodeChallenge: string
+  uiOpenApiCodeChallengeMethod: string
   uiOpenApiAccessToken: string
   uiOpenApiRefreshToken: string
 
@@ -154,6 +157,9 @@ const setting: SettingState = {
   uiOpenApiClientId: '',
   uiOpenApiClientSecret: '',
   uiOpenApiOauthUrl: 'https://api.xhofe.top/alist/ali_open/token',
+  uiOpenApiAuthCode: '',
+  uiOpenApiCodeChallenge: '11111',
+  uiOpenApiCodeChallengeMethod: 'plain',
   uiOpenApiAccessToken: '',
   uiOpenApiRefreshToken: '',
 
@@ -284,10 +290,13 @@ function _loadSetting(val: any) {
 
   // 账户设置
   setting.uiEnableOpenApi = defaultBool(val.uiEnableOpenApi, false)
-  setting.uiOpenApi = defaultValue(val.uiOpenApi, ['inputToken', 'qrCode'])
+  setting.uiOpenApi = defaultValue(val.uiOpenApi, ['qrCode', 'inputToken', 'pkce'])
   setting.uiOpenApiClientId = defaultString(val.uiOpenApiClientId, '')
   setting.uiOpenApiClientSecret = defaultString(val.uiOpenApiClientSecret, '')
   setting.uiOpenApiOauthUrl = defaultString(val.uiOpenApiOauthUrl, 'https://api.xhofe.top/alist/ali_open/token')
+  setting.uiOpenApiAuthCode = defaultString(val.uiOpenApiAuthCode, '')
+  setting.uiOpenApiCodeChallenge = defaultString(val.uiOpenApiCodeChallenge, '11111')
+  setting.uiOpenApiCodeChallengeMethod = defaultValue(val.uiOpenApiCodeChallengeMethod, ['plain', 'S256'])
   setting.uiOpenApiAccessToken = defaultString(val.uiOpenApiAccessToken, '')
   setting.uiOpenApiRefreshToken = defaultString(val.uiOpenApiRefreshToken, '')
 
