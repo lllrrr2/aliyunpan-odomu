@@ -526,7 +526,19 @@ const getVideoInfo = async (art: Artplayer) => {
       html: defaultQuality ? defaultQuality.html : '',
       selector: data.qualities,
       onSelect: async (item: selectorItem) => {
-        await art.switchQuality(item.url)
+        if (item.html === '原画') {
+          let currentTime = art.currentTime
+          if (art.hls) {
+            art.hls.detachMedia()
+            art.hls.destroy()
+          }
+          art.url = item.url
+          await art.play().catch()
+          art.currentTime = currentTime
+          art.playbackRate = playbackRate
+        } else {
+          await art.switchQuality(item.url)
+        }
       }
     })
     // 内嵌字幕

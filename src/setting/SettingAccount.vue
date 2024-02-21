@@ -47,7 +47,7 @@ const openWebUrl = (type: string) => {
           code_challenge: settingStore.uiOpenApiCodeChallenge,
           code_challenge_method: settingStore.uiOpenApiCodeChallengeMethod,
           response_type: 'code',
-          redirect_uri: 'oob'
+          redirect_uri: settingStore.uiOpenApiRedirectUri
         }
       })
       openExternal(authUrl)
@@ -307,6 +307,20 @@ const closeQrCode = () => {
             </div>
           </template>
           <template v-else>
+            <div class='settingspace'></div>
+            <div class='settinghead'>:重定向Uri(RedirectUri)</div>
+            <a-popover position='right'>
+              <i class='iconfont iconbulb' />
+              <template #content>
+                <span class='opred'>注意</span>：该项必填
+              </template>
+            </a-popover>
+            <div class='settingrow'>
+              <a-input v-model.trim='settingStore.uiOpenApiRedirectUri'
+                       :style="{ width: '430px' }"
+                       placeholder='重定向Uri（该项必填）'
+                       @update:model-value='cb({ uiOpenApiRedirectUri: $event })' />
+            </div>
             <div class='settingspace'></div>
             <div class='settinghead'>:校验码(CodeChallenge)</div>
             <a-popover position='right'>

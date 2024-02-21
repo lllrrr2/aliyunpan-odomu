@@ -111,25 +111,17 @@ export default class AliHttp {
                 })
               } else {
                 if (useSettingStore().uiOpenApi === 'pkce') {
-                  if (!token.open_api_access_token) {
-                    return await AliUser.OpenApiLoginByAuthCode(token, useSettingStore().uiOpenApiAuthCode).then(async (flag: boolean) => {
-                      if (flag) {
-                        return { code: 401, header: '', body: '' } as IUrlRespData
-                      }
-                      await useSettingStore().updateStore({
-                        uiOpenApiAuthCode: '',
-                        uiOpenApiAccessToken: '',
-                        uiOpenApiRefreshToken: ''
-                      })
-                      return { code: 403, header: '', body: '刷新OpenApiToken失败，【请重新填写授权码】' } as IUrlRespData
+                  return await AliUser.OpenApiLoginByAuthCode(token, useSettingStore().uiOpenApiAuthCode).then(async (flag: boolean) => {
+                    if (flag) {
+                      return { code: 401, header: '', body: '' } as IUrlRespData
+                    }
+                    await useSettingStore().updateStore({
+                      uiOpenApiAuthCode: '',
+                      uiOpenApiAccessToken: '',
+                      uiOpenApiRefreshToken: ''
                     })
-                  }
-                  await useSettingStore().updateStore({
-                    uiOpenApiAuthCode: '',
-                    uiOpenApiAccessToken: '',
-                    uiOpenApiRefreshToken: ''
+                    return { code: 403, header: '', body: '刷新OpenApiToken失败，【请重新填写授权码】' } as IUrlRespData
                   })
-                  return { code: 403, header: '', body: '刷新OpenApiToken失败，【请重新填写授权码】' } as IUrlRespData
                 } else {
                   if (token.open_api_access_token) {
                     if (!token.open_api_refresh_token) {

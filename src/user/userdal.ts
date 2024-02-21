@@ -159,27 +159,28 @@ export default class UserDAL {
       AliUser.ApiUserInfo(token),
       AliUser.ApiUserDriveInfo(token),
       AliUser.ApiUserPic(token),
-      AliUser.ApiUserVip(token)
+      AliUser.ApiUserVip(token),
+      // 登陆后自动签到
+      UserDAL.UserAutoSign(token),
+      // 刷新Session
+      AliUser.ApiSessionRefreshAccount(token, false),
+      // 刷新OpenApiToken
+      AliUser.OpenApiTokenRefreshAccount(token, false),
+      // 保存登录信息
+      DB.saveValueString('uiDefaultUser', token.user_id),
+      useUserStore().userLogin(token.user_id),
+      window.WebUserToken({
+        user_id: token.user_id,
+        name: token.user_name,
+        access_token: token.access_token,
+        open_api_access_token: token.open_api_access_token,
+        login: true
+      }),
+      // 加载网盘文件
+      UserDAL.LoadPanData(token)
     ])
-    // 保存登录信息
-    await DB.saveValueString('uiDefaultUser', token.user_id)
-    useUserStore().userLogin(token.user_id)
-    // 登陆后自动签到
-    await UserDAL.UserAutoSign(token)
-    // 刷新Session
-    await AliUser.ApiSessionRefreshAccount(token, false)
-    // 刷新OpenApiToken
-    await AliUser.OpenApiTokenRefreshAccount(token, false)
-    window.WebUserToken({
-      user_id: token.user_id,
-      name: token.user_name,
-      access_token: token.access_token,
-      open_api_access_token: token.open_api_access_token,
-      login: true
-    })
-    await UserDAL.LoadPanData(token)
-    PanDAL.aReLoadQuickFile(token.user_id)
     // 刷新所有状态
+    PanDAL.aReLoadQuickFile(token.user_id)
     useAppStore().resetTab()
     useMyShareStore().$reset()
     useMyFollowingStore().$reset()
@@ -244,8 +245,7 @@ export default class UserDAL {
       UserTokenMap.delete(user_id)
       return false
     }
-    await this.UserLogin(token).catch(() => {
-    })
+    await this.UserLogin(token).catch()
     return true
   }
 
@@ -269,10 +269,14 @@ export default class UserDAL {
       return true
     } else {
       // 刷新token和session
-      const isToken = token.user_id && (await AliUser.ApiTokenRefreshAccount(token, true))
-      if (!isToken) return false
-      const isSession = token.user_id && (await AliUser.ApiSessionRefreshAccount(token, true))
-      const isOpenApiToken = token.user_id && (await AliUser.OpenApiTokenRefreshAccount(token, true, true))
+      if (token.user_id) {
+        const isToken = await AliUser.ApiTokenRefreshAccount(token, true)
+        if (!isToken) return false
+        await AliUser.ApiSessionRefreshAccount(token, true)
+        await AliUser.OpenApiTokenRefreshAccount(token, true)
+      } else {
+        return false
+      }
       // 刷新用户信息
       await Promise.all([
         AliUser.ApiUserInfo(token),

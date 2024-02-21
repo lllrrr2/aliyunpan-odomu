@@ -1,7 +1,7 @@
 {
   "name": "alixby",
   "description": "阿里云盘小白羊",
-  "version": "3.24.22020",
+  "version": "3.24.22118",
   "main": "dist/electron/main/index.js",
   "author": {
     "name": "Odomu",
@@ -55,6 +55,7 @@
     "hls.js": "^1.5.6",
     "howler": "^2.2.4",
     "isomorphic-fetch": "^3.0.0",
+    "jassub": "^1.7.15",
     "jschardet": "^3.0.0",
     "less": "^4.2.0",
     "lodash": "^4.17.21",

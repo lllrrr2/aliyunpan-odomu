@@ -121,7 +121,8 @@ export default class AliUser {
 
 
   static async OpenApiTokenRefreshAccount(token: ITokenInfo, showMessage: boolean, forceRefresh: boolean = false): Promise<boolean> {
-    if (!token.open_api_enable || isEmpty(token.open_api_refresh_token) && useSettingStore().uiOpenApi !== 'pkce') {
+    const isPKCE = useSettingStore().uiOpenApi === 'pkce'
+    if (!token.open_api_enable || (isEmpty(token.open_api_refresh_token) && !isPKCE)) {
       await useSettingStore().updateStore({
         uiEnableOpenApi: false,
         uiOpenApiAccessToken: token.open_api_access_token,
@@ -129,9 +130,11 @@ export default class AliUser {
       })
       return false
     }
-    if (isEmpty(token.open_api_access_token)) token.open_api_expires_in = 0
+    if (isEmpty(token.open_api_access_token)) {
+      token.open_api_expires_in = 0
+    }
     // 防止重复刷新
-    if (!forceRefresh && token.open_api_expires_in >= Date.now()) {
+    if (!forceRefresh && token.open_api_expires_in >= Date.now() || isPKCE) {
       await useSettingStore().updateStore({
         uiEnableOpenApi: token.open_api_enable,
         uiOpenApiAccessToken: token.open_api_access_token,
@@ -177,7 +180,7 @@ export default class AliUser {
       })
       token.open_api_access_token = resp.body.access_token
       token.open_api_refresh_token = resp.body.refresh_token
-      token.open_api_expires_in = new Date().getTime() + resp.body.expires_in * 1000
+      token.open_api_expires_in = resp.body.expires_in * 1000
       window.WebUserToken({
         user_id: token.user_id,
         name: token.user_name,
@@ -281,7 +284,7 @@ export default class AliUser {
       })
       token.open_api_access_token = access_token
       token.open_api_refresh_token = refresh_token
-      token.open_api_expires_in = new Date().getTime() + expires_in * 1000
+      token.open_api_expires_in = expires_in * 1000
       UserDAL.SaveUserToken(token)
       window.WebUserToken({
         user_id: token.user_id,
@@ -292,7 +295,11 @@ export default class AliUser {
       })
       return true
     } else {
-      message.error('获取授权码失败[' + resp.body?.message + ']')
+      if (resp.body?.code === 'InvalidCode') {
+        message.error('授权码无效, 请检查配置')
+      } else {
+        message.error('登录失败[' + resp.body?.message + ']')
+      }
     }
     return false
   }

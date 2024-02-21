@@ -1,6 +1,6 @@
-import SubtitlesOctopus from '../lib'
-import SubtitlesOctopusWorker from '../lib/js/subtitles-octopus-worker.js?url'
-import SubtitlesOctopusWorkerWasm from '../lib/js/subtitles-octopus-worker.wasm?url'
+import JASSUB from 'jassub'
+import JASSUBWorker from 'jassub/dist/jassub-worker.js?url'
+import JASSUBWorkerWasm from 'jassub/dist/jassub-worker.wasm?url'
 
 const defaultAssSubtitle = `[Script Info]\nScriptType: v4.00+`
 
@@ -64,7 +64,7 @@ export default class LibassAdapter {
     if (!this.libass)
       return false
 
-    return this.libass.canvasParent.style.display !== 'none'
+    return this.libass.canvas.style.display !== 'none'
   }
 
   set visible(visible) {
@@ -72,9 +72,8 @@ export default class LibassAdapter {
 
     this.#setVttVisible(!this.active)
 
-    if (this.libass.canvasParent) {
-      this.libass.canvasParent.style.display = visible ? 'block' : 'none'
-
+    if (this.libass.canvas) {
+      this.libass.canvas.style.display = visible ? 'block' : 'none'
       if (visible) this.libass.resize()
     }
   }
@@ -101,19 +100,16 @@ export default class LibassAdapter {
 
     this.#removeEventListeners()
 
-    this.libass.dispose()
-    if (this.workerScriptUrl) {
-      URL.revokeObjectURL(this.workerScriptUrl)
-    }
+    this.libass.destroy()
     this.libass = null
   }
 
   async #createLibass(option = {}) {
     if (!option.workerUrl) {
-      option.workerUrl = SubtitlesOctopusWorker
+      option.workerUrl = JASSUBWorker
     }
     if (!option.wasmUrl) {
-      option.wasmUrl = SubtitlesOctopusWorkerWasm
+      option.wasmUrl = JASSUBWorkerWasm
     }
     if (option.availableFonts) {
       option.availableFonts = Object
@@ -123,23 +119,12 @@ export default class LibassAdapter {
           return acc
         }, {})
     }
-    this.libass = new SubtitlesOctopus({
+    this.libass = new JASSUB({
       subContent: defaultAssSubtitle,
       video: this.$video,
       ...option,
-      workerUrl: await this.#loadWorker(option),
       fonts: option.fonts?.map((font) => this.#toAbsoluteUrl(font))
     })
-    this.libass.canvasParent.className = 'artplayer-plugin-libass'
-    this.libass.canvasParent.style.cssText = `
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            user-select: none;
-            pointer-events: none;
-            z-index: 20;`
   }
 
   #addEventListeners() {
@@ -173,33 +158,6 @@ export default class LibassAdapter {
 
   #isAbsoluteUrl(url) {
     return /^https?:\/\//.test(url)
-  }
-
-  #loadWorker({ workerUrl, wasmUrl }) {
-    return new Promise((resolve) => {
-      if (!this.#isAbsoluteUrl(workerUrl)) {
-        resolve(workerUrl)
-        return
-      }
-      fetch(workerUrl)
-        .then(res => res.text())
-        .then(text => {
-          let workerScriptContent = text
-          workerScriptContent = workerScriptContent.replace(
-            /wasmBinaryFile\s*=\s*"(subtitles-octopus-worker\.wasm)"/g,
-            (_match, wasm) => {
-              if (!wasmUrl) {
-                wasmUrl = new URL(wasm, workerUrl).toString()
-              } else {
-                wasmUrl = this.#toAbsoluteUrl(wasmUrl)
-              }
-              return `wasmBinaryFile = "${wasmUrl}"`
-            }
-          )
-          this.workerScriptUrl = new Blob([workerScriptContent], { type: 'text/javascript' })
-          resolve(URL.createObjectURL(this.workerScriptUrl))
-        })
-    })
   }
 
   #checkWebAssemblySupport() {

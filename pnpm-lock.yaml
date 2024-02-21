@@ -110,6 +110,9 @@ devDependencies:
   isomorphic-fetch:
     specifier: ^3.0.0
     version: 3.0.0
+  jassub:
+    specifier: ^1.7.15
+    version: 1.7.15
   jschardet:
     specifier: ^3.0.0
     version: 3.0.0
@@ -3061,6 +3064,12 @@ packages:
       minimatch: 3.1.2
     dev: true
 
+  /jassub@1.7.15:
+    resolution: {integrity: sha512-8yKAJc++Y1gNfATOPRo3APk0JUhshKl5l7bRkT6WkJ8XP4RvYfVPb6ieH6WDxsMq523exwGzNvjjPEEWT+Z1nQ==}
+    dependencies:
+      rvfc-polyfill: 1.0.7
+    dev: true
+
   /js-md5@0.7.3:
     resolution: {integrity: sha512-ZC41vPSTLKGwIRjqDh8DfXoCrdQIyBgspJVPXHBGu4nZlAEvG3nf+jO9avM9RmLiGakg7vz974ms99nEV0tmTQ==}
     dev: true
@@ -3862,6 +3871,10 @@ packages:
       '@rollup/rollup-win32-ia32-msvc': 4.12.0
       '@rollup/rollup-win32-x64-msvc': 4.12.0
       fsevents: 2.3.3
+    dev: true
+
+  /rvfc-polyfill@1.0.7:
+    resolution: {integrity: sha512-seBl7J1J3/k0LuzW2T9fG6JIOpni5AbU+/87LA+zTYKgTVhsfShmS8K/yOo1eeEjGJHnAdkVAUUM+PEjN9Mpkw==}
     dev: true
 
   /safer-buffer@2.1.2:
