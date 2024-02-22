@@ -140,6 +140,14 @@ const handlerAccountExport = () => {
   }
 }
 
+const handlerAccountReset = async () => {
+  await useSettingStore().updateStore({
+    uiOpenApiAuthCode: '',
+    uiOpenApiAccessToken: '',
+    uiOpenApiRefreshToken: '',
+  })
+}
+
 const refreshStatus = () => {
   qrCodeLoading.value = false
   qrCodeUrl.value = ''
@@ -441,8 +449,7 @@ const closeQrCode = () => {
                      tabindex='-1'
                      :style="{ width: '430px' }"
                      placeholder='没有不填，有效期3个小时'
-                     :disabled="settingStore.uiOpenApiRefreshToken !== ''"
-                     :allow-clear="settingStore.uiOpenApiRefreshToken !== ''" />
+                     disabled readonly/>
           </div>
           <div class='settingspace'></div>
           <div class='settinghead'>:RefreshToken</div>
@@ -465,6 +472,15 @@ const closeQrCode = () => {
                      allow-clear />
           </div>
         </template>
+        <div class='settingspace'></div>
+        <div class='settinghead'>:清理配置</div>
+        <div class='settingrow'>
+          <a-popconfirm content="确认要清空Token？" @ok="handlerAccountReset">
+            <a-button type="outline" size="small" tabindex="-1" status="danger" style="margin-right: 16px">
+              清空Token
+            </a-button>
+          </a-popconfirm>
+        </div>
       </div>
     </div>
   </div>

@@ -10,6 +10,7 @@ import pkg from './package.json'
 // @ts-ignore
 export default defineConfig(({ command }) => {
   rmSync('dist', { recursive: true, force: true })
+  rmSync('release', { recursive: true, force: true })
 
   const isBuild = command === 'build'
   return {

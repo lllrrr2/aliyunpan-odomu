@@ -142,8 +142,8 @@ onMounted(async () => {
   await createVideo(name)
   // 获取视频信息
   await refreshPlayList(ArtPlayerRef)
-  await getVideoInfo(ArtPlayerRef)
   await loadPlugins(ArtPlayerRef)
+  await getVideoInfo(ArtPlayerRef)
   // 加载设置
   await defaultSettings(ArtPlayerRef)
   await defaultControls(ArtPlayerRef)
@@ -345,14 +345,9 @@ const refreshSetting = async (art: Artplayer, item: any) => {
         usePanFileStore().mColorFiles('ce74c3c', success)
       })
   }
-  // 释放字幕Blob
-  if (onlineSubData.dataUrl.length > 0) {
-    URL.revokeObjectURL(onlineSubData.dataUrl)
-    onlineSubData.dataUrl = ''
-    onlineSubData.data = ''
-    onlineSubData.type = ''
-    onlineSubData.name = ''
-  }
+  onlineSubData.data = ''
+  onlineSubData.type = ''
+  onlineSubData.name = ''
   // 刷新信息
   await getVideoInfo(art)
   await defaultSettings(art)
@@ -483,11 +478,11 @@ const defaultControls = async (art: Artplayer) => {
 
 const loadPlugins = async (art: Artplayer) => {
   // 弹幕插件
-  ArtPlayerRef.plugins.add(artplayerPluginDanmuku({
+  art.plugins.add(artplayerPluginDanmuku({
     danmuku: async (option) => PlayerUtils.getVideoDanmuList(pageVideo, option, autoPlayNumber)
   }))
   // 字幕插件
-  ArtPlayerRef.plugins.add(artplayerPluginLibass({}))
+  art.plugins.add(artplayerPluginLibass({}))
 }
 
 const getVideoInfo = async (art: Artplayer) => {
@@ -661,7 +656,7 @@ const getVideoCursor = async (art: Artplayer, play_cursor?: number) => {
   }
 }
 
-let onlineSubData: any = { name: '', data: '', dataUrl: '', type: '' }
+let onlineSubData: any = { name: '', data: '', type: '' }
 const loadOnlineSub = async (art: Artplayer, item: any) => {
   const data = await AliFile.ApiFileDownText(pageVideo.user_id, pageVideo.drive_id, item.file_id, -1, -1, item.encType)
   if (data) {
@@ -673,15 +668,18 @@ const loadOnlineSub = async (art: Artplayer, item: any) => {
     } else {
       onlineSubData.data = data
     }
-    const blob = new Blob([onlineSubData.data], { type: item.ext })
     onlineSubData.name = item.name
-    onlineSubData.dataUrl = URL.createObjectURL(blob)
     onlineSubData.ext = item.ext
-    await art.subtitle.switch(onlineSubData.dataUrl, {
+    let blobUrl = URL.createObjectURL(
+      new Blob([onlineSubData.data], { type: item.ext })
+    )
+    let type = onlineSubData.ext === 'ass' ? 'libass' : onlineSubData.ext
+    await art.subtitle.switch(blobUrl, {
       name: onlineSubData.name,
-      type: onlineSubData.ext,
+      type: type,
       escape: false
     })
+    type != 'libass' && URL.revokeObjectURL(blobUrl)
     art.subtitle.show = true
     art.notice.show = `切换字幕：${item.name}`
     return item.html
@@ -793,20 +791,26 @@ const getSubTitleList = async (art: Artplayer) => {
         // 字幕繁中转换
         if (onlineSubData.data) {
           let data = onlineSubData.data
+          let tips = '关闭'
           if (item.subtitleTranslate === 1) {
             data = traditionToSimple(onlineSubData.data)
+            tips = '字幕：繁体转简体'
           } else if (item.subtitleTranslate === 2) {
             data = simpleToTradition(onlineSubData.data)
+            tips = '字幕：简体转繁体'
           }
-          URL.revokeObjectURL(onlineSubData.dataUrl)
-          const blob = new Blob([data], { type: onlineSubData.ext })
-          onlineSubData.dataUrl = URL.createObjectURL(blob)
-          await art.subtitle.switch(onlineSubData.dataUrl, {
+          let blobUrl = URL.createObjectURL(
+            new Blob([data], { type: onlineSubData.ext })
+          )
+          let type = onlineSubData.ext === 'ass' ? ' libass' : onlineSubData.ext
+          await art.subtitle.switch(blobUrl, {
             name: onlineSubData.name,
-            type: onlineSubData.ext,
+            type: type,
             escape: false
           })
+          type != 'libass' && URL.revokeObjectURL(blobUrl)
           art.subtitle.show = true
+          art.notice.show = tips
         }
         return item.html
       }
@@ -884,14 +888,9 @@ const handleTop = (_e: any) => {
 }
 
 onBeforeUnmount(() => {
-  // 释放字幕Blob
-  if (onlineSubData.dataUrl.length > 0) {
-    URL.revokeObjectURL(onlineSubData.dataUrl)
-    onlineSubData.name = ''
-    onlineSubData.dataUrl = ''
-    onlineSubData.data = ''
-    onlineSubData.type = ''
-  }
+  onlineSubData.name = ''
+  onlineSubData.data = ''
+  onlineSubData.type = ''
   autoPlayNumber = 0
   playbackRate = 1
   longPressSpeed = 1

@@ -165,20 +165,20 @@ export default class UserDAL {
       // 刷新Session
       AliUser.ApiSessionRefreshAccount(token, false),
       // 刷新OpenApiToken
-      AliUser.OpenApiTokenRefreshAccount(token, false),
-      // 保存登录信息
-      DB.saveValueString('uiDefaultUser', token.user_id),
-      useUserStore().userLogin(token.user_id),
-      window.WebUserToken({
-        user_id: token.user_id,
-        name: token.user_name,
-        access_token: token.access_token,
-        open_api_access_token: token.open_api_access_token,
-        login: true
-      }),
-      // 加载网盘文件
-      UserDAL.LoadPanData(token)
+      AliUser.OpenApiTokenRefreshAccount(token, false)
     ])
+    // 保存登录信息
+    await DB.saveValueString('uiDefaultUser', token.user_id)
+    useUserStore().userLogin(token.user_id)
+    window.WebUserToken({
+      user_id: token.user_id,
+      name: token.user_name,
+      access_token: token.access_token,
+      open_api_access_token: token.open_api_access_token,
+      login: true
+    })
+    // 加载网盘文件
+    await UserDAL.LoadPanData(token)
     // 刷新所有状态
     PanDAL.aReLoadQuickFile(token.user_id)
     useAppStore().resetTab()

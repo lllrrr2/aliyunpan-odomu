@@ -28,19 +28,35 @@ export default class LibassAdapter {
     this.art.emit('artplayerPluginLibass:init', this)
 
     // set initial subtitle
-    const initialSubtitle = this.art?.option?.subtitle?.url
-    if (initialSubtitle && this.utils.getExt(initialSubtitle) === 'ass') {
+    const initialSubtitle = this.art?.option?.subtitle?.url || this.art?.subtitle?.url
+    if (initialSubtitle) {
       this.switch(initialSubtitle)
     }
   }
 
   switch(url) {
     this.art.emit('artplayerPluginLibass:switch', url)
-    if (url && this.utils.getExt(url) === 'ass') {
-      this.currentType = 'ass'
+    if (this.#isAbsoluteUrl(url) && this.utils.getExt(url) === 'ass') {
       this.libass.freeTrack()
       this.libass.setTrackByUrl(this.#toAbsoluteUrl(url))
+      this.currentType = 'ass'
       this.visible = this.art.subtitle.show
+    } else if (url.startsWith('blob:')) {
+      fetch(url)
+        .then(res => res.text())
+        .then((text) => {
+          URL.revokeObjectURL(url)
+          if (text.includes('Script Info')) {
+            this.libass.freeTrack()
+            this.libass.setTrack(text)
+            this.currentType = 'ass'
+            this.visible = this.art.subtitle.show
+          } else {
+            this.currentType = 'webvtt'
+            this.hide()
+            this.libass.freeTrack()
+          }
+        })
     } else {
       this.currentType = 'webvtt'
       this.hide()
@@ -122,9 +138,32 @@ export default class LibassAdapter {
     this.libass = new JASSUB({
       subContent: defaultAssSubtitle,
       video: this.$video,
+      canvas: this.#createCanvas(),
       ...option,
+      fallbackFont: '微软雅黑',
       fonts: option.fonts?.map((font) => this.#toAbsoluteUrl(font))
     })
+  }
+
+  #createCanvas() {
+    let canvasParent = document.createElement('div')
+    canvasParent.className = 'artplayer-plugin-libass'
+    canvasParent.style.cssText = `
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            user-select: none;
+            pointer-events: none;
+            z-index: 20;`
+    let canvas = document.createElement('canvas')
+    canvas.style.display = 'block'
+    canvas.style.position = 'absolute'
+    canvas.style.pointerEvents = 'none'
+    canvasParent.appendChild(canvas)
+    this.$video.insertAdjacentElement('afterend', canvasParent)
+    return canvas
   }
 
   #addEventListeners() {
@@ -153,11 +192,20 @@ export default class LibassAdapter {
     if (this.#isAbsoluteUrl(url))
       return url
     // handle absolute URL when the `Worker` of `BLOB` type loading network resources
-    return new URL(url, document.baseURI).toString()
+    return new URL(url, import.meta.url).toString()
   }
 
   #isAbsoluteUrl(url) {
     return /^https?:\/\//.test(url)
+  }
+
+  #blobToText(blob) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onloadend = () => resolve(reader.result)
+      reader.onerror = () => resolve('')
+      reader.readAsText(blob)
+    })
   }
 
   #checkWebAssemblySupport() {

@@ -173,14 +173,15 @@ export default class AliUser {
     OpenApiTokenLockMap.delete(token.user_id)
     if (AliHttp.IsSuccess(resp.code)) {
       OpenApiTokenReTimeMap.set(token.user_id, Date.now())
+      const { access_token, refresh_token, token_type, expires_in } = resp.body
       // 刷新设置
       await useSettingStore().updateStore({
-        uiOpenApiAccessToken: resp.body.access_token,
-        uiOpenApiRefreshToken: resp.body.refresh_token
+        uiOpenApiAccessToken: access_token,
+        uiOpenApiRefreshToken: refresh_token
       })
-      token.open_api_access_token = resp.body.access_token
-      token.open_api_refresh_token = resp.body.refresh_token
-      token.open_api_expires_in = resp.body.expires_in * 1000
+      token.open_api_access_token = access_token
+      token.open_api_refresh_token = refresh_token
+      token.open_api_expires_in = Date.now() + expires_in * 1000
       window.WebUserToken({
         user_id: token.user_id,
         name: token.user_name,
@@ -284,7 +285,7 @@ export default class AliUser {
       })
       token.open_api_access_token = access_token
       token.open_api_refresh_token = refresh_token
-      token.open_api_expires_in = expires_in * 1000
+      token.open_api_expires_in = Date.now() + expires_in * 1000
       UserDAL.SaveUserToken(token)
       window.WebUserToken({
         user_id: token.user_id,
