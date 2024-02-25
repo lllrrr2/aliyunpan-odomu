@@ -1,5 +1,5 @@
 <script setup lang='ts'>
-import { ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import {
   KeyboardState,
   MouseState,
@@ -7,6 +7,7 @@ import {
   useDowningStore,
   useKeyboardStore,
   useMouseStore,
+  useUploadingStore,
   useWinStore
 } from '../store'
 import {
@@ -30,6 +31,17 @@ const inputsearch = ref()
 const appStore = useAppStore()
 const winStore = useWinStore()
 const downingStore = useDowningStore()
+
+const isDowning = computed(() => downingStore.ListDataDowningCount > 0)
+watch(isDowning, (value, oldValue) => {
+  if (value !== oldValue && window.WebToElectron) {
+    if (value) {
+      window.WebToElectron({ cmd: 'preventSleep', flag: 1 })
+    } else if (useUploadingStore().ListDataUploadingCount == 0) {
+      window.WebToElectron({ cmd: 'preventSleep', flag: 0 })
+    }
+  }
+})
 
 const keyboardStore = useKeyboardStore()
 keyboardStore.$subscribe((_m: any, state: KeyboardState) => {
@@ -112,7 +124,6 @@ const onSelectRang = (file_id: string) => {
 }
 
 const handleSelectAll = () => downingStore.mSelectAll()
-const handleOrder = (order: string) => downingStore.mOrderListData(order)
 const handleSelect = (file_id: string, event: any, isCtrl: boolean = false) => {
   onHideRightMenuScroll()
   if (rangIsSelecting.value) {

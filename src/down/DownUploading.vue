@@ -1,5 +1,13 @@
 <script setup lang="ts">
-import { KeyboardState, MouseState, useAppStore, useKeyboardStore, useMouseStore, useWinStore } from '../store'
+import {
+  KeyboardState,
+  MouseState,
+  useAppStore,
+  useDowningStore,
+  useKeyboardStore,
+  useMouseStore,
+  useWinStore
+} from '../store'
 import {
   onHideRightMenuScroll,
   onShowRightMenu,
@@ -8,7 +16,7 @@ import {
   TestKeyboardScroll,
   TestKeyboardSelect
 } from '../utils/keyboardhelper'
-import { ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import useUploadingStore from './UploadingStore'
 
 import { Tooltip as AntdTooltip } from 'ant-design-vue'
@@ -22,6 +30,16 @@ const appStore = useAppStore()
 const winStore = useWinStore()
 const uploadingStore = useUploadingStore()
 
+const isUpload = computed(() => uploadingStore.ListDataUploadingCount > 0)
+watch(isUpload, (value, oldValue) => {
+  if (value !== oldValue && window.WebToElectron) {
+    if (value) {
+      window.WebToElectron({ cmd: 'preventSleep', flag: 1 })
+    } else if (useDowningStore().ListDataDowningCount == 0) {
+      window.WebToElectron({ cmd: 'preventSleep', flag: 0 })
+    }
+  }
+})
 const menuShowDir = ref(false)
 const menuShowTask = ref(false)
 uploadingStore.$subscribe((_m: any, state: any) => {

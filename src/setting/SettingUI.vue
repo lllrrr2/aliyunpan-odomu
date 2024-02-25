@@ -100,8 +100,9 @@ const handleImportAsar = () => {
           开机时自动启动
         </MySwitch>
       </div>
-      <div class='settingrow'>
-        <MySwitch :value='settingStore.uiLaunchStartShow' @update:value='cb({ uiLaunchStartShow: $event })'>
+      <div class='settingrow' v-if="settingStore.uiLaunchStart">
+        <MySwitch :value='settingStore.uiLaunchStartShow'
+                  @update:value='cb({ uiLaunchStartShow: $event })'>
           自动启动后显示主窗口
         </MySwitch>
       </div>

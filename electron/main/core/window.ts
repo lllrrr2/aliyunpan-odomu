@@ -103,13 +103,19 @@ export function createMainWindow() {
       let width = size.width * 0.677
       const height = size.height * 0.866
       if (width > AppWindow.winWidth) AppWindow.winWidth = width
-      if (size.width >= 970 && width < 970) width = 970
-      if (AppWindow.winWidth > 1080) AppWindow.winWidth = 1080
+      if (AppWindow.winWidth > 940) AppWindow.winWidth = 940
       if (height > AppWindow.winHeight) AppWindow.winHeight = height
       if (AppWindow.winHeight > 720) AppWindow.winHeight = 720
     } catch {
-      AppWindow.winWidth = 970
-      AppWindow.winHeight = 600
+      AppWindow.winWidth = 940
+      AppWindow.winHeight = 720
+    }
+  } else {
+    if (AppWindow.winWidth < 940) {
+      AppWindow.winWidth = 940
+    }
+    if (AppWindow.winHeight < 720) {
+      AppWindow.winHeight = 720
     }
   }
   AppWindow.mainWindow = createElectronWindow(AppWindow.winWidth, AppWindow.winHeight, true, 'main', AppWindow.winTheme)
@@ -117,7 +123,10 @@ export function createMainWindow() {
   AppWindow.mainWindow.on('resize', () => {
     debounceResize(function() {
       try {
-        if (AppWindow.mainWindow && AppWindow.mainWindow.isMaximized() == false && AppWindow.mainWindow.isMinimized() == false && AppWindow.mainWindow.isFullScreen() == false) {
+        if (AppWindow.mainWindow
+          && !AppWindow.mainWindow.isMaximized()
+          && !AppWindow.mainWindow.isMinimized()
+          && !AppWindow.mainWindow.isFullScreen()) {
           const s = AppWindow.mainWindow!.getSize()
           const configJson = getUserDataPath('config.json')
           writeFileSync(configJson, `{"width":${s[0].toString()},"height": ${s[1].toString()}}`, 'utf-8')
@@ -226,14 +235,14 @@ export function createElectronWindow(width: number, height: number, center: bool
     show: false,
     width: width,
     height: height,
-    minWidth: width > 680 ? 680 : width,
-    minHeight: height > 500 ? 500 : height,
+    minWidth: width > 940 ? 940 : width,
+    minHeight: height > 720 ? 720 : height,
     center: center,
     icon: getStaticPath('icon_256x256.ico'),
     useContentSize: true,
     frame: false,
     transparent: false,
-    hasShadow: width > 680,
+    hasShadow: width > 940,
     autoHideMenuBar: true,
     backgroundColor: theme && theme == 'dark' ? '#23232e' : '#ffffff',
     webPreferences: {
@@ -264,7 +273,7 @@ export function createElectronWindow(width: number, height: number, center: bool
 
   if (DEBUGGING && devTools) {
     if (width < 100) {
-      win.setSize(1050, 700)
+      win.setSize(940, 720)
     }
     win.show()
     win.webContents.openDevTools({ mode: 'bottom' })

@@ -11,10 +11,13 @@ import { WorkerPage } from './workerpage/workercmd'
 window.onerror = function (errorMessage, scriptURI, lineNo, columnNo, error) {
   try {
     if (errorMessage
-      && typeof errorMessage === 'string'
-      && errorMessage.indexOf('ResizeObserver loop limit exceeded') >= 0
-      && errorMessage.indexOf('listen EADDRINUSE') >= 0
-      && errorMessage.indexOf('connect ENOENT') >= 0) return true
+      && typeof errorMessage === 'string') {
+      if (errorMessage.indexOf('ResizeObserver') >= 0
+        || errorMessage.indexOf('listen EADDRINUSE') >= 0
+        || errorMessage.indexOf('connect ENOENT') >= 0) {
+        return true
+      }
+    }
     // DebugLog.mSaveDanger('onerror')
     if (typeof errorMessage === 'string') {
       DebugLog.mSaveDanger(errorMessage)

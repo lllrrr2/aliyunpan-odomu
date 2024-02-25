@@ -83,7 +83,10 @@ const cb = (val: any) => {
   <div class="settingcard">
     <div class="settinghead">:上传下载完 自动关机</div>
     <div class="settingrow">
-      <MySwitch :value="settingStore.downAutoShutDown > 0" @update:value="cb({ downAutoShutDown: $event ? 1 : 0 })"> 下载中/上传中 的任务全部完成后自动关机</MySwitch>
+      <MySwitch :value="settingStore.downAutoShutDown > 0"
+                @update:value="cb({ downAutoShutDown: $event ? 1 : 0 })">
+        下载中/上传中 的任务全部完成后自动关机
+      </MySwitch>
       <a-popover position="bottom">
         <i class="iconfont iconbulb" />
         <template #content>

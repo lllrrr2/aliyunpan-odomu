@@ -1,13 +1,14 @@
 import { AppWindow, createElectronWindow, Referer, ua } from './window'
 import path from 'path'
 import is from 'electron-is'
-import { app, BrowserWindow, dialog, ipcMain, session, shell } from 'electron'
+import { app, BrowserWindow, dialog, ipcMain, powerSaveBlocker, session, shell } from 'electron'
 import { existsSync, writeFileSync } from 'fs'
 import { exec, spawn, SpawnOptions } from 'child_process'
 import { ShowError } from './dialog'
 import { getStaticPath, getUserDataPath } from '../utils/mainfile'
 import { portIsOccupied } from '../utils'
 
+let psbId: any
 export default class ipcEvent {
   private constructor() {
   }
@@ -49,7 +50,8 @@ export default class ipcEvent {
         try {
           app.relaunch({ args: process.argv.slice(1).concat(['--relaunch']) })
           app.exit(0)
-        } catch {}
+        } catch {
+        }
       } else if (data.cmd && data.cmd === 'exit') {
         if (mainWindow && !mainWindow.isDestroyed()) {
           mainWindow.destroy()
@@ -57,8 +59,9 @@ export default class ipcEvent {
         }
         try {
           app.exit(0)
-        } catch {}
-      }  else if (data.cmd && data.cmd === 'minsize') {
+        } catch {
+        }
+      } else if (data.cmd && data.cmd === 'minsize') {
         if (mainWindow && !mainWindow.isDestroyed()) mainWindow.minimize()
       } else if (data.cmd && data.cmd === 'maxsize') {
         if (mainWindow && !mainWindow.isDestroyed()) {
@@ -89,6 +92,19 @@ export default class ipcEvent {
           !launchStartShow && settings.args.push('--openAsHidden')
         }
         app.setLoginItemSettings(settings)
+      } else if (data.cmd && data.cmd === 'preventSleep') {
+        if (data.flag) {
+          if (psbId && powerSaveBlocker.isStarted(psbId)) {
+            return
+          }
+          psbId = powerSaveBlocker.start('prevent-app-suspension')
+        } else {
+          if (typeof psbId === 'undefined' || !powerSaveBlocker.isStarted(psbId)) {
+            return
+          }
+          powerSaveBlocker.stop(psbId)
+          psbId = undefined
+        }
       } else {
         event.sender.send('ElectronToWeb', 'mainsenddata')
       }
@@ -385,8 +401,10 @@ export default class ipcEvent {
   }
 
   private static handleWebOpenWindow() {
+    let winWidth = AppWindow.winWidth
+    if (winWidth < 1080) winWidth = 1080
     ipcMain.on('WebOpenWindow', (event, data) => {
-      const win = createElectronWindow(AppWindow.winWidth, AppWindow.winHeight, true, 'main2', data.theme)
+      const win = createElectronWindow(winWidth, AppWindow.winHeight, true, 'main2', data.theme)
       win.on('ready-to-show', function() {
         win.webContents.send('setPage', data)
         win.setTitle('预览窗口')
@@ -402,8 +420,8 @@ export default class ipcEvent {
         width: AppWindow.winWidth,
         height: AppWindow.winHeight,
         center: true,
-        minWidth: 680,
-        minHeight: 500,
+        minWidth: 940,
+        minHeight: 720,
         icon: getStaticPath('icon_256x256.ico'),
         useContentSize: true,
         frame: true,

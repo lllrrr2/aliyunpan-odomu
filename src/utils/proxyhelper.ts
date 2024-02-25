@@ -150,6 +150,8 @@ export async function getRawUrl(
       }
       data.url = downUrl.url
       data.size = downUrl.size
+    } else {
+      return data
     }
   }
   if (preview_type == 'other') {

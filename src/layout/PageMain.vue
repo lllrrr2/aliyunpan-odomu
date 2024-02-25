@@ -80,8 +80,8 @@ keyboardStore.$subscribe((_m: any, state: KeyboardState) => {
 
 const onResize = throttle(() => {
   try {
-    const width = document.body.offsetWidth || 1050
-    const height = document.body.offsetHeight || 700
+    const width = document.body.offsetWidth || 960
+    const height = document.body.offsetHeight || 720
     if (winStore.width != width || winStore.height != height) {
       winStore.updateStore({ width, height })
     }

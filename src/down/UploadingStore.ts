@@ -64,6 +64,9 @@ const useUploadingStore = defineStore('uploading', {
   }),
 
   getters: {
+    ListDataUploadingCount(state: State): number {
+      return state.ListDataShow.length
+    },
 
     IsListSelected(state: State): boolean {
       return state.ListSelected.size > 0

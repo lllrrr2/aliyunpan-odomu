@@ -22,13 +22,6 @@ export async function StartUpload(fileui: IUploadingUI): Promise<void> {
     fileui.Info.failedMessage = '找不到账号,无法继续'
     return
   }
-  const expire_time = new Date(token.expire_time).getTime()
-  if (expire_time - new Date().getTime() < 60000) {
-    fileui.Info.uploadState = 'error'
-    fileui.Info.failedCode = 402
-    fileui.Info.failedMessage = 'token过期失效,无法继续'
-    return
-  }
   // 创建文件夹
   if (fileui.File.isDir) {
     return creatDirAndReadChildren(fileui)
