@@ -63,7 +63,7 @@ const handleSelect = (followingid: string, event: MouseEvent) => {
 
 const handleOpenLink = (followingid: string) => {
   AliFollowing.ApiSetFollowingMarkRead(useUserStore().user_id, followingid)
-  const url = 'https://www.aliyundrive.com/u/' + followingid + '/feed'
+  const url = 'https://www.alipan.com/u/' + followingid + '/feed'
   openExternal(url)
 }
 const handleOpenShare = (share_id: string, share_pwd: string, file_id_list: string[]) => {
@@ -78,7 +78,7 @@ const handleCopySelectedLink = () => {
   }
   let copy = ''
   for (let i = 0, maxi = list.length; i < maxi; i++) {
-    copy += 'https://www.aliyundrive.com/u/' + list[i].user_id + '/feed#' + list[i].nick_name
+    copy += 'https://www.alipan.com/u/' + list[i].user_id + '/feed#' + list[i].nick_name
   }
   copyToClipboard(copy)
   message.success('选中的公众号订阅链接，已复制到剪切板')
@@ -86,7 +86,7 @@ const handleCopySelectedLink = () => {
 const handleBrowserLink = () => {
   const first = myfollowingStore.GetSelectedFirst()
   if (!first) return
-  const url = 'https://www.aliyundrive.com/u/' + first.user_id + '/feed#' + first.nick_name
+  const url = 'https://www.alipan.com/u/' + first.user_id + '/feed#' + first.nick_name
   openExternal(url)
 }
 const handleDeleteSelectedLink = () => {
@@ -101,7 +101,7 @@ const handleDeleteSelectedLink = () => {
 const handleDaoRuLink = () => {
   daoruModel.value = true
   const txt = getFromClipboard()
-  if (txt.indexOf('.aliyundrive.com/u/') > 0) {
+  if (txt.indexOf('.aliyundrive.com/u/') > 0 || txt.indexOf('.alipan.com/u/') > 0) {
     daoruModelText.value = txt
     setTimeout(() => {
       document.getElementById('MFRDaoRuLink')?.focus()
@@ -243,7 +243,7 @@ const handleSearchEnter = (event: any) => {
       <div style="margin-bottom: 32px">
         <div class="arco-textarea-wrapper arco-textarea-scroll">
           <textarea v-model="daoruModelText" class="arco-textarea daoruinput"
-                    placeholder="请粘贴，每行一条订阅链接，例如：https://www.aliyundrive.com/u/ec11691148db442aa7aa374ca707543c"></textarea>
+                    placeholder="请粘贴，每行一条订阅链接，例如：https://www.alipan.com/u/ec11691148db442aa7aa374ca707543c"></textarea>
         </div>
       </div>
       <div class="flex" style="justify-content: center; align-items: center; margin-bottom: 0px">

@@ -50,7 +50,7 @@ function Sleep(msTime: number): Promise<{ success: true; time: number }> {
 
 const IsDebugHttp = false
 export default class AliHttp {
-  static baseApi = 'https://api.aliyundrive.com/'
+  static baseApi = 'https://api.alipan.com/'
   static baseOpenApi = 'https://openapi.alipan.com/'
   
   static IsSuccess(code: number): Boolean {

@@ -959,7 +959,7 @@ const onPanDragEnd = (ev: any) => {
               {{ item.sizeStr }}
             </div>
             <div class='filetime'>{{ item.timeStr }}</div>
-            <div class='filesize' style="max-width: 76px" v-show="item.media_duration">
+            <div class='filesize' style="width: 76px" v-show="item.media_duration">
               <span>{{ '总时:' + item.media_duration }}</span>
               <span v-show='item.media_play_cursor'>
                 {{ '已看:' + item.media_play_cursor }}

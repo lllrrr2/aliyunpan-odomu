@@ -265,14 +265,15 @@ const initEvent = (art: Artplayer) => {
   })
   // 播放时间变化
   art.on('video:timeupdate', async () => {
-    if (art.video.currentTime > 0 && !art.video.paused && !art.video.ended
-      && art.video.readyState > art.video.HAVE_CURRENT_DATA) {
+    if (art.video.currentTime > 0
+        && !art.video.paused && !art.video.ended
+        && art.video.readyState > art.video.HAVE_CURRENT_DATA) {
       const currentTime = art.currentTime
       const endDuration = art.storage.get('autoSkipEnd')
       if (currentTime > 0 && endDuration > 0) {
         if (endDuration <= currentTime) {
           if (art.storage.get('autoPlayNext')) {
-            await jumpToNextVideo(art)
+            await art.emit('video:ended')
           }
         }
       }

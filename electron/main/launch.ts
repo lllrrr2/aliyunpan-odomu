@@ -76,7 +76,7 @@ export default class launch extends EventEmitter {
     app.commandLine.appendSwitch('disable-renderer-backgrounding')
     app.commandLine.appendSwitch('disable-site-isolation-trials')
     app.commandLine.appendSwitch('disable-features', 'OutOfBlinkCors,SameSiteByDefaultCookies,CookiesWithoutSameSiteMustBeSecure,BlockInsecurePrivateNetworkRequests')
-    app.commandLine.appendSwitch('ignore-connections-limit', 'bj29-enet.cn-beijing.data.alicloudccp.com,bj29-hz.cn-hangzhou.data.alicloudccp.com,bj29.cn-beijing.data.alicloudccp.com,alicloudccp.com,api.aliyundrive.com,aliyundrive.com')
+    app.commandLine.appendSwitch('ignore-connections-limit', 'bj29-enet.cn-beijing.data.alicloudccp.com,bj29-hz.cn-hangzhou.data.alicloudccp.com,bj29.cn-beijing.data.alicloudccp.com,alicloudccp.com,api.aliyundrive.com,aliyundrive.com,api.alipan.com,alipan.com')
     app.commandLine.appendSwitch('ignore-certificate-errors')
     app.commandLine.appendSwitch('proxy-bypass-list', '<local>')
     app.commandLine.appendSwitch('wm-window-animations-disabled')
@@ -135,8 +135,8 @@ export default class launch extends EventEmitter {
           const shouldGieeReferer = details.url.indexOf('gitee.com') > 0
           const shouldBiliBili = details.url.indexOf('bilibili.com') > 0
           const shouldQQTv = details.url.indexOf('v.qq.com') > 0 || details.url.indexOf('video.qq.com') > 0
-          const shouldAliOrigin = details.url.indexOf('.aliyundrive.com') > 0 || details.url.indexOf('.alipan.com') > 0
-          const shouldAliReferer = !shouldBiliBili && !shouldBiliBili && !shouldGieeReferer && (!details.referrer || details.referrer.trim() === '' || /(\/localhost:)|(^file:\/\/)|(\/127.0.0.1:)/.exec(details.referrer) !== null)
+          const shouldAliPanOrigin =   details.url.indexOf('.aliyundrive.com') > 0 || details.url.indexOf('.alipan.com') > 0
+          const shouldAliReferer = !shouldQQTv && !shouldBiliBili && !shouldGieeReferer && (!details.referrer || details.referrer.trim() === '' || /(\/localhost:)|(^file:\/\/)|(\/127.0.0.1:)/.exec(details.referrer) !== null)
           const shouldToken = details.url.includes('aliyundrive') && details.url.includes('download')
           const shouldOpenApiToken = details.url.includes('adrive/v1.0') || details.url.includes('adrive/v1.1')
 
@@ -147,11 +147,11 @@ export default class launch extends EventEmitter {
               ...(shouldGieeReferer && {
                 Referer: 'https://gitee.com/'
               }),
-              ...(shouldAliOrigin && {
-                Origin: 'https://www.aliyundrive.com'
+              ...(shouldAliPanOrigin && {
+                Origin: 'https://www.alipan.com'
               }),
               ...(shouldAliReferer && {
-                Referer: 'https://www.aliyundrive.com/'
+                Referer: 'https://www.alipan.com/'
               }),
               ...(shouldBiliBili && {
                 Referer: 'https://www.bilibili.com/',

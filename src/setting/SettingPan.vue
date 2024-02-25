@@ -133,7 +133,7 @@ const cb = (val: any) => {
         <template #content>
           <div style="min-width: 400px">
             默认：<span class="opred">「NAME」URL 提取码：PWD</span> <br />
-            测试分享 链接：https://www.aliyundrive.com/s/jEmmmDkF 提取码：DNJI
+            测试分享 链接：https://www.alipan.com/s/jEmmmDkF 提取码：DNJI
             <hr />
             这里是编写链接模板，网盘内点击复制分享链接时会自动替换成对应的内容
             <br />
@@ -141,10 +141,10 @@ const cb = (val: any) => {
 
             <div class="hrspace"></div>
             例如:<span class="oporg">URL#PWD#NAME</span> --&gt; <br />
-            <span class="opblue">https://www.aliyundrive.com/s/jEmmmDkF#DNJI#测试分享</span>
+            <span class="opblue">https://www.alipan.com/s/jEmmmDkF#DNJI#测试分享</span>
             <br />
             例如:<span class="oporg">URL 提取码：PWD NAME</span> --&gt; <br />
-            <span class="opblue">https://www.aliyundrive.com/s/jEmmmDkF 提取码：DNJI 测试分享</span>
+            <span class="opblue">https://www.alipan.com/s/jEmmmDkF 提取码：DNJI 测试分享</span>
           </div>
         </template>
       </a-popover>

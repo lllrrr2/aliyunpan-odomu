@@ -29,7 +29,7 @@ const cb = (val: any) => {
 const openWebUrl = (type: string) => {
   switch (type) {
     case 'developer':
-      openExternal('https://www.aliyundrive.com/developer')
+      openExternal('https://www.alipan.com/developer')
       break
     case 'pkce':
       openExternal('https://www.yuque.com/aliyundrive/zpfszx/eam8ls1lmawwwksv')
@@ -56,7 +56,8 @@ const openWebUrl = (type: string) => {
 }
 
 const copyCookies = async () => {
-  const cookies = await window.WebGetCookies({ url: 'https://www.aliyundrive.com' }) as []
+  let cookies = await window.WebGetCookies({ url: 'https://www.alipan.com' }) as []
+  if (cookies.length == 0) cookies = await window.WebGetCookies({ url: 'https://www.aliyundrive.com' }) as []
   if (cookies.length > 0) {
     let cookiesText = ''
     cookies.forEach(cookie => {

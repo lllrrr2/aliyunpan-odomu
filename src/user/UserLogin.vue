@@ -129,17 +129,29 @@ const loginbizExt = (msg: string) => {
       UserDAL.UserLogin(tk2)
         .then(() => {
           useUserStore().userShowLogin = false
-          if (window.WebClearCookies) window.WebClearCookies({
-            origin: 'https://auth.aliyundrive.com',
-            storages: ['cookies', 'localstorage']
-          })
+          if (window.WebClearCookies) {
+            window.WebClearCookies({
+              origin: 'https://auth.aliyundrive.com',
+              storages: ['cookies', 'localstorage']
+            })
+            window.WebClearCookies({
+              origin: 'https://auth.alipan.com',
+              storages: ['cookies', 'localstorage']
+            })
+          }
         })
         .catch(() => {
           useUserStore().userShowLogin = false
-          if (window.WebClearCookies) window.WebClearCookies({
-            origin: 'https://auth.aliyundrive.com',
-            storages: ['cookies', 'localstorage']
-          })
+          if (window.WebClearCookies) {
+            window.WebClearCookies({
+              origin: 'https://auth.aliyundrive.com',
+              storages: ['cookies', 'localstorage']
+            })
+            window.WebClearCookies({
+              origin: 'https://auth.alipan.com',
+              storages: ['cookies', 'localstorage']
+            })
+          }
         })
     } catch (err: any) {
       message.error('登录失败：' + (err.message || '解析失败'))

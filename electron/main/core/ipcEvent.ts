@@ -420,7 +420,7 @@ export default class ipcEvent {
         width: AppWindow.winWidth,
         height: AppWindow.winHeight,
         center: true,
-        minWidth: 940,
+        minWidth: 1036,
         minHeight: 720,
         icon: getStaticPath('icon_256x256.ico'),
         useContentSize: true,

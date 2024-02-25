@@ -17,7 +17,7 @@ import { ShowErrorAndRelaunch } from './dialog'
 
 const DEBUGGING = !app.isPackaged
 export const ua = 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) aDrive/4.12.0 Chrome/108.0.5359.215 Electron/22.3.24 Safari/537.36'
-export const Referer = 'https://www.aliyundrive.com/'
+export const Referer = 'https://www.alipan.com/'
 export const AppWindow: {
   mainWindow: BrowserWindow | undefined
   uploadWindow: BrowserWindow | undefined
@@ -103,16 +103,16 @@ export function createMainWindow() {
       let width = size.width * 0.677
       const height = size.height * 0.866
       if (width > AppWindow.winWidth) AppWindow.winWidth = width
-      if (AppWindow.winWidth > 940) AppWindow.winWidth = 940
+      if (AppWindow.winWidth > 1036) AppWindow.winWidth = 1036
       if (height > AppWindow.winHeight) AppWindow.winHeight = height
       if (AppWindow.winHeight > 720) AppWindow.winHeight = 720
     } catch {
-      AppWindow.winWidth = 940
+      AppWindow.winWidth = 1036
       AppWindow.winHeight = 720
     }
   } else {
-    if (AppWindow.winWidth < 940) {
-      AppWindow.winWidth = 940
+    if (AppWindow.winWidth < 1036) {
+      AppWindow.winWidth = 1036
     }
     if (AppWindow.winHeight < 720) {
       AppWindow.winHeight = 720
@@ -235,14 +235,14 @@ export function createElectronWindow(width: number, height: number, center: bool
     show: false,
     width: width,
     height: height,
-    minWidth: width > 940 ? 940 : width,
+    minWidth: width > 1036 ? 1036 : width,
     minHeight: height > 720 ? 720 : height,
     center: center,
     icon: getStaticPath('icon_256x256.ico'),
     useContentSize: true,
     frame: false,
     transparent: false,
-    hasShadow: width > 940,
+    hasShadow: width > 1036,
     autoHideMenuBar: true,
     backgroundColor: theme && theme == 'dark' ? '#23232e' : '#ffffff',
     webPreferences: {
@@ -273,7 +273,7 @@ export function createElectronWindow(width: number, height: number, center: bool
 
   if (DEBUGGING && devTools) {
     if (width < 100) {
-      win.setSize(940, 720)
+      win.setSize(1036, 720)
     }
     win.show()
     win.webContents.openDevTools({ mode: 'bottom' })

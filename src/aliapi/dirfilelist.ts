@@ -662,7 +662,7 @@ export default class AliDirFileList {
         const isDirFile = dir.dirID.includes('root') || (dir.dirID.length == 40 && !dir.dirID.startsWith('search'))
         const isVideo = dir.dirID.startsWith('video')
         const isPic = dir.dirID.includes('pic')
-        const downUrl = isRecover ? '' : 'https://api.aliyundrive.com/v2/file/download?t=' + Date.now().toString()
+        const downUrl = isRecover ? '' : 'https://api.alipan.com/v2/file/download?t=' + Date.now().toString()
 
         if (resp.body.items) {
           let settingStore = useSettingStore()
