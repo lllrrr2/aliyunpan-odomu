@@ -22,6 +22,7 @@ const appStore = useAppStore()
 const pageVideo = appStore.pageVideo!
 const isTop = ref(false)
 let autoPlayNumber = 0
+let lastPlayNumber = -1
 let playbackRate = 1
 let longPressSpeed = 1
 let ArtPlayerRef: Artplayer
@@ -260,20 +261,20 @@ const initEvent = (art: Artplayer) => {
     art.storage.set('videoMuted', art.muted ? 'true' : 'false')
   })
   // 播放倍数变化
-  art.on('video:ratechange', async () => {
+  art.on('video:ratechange', () => {
     playbackRate = art.playbackRate
   })
   // 播放时间变化
   art.on('video:timeupdate', async () => {
     if (art.video.currentTime > 0
-        && !art.video.paused && !art.video.ended
-        && art.video.readyState > art.video.HAVE_CURRENT_DATA) {
+      && !art.video.paused && !art.video.ended
+      && art.video.readyState > art.video.HAVE_CURRENT_DATA) {
       const currentTime = art.currentTime
       const endDuration = art.storage.get('autoSkipEnd')
       if (currentTime > 0 && endDuration > 0) {
         if (endDuration <= currentTime) {
           if (art.storage.get('autoPlayNext')) {
-            await art.emit('video:ended')
+            await jumpToNextVideo(art)
           }
         }
       }
@@ -282,8 +283,9 @@ const initEvent = (art: Artplayer) => {
 }
 
 const jumpToNextVideo = async (art: Artplayer) => {
-  autoPlayNumber = playList.findIndex(list => list.file_id == pageVideo.file_id)
+  if (lastPlayNumber + 1 !== autoPlayNumber) return
   if (autoPlayNumber + 1 >= playList.length) {
+    autoPlayNumber = playList.length
     art.notice.show = '已经是最后一集了'
     return
   }
@@ -338,6 +340,7 @@ const refreshSetting = async (art: Artplayer, item: any) => {
   pageVideo.play_cursor = item.play_cursor
   pageVideo.file_name = item.html
   pageVideo.file_id = item.file_id || ''
+  autoPlayNumber = playList.findIndex(list => list.file_id == pageVideo.file_id)
   // 更新标记
   const settingStore = useSettingStore()
   if (settingStore.uiAutoColorVideo && !item.description) {
@@ -360,7 +363,7 @@ const defaultSettings = async (art: Artplayer) => {
   let autoSkipBegin = art.storage.get('autoSkipBegin')
   let autoSkipEnd = art.storage.get('autoSkipEnd')
   let longPressSpeed = art.storage.get('longPressSpeed')
-  art.setting.add({
+  art.setting.update({
     name: 'autoJumpCursor',
     width: 300,
     html: '自动跳转',
@@ -374,7 +377,7 @@ const defaultSettings = async (art: Artplayer) => {
     }
   })
   if (playList.length > 1) {
-    art.setting.add({
+    art.setting.update({
       name: 'autoPlayNext',
       width: 300,
       html: '自动连播',
@@ -389,7 +392,7 @@ const defaultSettings = async (art: Artplayer) => {
       }
     })
   }
-  art.setting.add({
+  art.setting.update({
     name: 'autoSkip',
     width: 300,
     html: '更多设置',
@@ -592,6 +595,7 @@ const refreshPlayList = async (art: Artplayer, file_id?: string) => {
   }
   if (playList.length > 1) {
     autoPlayNumber = playList.findIndex(list => list.file_id == pageVideo.file_id)
+    lastPlayNumber = autoPlayNumber - 1
     let curPlayTitle = playList[autoPlayNumber].html
     art.controls.update({
       name: 'playList',
@@ -608,10 +612,10 @@ const refreshPlayList = async (art: Artplayer, file_id?: string) => {
       onSelect: async (item: SettingOption, element: HTMLElement) => {
         await art.emit('video:pause')
         await refreshSetting(art, item)
+        lastPlayNumber = autoPlayNumber - 1
         Artplayer.utils.inverseClass(element, 'art-list-icon')
         // 重新载入弹幕
         if (!art.plugins.artplayerPluginDanmuku.isHide) {
-          autoPlayNumber = playList.findIndex(list => list.file_id == pageVideo.file_id)
           await art.plugins.artplayerPluginDanmuku.stop()
           await art.plugins.artplayerPluginDanmuku.load()
         }
@@ -893,6 +897,7 @@ onBeforeUnmount(() => {
   onlineSubData.data = ''
   onlineSubData.type = ''
   autoPlayNumber = 0
+  lastPlayNumber = -1
   playbackRate = 1
   longPressSpeed = 1
   ArtPlayerRef && ArtPlayerRef.destroy(false)
