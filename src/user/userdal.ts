@@ -52,10 +52,14 @@ export default class UserDAL {
       const token = tokenList[i]
       try {
         const expire_time = new Date(token.expire_time).getTime()
+        const openapi_expire_time = new Date(token.open_api_expires_in).getTime()
         // 自动刷新Token(过期3分钟)
         if (expire_time - dateNow < 1000 * 60 * 3) {
           await AliUser.ApiTokenRefreshAccount(token, false)
           await AliUser.ApiSessionRefreshAccount(token, false)
+        }
+        if (openapi_expire_time > 0 && openapi_expire_time - dateNow < 1000 * 60 * 3) {
+          await AliUser.OpenApiTokenRefreshAccount(token, false)
         }
       } catch (err: any) {
         DebugLog.mSaveDanger('aRefreshAllUserToken', err)
@@ -153,6 +157,8 @@ export default class UserDAL {
   static async UserLogin(token: ITokenInfo) {
     const loadingKey = 'userlogin_' + Date.now().toString()
     message.loading('加载用户信息中...', 0, loadingKey)
+    await DB.saveValueString('uiDefaultUser', token.user_id)
+    useUserStore().userLogin(token.user_id)
     UserTokenMap.set(token.user_id, token)
     // 加载用户信息
     await Promise.all([
@@ -160,16 +166,13 @@ export default class UserDAL {
       AliUser.ApiUserDriveInfo(token),
       AliUser.ApiUserPic(token),
       AliUser.ApiUserVip(token),
-      // 登陆后自动签到
-      UserDAL.UserAutoSign(token),
       // 刷新Session
       AliUser.ApiSessionRefreshAccount(token, false),
       // 刷新OpenApiToken
-      AliUser.OpenApiTokenRefreshAccount(token, false)
+      AliUser.OpenApiTokenRefreshAccount(token, false),
+      // 登陆后自动签到
+      UserDAL.UserAutoSign(token)
     ])
-    // 保存登录信息
-    await DB.saveValueString('uiDefaultUser', token.user_id)
-    useUserStore().userLogin(token.user_id)
     window.WebUserToken({
       user_id: token.user_id,
       name: token.user_name,

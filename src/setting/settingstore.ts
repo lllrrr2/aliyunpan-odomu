@@ -551,6 +551,9 @@ const useSettingStore = defineStore('setting', {
         open_api_access_token: this.uiOpenApiAccessToken,
         open_api_refresh_token: this.uiOpenApiRefreshToken
       })
+      if (isEmpty(token.open_api_access_token)) {
+        token.open_api_expires_in = 0
+      }
       window.WebUserToken({
         user_id: token.user_id,
         name: token.user_name,
@@ -558,9 +561,6 @@ const useSettingStore = defineStore('setting', {
         open_api_access_token: token.open_api_access_token,
         refresh: true
       })
-      if (isEmpty(token.open_api_access_token)) {
-        token.open_api_expires_in = 0
-      }
       UserDAL.SaveUserToken(token)
     }
   }

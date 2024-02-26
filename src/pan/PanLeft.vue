@@ -164,6 +164,10 @@ const filterTreeData = computed(() => {
     if (useSettingStore().securityHidePicDrive && item.key === 'pic_root') {
       return false
     }
+    if (usePanTreeStore().backup_drive_id === usePanTreeStore().resource_drive_id
+        && item.key === 'resource_root') {
+      return false
+    }
     return true
   })
 })
@@ -252,8 +256,9 @@ const filterTreeData = computed(() => {
                @drop='onQuickDrop($event)'
                @dragover='onRowItemDragOver'
                @dragenter='onRowItemDragEnter'
-               @dragleave='onRowItemDragLeave'>把右侧的文件夹拖放到这里<br />创建快捷方式(Ctrl
-            1-9)
+               @dragleave='onRowItemDragLeave'>
+            把右侧的文件夹拖放到这里<br />
+            创建快捷方式(Ctrl 1-9)
           </div>
           <AntdTree
             :tabindex='-1'
@@ -264,7 +269,7 @@ const filterTreeData = computed(() => {
             :auto-expand-parent='false'
             show-icon
             :height='quickHeight'
-            :style="{ height: quickHeight + 'px', marginLeft: '-10px' }"
+            :style="{ height: quickHeight + 'px', marginLeft: '-18px' }"
             :item-height='30'
             :show-line='false'
             :open-animation='{}'
@@ -399,7 +404,7 @@ body[arco-theme='dark'] .ant-tree-node-selected .ant-tree-title > span {
   position: relative;
   padding-top: 16px;
   padding-bottom: 6px;
-  margin: auto;
+  margin-left: -18px;
   flex-shrink: 0;
   flex-grow: 0;
 }
@@ -430,7 +435,7 @@ body[arco-theme='dark'] .ant-tree-node-selected .ant-tree-title > span {
 }
 
 .colortree {
-  height: 246px;
+  height: 180px;
   flex-shrink: 0;
   flex-grow: 0;
 }
@@ -439,9 +444,9 @@ body[arco-theme='dark'] .ant-tree-node-selected .ant-tree-title > span {
   height: 50px;
   flex-shrink: 0;
   flex-grow: 0;
-  margin: auto;
   border: 3px dotted var(--color-border-2);
   display: flex;
+  margin-left: -18px;
   align-items: center;
   justify-content: center;
   color: var(--color-text-3);

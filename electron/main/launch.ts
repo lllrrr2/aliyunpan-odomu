@@ -78,7 +78,7 @@ export default class launch extends EventEmitter {
     app.commandLine.appendSwitch('disable-features', 'OutOfBlinkCors,SameSiteByDefaultCookies,CookiesWithoutSameSiteMustBeSecure,BlockInsecurePrivateNetworkRequests')
     app.commandLine.appendSwitch('ignore-connections-limit', 'bj29-enet.cn-beijing.data.alicloudccp.com,bj29-hz.cn-hangzhou.data.alicloudccp.com,bj29.cn-beijing.data.alicloudccp.com,alicloudccp.com,api.aliyundrive.com,aliyundrive.com,api.alipan.com,alipan.com')
     app.commandLine.appendSwitch('ignore-certificate-errors')
-    app.commandLine.appendSwitch('proxy-bypass-list', '<local>')
+    app.commandLine.appendSwitch('proxy-bypass-list', '*')
     app.commandLine.appendSwitch('wm-window-animations-disabled')
     app.commandLine.appendSwitch('enable-features', 'PlatformHEVCDecoderSupport')
     app.commandLine.appendSwitch('force_high_performance_gpu')
@@ -137,7 +137,7 @@ export default class launch extends EventEmitter {
           const shouldQQTv = details.url.indexOf('v.qq.com') > 0 || details.url.indexOf('video.qq.com') > 0
           const shouldAliPanOrigin =   details.url.indexOf('.aliyundrive.com') > 0 || details.url.indexOf('.alipan.com') > 0
           const shouldAliReferer = !shouldQQTv && !shouldBiliBili && !shouldGieeReferer && (!details.referrer || details.referrer.trim() === '' || /(\/localhost:)|(^file:\/\/)|(\/127.0.0.1:)/.exec(details.referrer) !== null)
-          const shouldToken = details.url.includes('aliyundrive') && details.url.includes('download')
+          const shouldToken = details.url.includes('alipan') && details.url.includes('download')
           const shouldOpenApiToken = details.url.includes('adrive/v1.0') || details.url.includes('adrive/v1.1')
 
           cb({

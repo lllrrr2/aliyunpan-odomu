@@ -138,6 +138,7 @@ onMounted(async () => {
   document.body.setAttribute('arco-theme', 'dark')
   setTimeout(() => {
     document.title = name
+    document.getElementById('artPlayer')?.focus()
   }, 1000)
   // 创建播放窗口
   await createVideo(name)
@@ -211,6 +212,18 @@ const initHotKey = (art: Artplayer) => {
         art.notice.show = `x${art.playbackRate.toFixed(1)} 倍速播放中`
       } else {
         longPressSpeed = art.playbackRate
+      }
+    }
+    if (art.playing && event) {
+      if (event.code === 'KeyP') {
+        art.screenshot()
+      }
+      if (event.code === 'KeyF') {
+        art.fullscreen = !art.fullscreen
+      }
+      if (event.code === 'KeyM') {
+        art.muted = !art.muted
+        art.notice.show = art.muted ? '开启静音' : '关闭静音'
       }
     }
   })

@@ -77,7 +77,7 @@ export default class AliHttp {
           return { code: 600, header: '', body: 'NetError 网络无法连接' } as IUrlRespData
         }
         let isNeedLog = true
-        if (status == 429) isNeedLog = false
+        if (status == 429 || status == 504 || status == 500) isNeedLog = false
         if (data && data.code) {
           let errCode = [
             'NotFound.File',
@@ -119,7 +119,7 @@ export default class AliHttp {
                       uiOpenApiAccessToken: '',
                       uiOpenApiRefreshToken: ''
                     })
-                    return { code: 403, header: '', body: '刷新OpenApiToken失败，【请重新填写授权码】' } as IUrlRespData
+                    return { code: 403, header: '', body: '获取OpenApiToken失败，【请重新填写授权码】' } as IUrlRespData
                   })
                 } else {
                   if (token.open_api_access_token) {

@@ -81,8 +81,8 @@ panfileStore.$subscribe((_m: any, state: PanFileState) => {
   }
   if (state.DriveID != DriveID) {
     DriveID = state.DriveID
-    isresourcedrive.value = inputselectType.value.includes('resource')
     inputselectType.value = GetDriveType(panTreeStore.user_id, DriveID).name
+    isresourcedrive.value = inputselectType.value.includes('resource')
   }
   const isTrash = panfileStore.SelectDirType == 'trash' || panfileStore.SelectDirType == 'recover'
   const selectItem = panfileStore.GetSelectedFirst()

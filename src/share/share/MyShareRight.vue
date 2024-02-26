@@ -407,7 +407,7 @@ const handleRightClick = (e: { event: MouseEvent; node: any }) => {
     </div>
     <div style="flex-grow: 1"></div>
     <div class="cell tiquma">提取码</div>
-    <div :class="'cell sharestate order ' + (myshareStore.ListOrderKey == 'state' ? 'active' : '')"
+    <div :class="'cell sharetime order ' + (myshareStore.ListOrderKey == 'state' ? 'active' : '')"
          @click="handleOrder('state')">
       有效期
       <i class="iconfont iconxia" />

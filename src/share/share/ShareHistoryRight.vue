@@ -329,17 +329,17 @@ const handleRightClick = (e: { event: MouseEvent; node: any }) => {
       </div>
     </div>
     <div style="flex-grow: 1"></div>
-    <div :class="'cell sharestate order ' + (shareHistoryStore.ListOrderKey == 'save' ? 'active' : '')"
+    <div :class="'cell count order ' + (shareHistoryStore.ListOrderKey == 'save' ? 'active' : '')"
          @click="handleOrder('save')">
       保存数
       <i class="iconfont iconxia" />
     </div>
-    <div :class="'cell sharestate order ' + (shareHistoryStore.ListOrderKey == 'preview' ? 'active' : '')"
+    <div :class="'cell count order ' + (shareHistoryStore.ListOrderKey == 'preview' ? 'active' : '')"
          @click="handleOrder('preview')">
       预览数
       <i class="iconfont iconxia" />
     </div>
-    <div :class="'cell sharestate order ' + (shareHistoryStore.ListOrderKey == 'browse' ? 'active' : '')"
+    <div :class="'cell count order ' + (shareHistoryStore.ListOrderKey == 'browse' ? 'active' : '')"
          @click="handleOrder('browse')">
       浏览数
       <i class="iconfont iconxia" />
@@ -354,7 +354,7 @@ const handleRightClick = (e: { event: MouseEvent; node: any }) => {
       修改时间
       <i class="iconfont iconxia" />
     </div>
-    <div :class="'cell sharetime'">
+    <div :class="'cell count'">
       创建者
     </div>
     <div class="cell pr"></div>

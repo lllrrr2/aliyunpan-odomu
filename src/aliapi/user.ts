@@ -56,6 +56,7 @@ export default class AliUser {
 
   static async ApiTokenRefreshAccount(token: ITokenInfo, showMessage: boolean, forceRefresh: boolean = false): Promise<boolean> {
     if (!token.refresh_token) return false
+    if (!forceRefresh && new Date(token.expire_time).getTime() >= Date.now()) return true
     if (forceRefresh) {
       TokenLockMap.delete(token.user_id)
       TokenReTimeMap.delete(token.user_id)
@@ -141,6 +142,10 @@ export default class AliUser {
         uiOpenApiRefreshToken: token.open_api_refresh_token
       })
       return true
+    }
+    if (forceRefresh) {
+      OpenApiTokenLockMap.delete(token.user_id)
+      OpenApiTokenReTimeMap.delete(token.user_id)
     }
     while (true) {
       const lock = OpenApiTokenLockMap.has(token.user_id)

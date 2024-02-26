@@ -14,10 +14,6 @@ export default defineConfig(({ command }) => {
 
   const isBuild = command === 'build'
   return {
-    define: {
-      // enable hydration mismatch details in production build
-      __VUE_PROD_HYDRATION_MISMATCH_DETAILS__: 'true'
-    },
     build: {
       rollupOptions: {
         output: {
@@ -92,7 +88,6 @@ export default defineConfig(({ command }) => {
           host: url.hostname,
           port: +url.port
         }
-      })(),
-    clearScreen: false
+      })()
   }
 })
