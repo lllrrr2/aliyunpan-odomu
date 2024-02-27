@@ -202,28 +202,18 @@ const initHotKey = (art: Artplayer) => {
     art.playbackRate = playbackRate
   })
   art.events.proxy(document, 'keydown', (event: any) => {
-    if (art.playing && event && (event.key === 'ArrowRight' || event.code === 'KeyD')) {
-      if (event.repeat) {
-        // 按下右箭头键，阻止默认行为
-        event.stopPropagation()
-        event.preventDefault()
-        // 设置播放速度
-        art.playbackRate = art.storage.get('longPressSpeed') || 2
-        art.notice.show = `x${art.playbackRate.toFixed(1)} 倍速播放中`
-      } else {
-        longPressSpeed = art.playbackRate
-      }
-    }
-    if (art.playing && event) {
-      if (event.code === 'KeyP') {
-        art.screenshot()
-      }
-      if (event.code === 'KeyF') {
-        art.fullscreen = !art.fullscreen
-      }
-      if (event.code === 'KeyM') {
-        art.muted = !art.muted
-        art.notice.show = art.muted ? '开启静音' : '关闭静音'
+    if (!art.video.paused && !art.video.ended && art.video.readyState > art.video.HAVE_CURRENT_DATA) {
+      if (event && (event.key === 'ArrowRight' || event.code === 'KeyD')) {
+        if (event.repeat) {
+          // 按下右箭头键，阻止默认行为
+          event.stopPropagation()
+          event.preventDefault()
+          // 设置播放速度
+          art.playbackRate = art.storage.get('longPressSpeed') || 2
+          art.notice.show = `x${art.playbackRate.toFixed(1)} 倍速播放中`
+        } else {
+          longPressSpeed = art.playbackRate
+        }
       }
     }
   })
@@ -361,6 +351,9 @@ const refreshSetting = async (art: Artplayer, item: any) => {
       .then((success) => {
         usePanFileStore().mColorFiles('ce74c3c', success)
       })
+  }
+  if (onlineSubData.dataUrl) {
+    URL.revokeObjectURL(onlineSubData.dataUrl)
   }
   onlineSubData.data = ''
   onlineSubData.type = ''
@@ -674,7 +667,7 @@ const getVideoCursor = async (art: Artplayer, play_cursor?: number) => {
   }
 }
 
-let onlineSubData: any = { name: '', data: '', type: '' }
+let onlineSubData: any = { name: '', data: '', dataUrl: '', type: '' }
 const loadOnlineSub = async (art: Artplayer, item: any) => {
   const data = await AliFile.ApiFileDownText(pageVideo.user_id, pageVideo.drive_id, item.file_id, -1, -1, item.encType)
   if (data) {
@@ -688,16 +681,15 @@ const loadOnlineSub = async (art: Artplayer, item: any) => {
     }
     onlineSubData.name = item.name
     onlineSubData.ext = item.ext
-    let blobUrl = URL.createObjectURL(
+    onlineSubData.dataUrl = URL.createObjectURL(
       new Blob([onlineSubData.data], { type: item.ext })
     )
     let type = onlineSubData.ext === 'ass' ? 'libass' : onlineSubData.ext
-    await art.subtitle.switch(blobUrl, {
+    await art.subtitle.switch(onlineSubData.dataUrl, {
       name: onlineSubData.name,
       type: type,
       escape: false
     })
-    type != 'libass' && URL.revokeObjectURL(blobUrl)
     art.subtitle.show = true
     art.notice.show = `切换字幕：${item.name}`
     return item.html
@@ -728,23 +720,25 @@ const getSubTitleList = async (art: Artplayer) => {
   if (subSelector.length === 0) {
     subSelector.push({ html: '无可用字幕', name: '', url: '', default: true })
   } else {
-    const fileName = pageVideo.file_name
-    // 自动加载同名字幕
-    const similarity = subSelector.reduce((min, item, index) => {
-      // 莱文斯坦距离算法(计算相似度)
-      const distance = levenshtein.get(fileName, item.html, { useCollator: true })
-      if (distance < min.distance) {
-        min.distance = distance
-        min.index = index
-      }
-      return min
-    }, { distance: Infinity, index: -1 })
     let subtitleSize = art.storage.get('subtitleSize') + 'px'
-    if (similarity.index !== -1) {
-      subSelector.forEach(v => v.default = false)
-      subSelector[similarity.index].default = true
-      art.subtitle.style('fontSize', subtitleSize)
-      await loadOnlineSub(art, subSelector[similarity.index])
+    if (onlineSubSelector.length > 0) {
+      const fileName = pageVideo.file_name
+      // 自动加载同名字幕
+      const similarity = subSelector.reduce((min, item, index) => {
+        // 莱文斯坦距离算法(计算相似度)
+        const distance = levenshtein.get(fileName, item.html, { useCollator: true })
+        if (distance < min.distance) {
+          min.distance = distance
+          min.index = index
+        }
+        return min
+      }, { distance: Infinity, index: -1 })
+      if (similarity.index !== -1) {
+        subSelector.forEach(v => v.default = false)
+        subSelector[similarity.index].default = true
+        art.subtitle.style('fontSize', subtitleSize)
+        await loadOnlineSub(art, subSelector[similarity.index])
+      }
     } else {
       art.subtitle.url = embedSubSelector[0].url
       art.subtitle.style('fontSize', subtitleSize)
@@ -817,16 +811,16 @@ const getSubTitleList = async (art: Artplayer) => {
             data = simpleToTradition(onlineSubData.data)
             tips = '字幕：简体转繁体'
           }
-          let blobUrl = URL.createObjectURL(
+          URL.revokeObjectURL(onlineSubData.dataUrl)
+          onlineSubData.dataUrl = URL.createObjectURL(
             new Blob([data], { type: onlineSubData.ext })
           )
           let type = onlineSubData.ext === 'ass' ? ' libass' : onlineSubData.ext
-          await art.subtitle.switch(blobUrl, {
+          await art.subtitle.switch(onlineSubData.dataUrl, {
             name: onlineSubData.name,
             type: type,
             escape: false
           })
-          type != 'libass' && URL.revokeObjectURL(blobUrl)
           art.subtitle.show = true
           art.notice.show = tips
         }
@@ -906,6 +900,9 @@ const handleTop = (_e: any) => {
 }
 
 onBeforeUnmount(() => {
+  if (onlineSubData.dataUrl) {
+    URL.revokeObjectURL(onlineSubData.dataUrl)
+  }
   onlineSubData.name = ''
   onlineSubData.data = ''
   onlineSubData.type = ''
