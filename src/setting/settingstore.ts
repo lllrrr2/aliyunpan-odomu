@@ -1,11 +1,9 @@
 import { defineStore } from 'pinia'
 import DebugLog from '../utils/debuglog'
 import { getUserDataPath } from '../utils/electronhelper'
-import { useAppStore, useUserStore } from '../store'
+import { useAppStore } from '../store'
 import PanDAL from '../pan/pandal'
 import { existsSync, readFileSync, writeFileSync } from 'fs'
-import UserDAL from '../user/userdal'
-import { isEmpty } from 'lodash'
 
 declare type ProxyType = 'none' | 'http' | 'https' | 'socks4' | 'socks4a' | 'socks5' | 'socks5h'
 declare type VideoQuality = 'Origin' | 'QHD' | 'FHD' | 'HD' | 'SD' | 'LD'
@@ -23,7 +21,6 @@ export interface SettingState {
   uiUpdateProxyUrl: string
 
   // 账户设置
-  uiEnableOpenApi: boolean
   uiOpenApi: string
   uiOpenApiClientId: string
   uiOpenApiClientSecret: string
@@ -32,8 +29,6 @@ export interface SettingState {
   uiOpenApiRedirectUri: string
   uiOpenApiCodeChallenge: string
   uiOpenApiCodeChallengeMethod: string
-  uiOpenApiAccessToken: string
-  uiOpenApiRefreshToken: string
 
   // 安全设置
   securityEncType: string
@@ -153,7 +148,6 @@ const setting: SettingState = {
   uiUpdateProxyUrl: 'https://mirror.ghproxy.com',
 
   // 账户设置
-  uiEnableOpenApi: false,
   uiOpenApi: 'inputToken',
   uiOpenApiClientId: '',
   uiOpenApiClientSecret: '',
@@ -162,8 +156,6 @@ const setting: SettingState = {
   uiOpenApiRedirectUri: 'oob',
   uiOpenApiCodeChallenge: '11111',
   uiOpenApiCodeChallengeMethod: 'plain',
-  uiOpenApiAccessToken: '',
-  uiOpenApiRefreshToken: '',
 
   // 安全设置
   securityEncType: 'aesctr',
@@ -291,7 +283,6 @@ function _loadSetting(val: any) {
   setting.uiUpdateProxyUrl = defaultString(val.uiUpdateProxyUrl, 'https://mirror.ghproxy.com')
 
   // 账户设置
-  setting.uiEnableOpenApi = defaultBool(val.uiEnableOpenApi, false)
   setting.uiOpenApi = defaultValue(val.uiOpenApi, ['qrCode', 'inputToken', 'pkce'])
   setting.uiOpenApiClientId = defaultString(val.uiOpenApiClientId, '')
   setting.uiOpenApiClientSecret = defaultString(val.uiOpenApiClientSecret, '')
@@ -300,8 +291,6 @@ function _loadSetting(val: any) {
   setting.uiOpenApiRedirectUri = defaultString(val.uiOpenApiRedirectUri, 'oob')
   setting.uiOpenApiCodeChallenge = defaultString(val.uiOpenApiCodeChallenge, '11111')
   setting.uiOpenApiCodeChallengeMethod = defaultValue(val.uiOpenApiCodeChallengeMethod, ['plain', 'S256'])
-  setting.uiOpenApiAccessToken = defaultString(val.uiOpenApiAccessToken, '')
-  setting.uiOpenApiRefreshToken = defaultString(val.uiOpenApiRefreshToken, '')
 
   // 安全设置
   setting.securityEncType = defaultValue(val.securityEncType, ['aesctr', 'rc4md5'])
@@ -489,11 +478,6 @@ const useSettingStore = defineStore('setting', {
       if (Object.hasOwn(partial, 'uiLaunchStart')) {
         window.WebToElectron({ cmd: { launchStart: this.uiLaunchStart, launchStartShow: this.uiLaunchStartShow } })
       }
-      if (Object.hasOwn(partial, 'uiEnableOpenApi')
-        || Object.hasOwn(partial, 'uiOpenApiAccessToken')
-        || Object.hasOwn(partial, 'uiOpenApiRefreshToken')) {
-        await this.updateOpenApiToken()
-      }
       if (Object.hasOwn(partial, 'uiShowPanMedia')
         || Object.hasOwn(partial, 'uiFolderSize')
         || Object.hasOwn(partial, 'uiFileOrderDuli')) {
@@ -542,26 +526,6 @@ const useSettingStore = defineStore('setting', {
         }
       }
       window.WebSetProxy({ proxyUrl: proxy })
-    },
-    async updateOpenApiToken() {
-      const token = await UserDAL.GetUserTokenFromDB(useUserStore().user_id)
-      if (!token) return
-      Object.assign(token, {
-        open_api_enable: this.uiEnableOpenApi,
-        open_api_access_token: this.uiOpenApiAccessToken,
-        open_api_refresh_token: this.uiOpenApiRefreshToken
-      })
-      if (isEmpty(token.open_api_access_token)) {
-        token.open_api_expires_in = 0
-      }
-      window.WebUserToken({
-        user_id: token.user_id,
-        name: token.user_name,
-        access_token: token.access_token,
-        open_api_access_token: token.open_api_access_token,
-        refresh: true
-      })
-      UserDAL.SaveUserToken(token)
     }
   }
 })

@@ -14,8 +14,7 @@ export default class AliFile {
     if (!user_id || !drive_id || !file_id) return undefined
     let url = ''
     let postData = {}
-    let need_open_api = useSettingStore().uiEnableOpenApi && !ispic
-    if (need_open_api) {
+    if (!ispic) {
       url = 'adrive/v1.0/openFile/get'
       postData = {
         drive_id: drive_id,
@@ -36,7 +35,7 @@ export default class AliFile {
         video_thumbnail_process: 'video/snapshot,t_106000,f_jpg,ar_auto,m_fast,w_400'
       }
     }
-    const resp = await AliHttp.Post(url, postData, user_id, '', need_open_api)
+    const resp = await AliHttp.Post(url, postData, user_id, '')
 
     if (AliHttp.IsSuccess(resp.code)) {
       let fileInfo = resp.body as IAliFileItem
@@ -96,7 +95,7 @@ export default class AliFile {
     let url = ''
     // 处理OpenApi无法访问相册
     let isPic = GetDriveType(user_id, drive_id).name === 'pic'
-    if (useSettingStore().uiEnableOpenApi && !isPic) {
+    if (!isPic) {
       url = 'adrive/v1.0/openFile/getDownloadUrl'
     } else {
       url = 'v2/file/get_download_url'
@@ -104,12 +103,12 @@ export default class AliFile {
     const postData: any = {
       drive_id: drive_id,
       file_id: file_id,
-      expire_sec: useSettingStore().uiEnableOpenApi ? '14400' : expire_sec
+      expire_sec: expire_sec
     }
     if (isPic) {
       delete postData.expire_sec
     }
-    const resp = await AliHttp.Post(url, postData, user_id, '', true)
+    const resp = await AliHttp.Post(url, postData, user_id, '')
     if (AliHttp.IsSuccess(resp.code)) {
       data.url = resp.body.cdn_url || resp.body.url
       data.size = resp.body.size
@@ -132,7 +131,8 @@ export default class AliFile {
   static async ApiVideoPreviewUrl(user_id: string, drive_id: string, file_id: string): Promise<IVideoPreviewUrl | string> {
     if (!user_id || !drive_id || !file_id) return '参数错误'
     let url = ''
-    if (useSettingStore().uiEnableOpenApi) {
+    let need_open_api = true
+    if (need_open_api) {
       url = 'adrive/v1.0/openFile/getVideoPreviewPlayInfo'
     } else {
       url = 'v2/file/get_video_preview_play_info'
@@ -145,7 +145,7 @@ export default class AliFile {
       get_subtitle_info: true,
       url_expire_sec: 14400
     }
-    const resp = await AliHttp.Post(url, postData, user_id, '', true)
+    const resp = await AliHttp.Post(url, postData, user_id, '')
 
     if (resp.body.code == 'VideoPreviewWaitAndRetry') {
       return '视频正在转码中，稍后重试'
@@ -524,7 +524,8 @@ export default class AliFile {
     if (!useSettingStore().uiAutoPlaycursorVideo) return
     if (!user_id || !drive_id || !file_id) return undefined
     let url = ''
-    if (useSettingStore().uiEnableOpenApi) {
+    let need_open_api = true
+    if (need_open_api) {
       url = 'adrive/v1.0/openFile/video/updateRecord'
     } else {
       url = 'adrive/v2/video/update'

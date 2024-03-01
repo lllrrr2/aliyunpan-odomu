@@ -285,9 +285,8 @@ export default class AliDirFileList {
   private static async _ApiDirFileListCount(dir: IAliFileResp, dirID: string, type: string): Promise<number> {
     let isPic = dirID.includes('pic')
     type = isPic ? 'file' : type
-    let need_open_api = useSettingStore().uiEnableOpenApi && !isPic
     let url = ''
-    if (need_open_api) {
+    if (!isPic) {
       url = 'adrive/v1.0/openFile/search'
     } else {
       url = 'adrive/v3/file/search'
@@ -303,7 +302,7 @@ export default class AliDirFileList {
       query: 'parent_file_id="' + parent_file_id + '"' + (type ? ' and type="' + type + '"' : ''),
       return_total_count: true
     }
-    if (need_open_api) {
+    if (!isPic) {
       delete postData.all
       delete postData.url_expire_sec
     }
@@ -599,7 +598,7 @@ export default class AliDirFileList {
   }
 
   static async _ApiVideoListRecent(orderby: string, order: string, dir: IAliFileResp, pageIndex: number): Promise<boolean> {
-    let need_open_api = useSettingStore().uiEnableOpenApi
+    let need_open_api = true
     let url = ''
     if (need_open_api) {
       url = 'adrive/v1.1/openFile/video/recentList'
@@ -607,7 +606,7 @@ export default class AliDirFileList {
       url = 'adrive/v2/video/recentList'
     }
     const postData = {}
-    const resp = await AliHttp.Post(url, postData, dir.m_user_id, '', need_open_api)
+    const resp = await AliHttp.Post(url, postData, dir.m_user_id, '')
     return AliDirFileList._FileListOnePage(orderby, order, dir, resp, pageIndex)
   }
 

@@ -164,8 +164,7 @@ const filterTreeData = computed(() => {
     if (useSettingStore().securityHidePicDrive && item.key === 'pic_root') {
       return false
     }
-    if (usePanTreeStore().backup_drive_id === usePanTreeStore().resource_drive_id
-        && item.key === 'resource_root') {
+    if (!usePanTreeStore().resource_drive_id && item.key === 'resource_root') {
       return false
     }
     return true

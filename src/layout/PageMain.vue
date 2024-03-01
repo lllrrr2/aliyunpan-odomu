@@ -44,6 +44,29 @@ const handlePanVisible = () => {
   panVisible.value = !panVisible.value
 }
 
+const handleThemeClick = (val: any) => {
+  if (appStore.appTheme == 'system') {
+    if (appStore.appDark) {
+      useSettingStore().updateStore({ uiTheme: 'light' })
+    } else {
+      useSettingStore().updateStore({ uiTheme: 'dark' })
+    }
+  } else if (appStore.appTheme === 'dark') {
+    useSettingStore().updateStore({ uiTheme: 'light' })
+  } else if (appStore.appTheme === 'light') {
+    useSettingStore().updateStore({ uiTheme: 'dark' })
+  }
+}
+const themeTitle = computed(() => {
+  if (appStore.appTheme == 'system') {
+    return '自动'
+  } else if (appStore.appTheme === 'light') {
+    return '浅色'
+  } else if (appStore.appTheme === 'dark') {
+    return '黑色'
+  }
+})
+
 const handleHideClick = (_e: any) => {
   if (window.WebToElectron) window.WebToElectron({ cmd: useSettingStore().uiExitOnClose ? 'exit' : 'close' })
 }
@@ -196,6 +219,11 @@ const handleCheckVer = () => {
         <ShutDown />
         <UserInfo />
         <UserLogin />
+        <a-button type='text' tabindex='-1' style="margin-right: 5px" :title='themeTitle' @click="handleThemeClick">
+          <i class='iconfont iconnight'
+             v-if="appStore.appTheme === 'dark' || (appStore.appTheme == 'system' && appStore.appDark)"></i>
+          <i class='iconfont iconday' v-else></i>
+        </a-button>
         <a-button type='text' tabindex='-1' title='设置 Alt+6' :class="appStore.appTab == 'setting' ? 'active' : ''"
                   @click="appStore.toggleTab('setting')">
           <i class='iconfont iconsetting'></i>
@@ -247,7 +275,7 @@ const handleCheckVer = () => {
         <div class='footinfo'>
           {{ footStore.GetSpaceInfo }}
         </div>
-        <div class='flexauto'/>
+        <div class='flexauto' />
         <div :style="{ display: 'flex', paddingRight: '16px', flexShrink: 0, flexGrow: 0 }">
           <div class='flexauto'></div>
           <div class='footinfo'>

@@ -51,7 +51,6 @@ const handleAriaConn = () => {
 
     AriaTest(settingStore.ariaHttps, host, port, secret).then((issuccess: boolean) => {
       if (issuccess) {
-
         settingStore.updateStore({ ariaState: 'remote' })
         AriaChangeToRemote().then((isOnline: boolean | undefined) => {
           settingStore.ariaLoading = false
@@ -64,7 +63,6 @@ const handleAriaConn = () => {
           }
         })
       } else {
-
         settingStore.ariaLoading = false
       }
     })

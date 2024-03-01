@@ -7,8 +7,6 @@ import DebugLog from '../utils/debuglog'
 import { IAliUserDriveCapacity, IAliUserDriveDetails } from './models'
 import { GetSignature } from './utils'
 import getUuid from 'uuid-by-string'
-import { useSettingStore } from '../store'
-import { isEmpty } from 'lodash'
 
 export const TokenReTimeMap = new Map<string, number>()
 export const TokenLockMap = new Map<string, number>()
@@ -122,27 +120,8 @@ export default class AliUser {
 
 
   static async OpenApiTokenRefreshAccount(token: ITokenInfo, showMessage: boolean, forceRefresh: boolean = false): Promise<boolean> {
-    const isPKCE = useSettingStore().uiOpenApi === 'pkce'
-    if (!token.open_api_enable || (isEmpty(token.open_api_refresh_token) && !isPKCE)) {
-      await useSettingStore().updateStore({
-        uiEnableOpenApi: false,
-        uiOpenApiAccessToken: token.open_api_access_token,
-        uiOpenApiRefreshToken: token.open_api_refresh_token
-      })
-      return false
-    }
-    if (isEmpty(token.open_api_access_token)) {
-      token.open_api_expires_in = 0
-    }
     // 防止重复刷新
-    if (!forceRefresh && token.open_api_expires_in >= Date.now() || isPKCE) {
-      await useSettingStore().updateStore({
-        uiEnableOpenApi: token.open_api_enable,
-        uiOpenApiAccessToken: token.open_api_access_token,
-        uiOpenApiRefreshToken: token.open_api_refresh_token
-      })
-      return true
-    }
+    if (!forceRefresh && token.open_api_expires_in >= Date.now())  return true
     if (forceRefresh) {
       OpenApiTokenLockMap.delete(token.user_id)
       OpenApiTokenReTimeMap.delete(token.user_id)
@@ -159,15 +138,8 @@ export default class AliUser {
       return true
     }
     let url = 'https://openapi.alipan.com/oauth/access_token'
-    let client_id = ''
-    let client_secret = ''
-    if (useSettingStore().uiOpenApiOauthUrl !== ''
-      && useSettingStore().uiOpenApi === 'inputToken') {
-      url = useSettingStore().uiOpenApiOauthUrl
-    } else {
-      client_id = useSettingStore().uiOpenApiClientId
-      client_secret = useSettingStore().uiOpenApiClientSecret
-    }
+    let client_id = 'c58bfbdd05954e8a9ec5d4d58b1e9de6'
+    let client_secret = '7234e9215d20426dbee11dfadc17b49a'
     const postData = {
       refresh_token: token.open_api_refresh_token,
       grant_type: 'refresh_token',
@@ -179,11 +151,6 @@ export default class AliUser {
     if (AliHttp.IsSuccess(resp.code)) {
       OpenApiTokenReTimeMap.set(token.user_id, Date.now())
       const { access_token, refresh_token, token_type, expires_in } = resp.body
-      // 刷新设置
-      await useSettingStore().updateStore({
-        uiOpenApiAccessToken: access_token,
-        uiOpenApiRefreshToken: refresh_token
-      })
       token.open_api_access_token = access_token
       token.open_api_refresh_token = refresh_token
       token.open_api_expires_in = Date.now() + expires_in * 1000
@@ -201,25 +168,22 @@ export default class AliUser {
         DebugLog.mSaveWarning('OpenApiTokenRefreshAccount err=' + (resp.code || '') + ' ' + (resp.body?.code || ''), resp.body)
       }
       if (showMessage) {
-        if (!token.open_api_refresh_token) {
-          message.error('OpenApiRefreshToken失效或未填写，请检查配置')
-        } else if (resp.code === 429 || resp.body?.code === 'Too Many Requests') {
-          message.error('刷新OpenApiAccessToken次数过多，请稍后再试')
-        } else {
-          message.error('刷新账号[' + token.user_name + '] OpenApiToken 失败, 请检查配置')
-        }
+        message.error('刷新账号[' + token.user_name + '] token 失败,需要重新登录')
+        UserDAL.UserLogOff(token.user_id)
+      } else {
+        UserDAL.UserClearFromDB(token.user_id)
       }
     }
     return false
   }
 
-  static async OpenApiQrCodeUrl(token: ITokenInfo): Promise<any> {
+  static async OpenApiQrCodeUrl(client_id: string, client_secret: string, width: number = 348, height: number = 348): Promise<any> {
     const postData = {
-      client_id: useSettingStore().uiOpenApiClientId,
-      client_secret: useSettingStore().uiOpenApiClientSecret,
+      client_id: client_id,
+      client_secret: client_secret,
       scopes: ['user:base', 'file:all:read', 'file:all:write'],
-      width: 348,
-      height: 348
+      width: width,
+      height: height
     }
     const url = 'https://openapi.alipan.com/oauth/authorize/qrcode'
     const resp = await AliHttp.Post(url, postData, '', '')
@@ -238,13 +202,13 @@ export default class AliUser {
         case 'WaitLogin':
           return { type: 'info', tips: '状态：等待扫码登录' }
         case 'ScanSuccess':
-          return { type: 'warning', tips: '状态：扫码成功' }
+          return { type: 'warning', tips: '状态：扫码成功，点击允许' }
         case 'LoginSuccess':
           return { type: 'success', tips: '状态：登录成功' }
         case 'QRCodeExpired':
-          return { type: 'error', tips: '状态：二维码超时' }
+          return { type: 'error', tips: '状态：二维码过期，点击刷新' }
         default:
-          return { type: 'error', tips: '状态：请重新刷新二维码' }
+          return { type: 'error', tips: '状态：二维码过期，点击刷新' }
       }
     }
     if (AliHttp.IsSuccess(resp.code)) {
@@ -262,43 +226,22 @@ export default class AliUser {
     return false
   }
 
-  static async OpenApiLoginByAuthCode(token: ITokenInfo, authCode: string): Promise<any> {
-    if (!authCode) {
-      message.error('获取OpenApi授权码失败，请检查配置')
-      return false
-    }
+  static async OpenApiLoginByAuthCode(token: ITokenInfo, client_id: string, client_secret: string, authCode: string): Promise<any> {
     // 构造请求体
     const postData: any = {
       code: authCode,
       grant_type: 'authorization_code',
-      client_id: useSettingStore().uiOpenApiClientId,
-      client_secret: useSettingStore().uiOpenApiClientSecret
-    }
-    // PKCE模式
-    if (useSettingStore().uiOpenApi === 'pkce') {
-      postData.code_verifier = useSettingStore().uiOpenApiCodeChallenge
-      delete postData.client_secret
+      client_id: client_id,
+      client_secret: client_secret
     }
     const url = 'https://openapi.alipan.com/oauth/access_token'
     const resp = await AliHttp.Post(url, postData, '', '')
     if (AliHttp.IsSuccess(resp.code)) {
       const { access_token, refresh_token, token_type, expires_in } = resp.body
-      // 更新token
-      await useSettingStore().updateStore({
-        uiOpenApiAccessToken: access_token,
-        uiOpenApiRefreshToken: refresh_token
-      })
+      token.open_api_token_type = token_type
       token.open_api_access_token = access_token
       token.open_api_refresh_token = refresh_token
       token.open_api_expires_in = Date.now() + expires_in * 1000
-      UserDAL.SaveUserToken(token)
-      window.WebUserToken({
-        user_id: token.user_id,
-        name: token.user_name,
-        access_token: token.access_token,
-        open_api_access_token: token.open_api_access_token,
-        refresh: true
-      })
       return true
     } else {
       if (resp.body?.code === 'InvalidCode') {
@@ -331,14 +274,19 @@ export default class AliUser {
 
   static async ApiUserDriveInfo(token: ITokenInfo): Promise<boolean> {
     if (!token.user_id) return false
-    const url = 'https://user.alipan.com/v2/user/get'
-    const postData = ''
-    const resp = await AliHttp.Post(url, postData, token.user_id, '')
+    let url = ''
+    let need_open_api = false
+    if (need_open_api) {
+      url = 'https://openapi.alipan.com/adrive/v1.0/user/getDriveInfo'
+    } else {
+      url = 'https://user.alipan.com/v2/user/get'
+    }
+    const resp = await AliHttp.Post(url, {}, token.user_id, '')
     if (AliHttp.IsSuccess(resp.code)) {
       token.default_drive_id = resp.body.default_drive_id
-      token.backup_drive_id = resp.body.backup_drive_id
+      token.backup_drive_id = resp.body.backup_drive_id || resp.body.default_drive_id
       token.resource_drive_id = resp.body.resource_drive_id
-      token.sbox_drive_id = resp.body.sbox_drive_id
+      token.sbox_drive_id = resp.body.sbox_drive_id || ''
       return true
     } else if (!AliHttp.HttpCodeBreak(resp.code)) {
       DebugLog.mSaveWarning('ApiUserDriveInfo err=' + (resp.code || ''), resp.body)

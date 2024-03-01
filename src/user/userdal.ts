@@ -75,7 +75,7 @@ export default class UserDAL {
       access_token: '',
       refresh_token: '',
 
-      open_api_enable: false,
+      open_api_token_type: '',
       open_api_access_token: '',
       open_api_refresh_token: '',
       open_api_expires_in: 0,
@@ -218,11 +218,6 @@ export default class UserDAL {
       }
     }
     if (!newUserID) {
-      await useSettingStore().updateStore({
-        uiEnableOpenApi: false,
-        uiOpenApiAccessToken: '',
-        uiOpenApiRefreshToken: ''
-      })
       useUserStore().userLogOff()
       usePanTreeStore().$reset()
       usePanFileStore().$reset()

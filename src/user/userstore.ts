@@ -8,7 +8,7 @@ export interface ITokenInfo {
   access_token: string
   refresh_token: string
 
-  open_api_enable: boolean
+  open_api_token_type: string
   open_api_access_token: string
   open_api_refresh_token: string
   open_api_expires_in: number

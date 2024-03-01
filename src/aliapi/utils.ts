@@ -26,8 +26,6 @@ export function GetDriveID(user_id: string, drive: string): string {
       return token.pic_drive_id
     } else if (drive.includes('safe')) {
       return token.default_sbox_drive_id
-    } else {
-      return token.default_drive_id
     }
   }
   return ''
@@ -46,10 +44,10 @@ export function GetDriveType(user_id: string, drive_id: string): any {
       case token.default_sbox_drive_id:
         return { title: '安全盘', name: 'safe', key: 'safe_root' }
       default:
-        return { title: '根路径', name: 'backup', key: 'backup_root' }
+        return { title: '备份盘', name: 'backup', key: 'backup_root' }
     }
   }
-  return { title: '根路径', name: 'backup', key: 'backup_root' }
+  return { title: '备份盘', name: 'backup', key: 'backup_root' }
 }
 
 export function GetSignature(nonce: number, user_id: string, deviceId: string) {
