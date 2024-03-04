@@ -21,14 +21,9 @@ export interface SettingState {
   uiUpdateProxyUrl: string
 
   // 账户设置
-  uiOpenApi: string
+  uiEnableOpenApiType: string
   uiOpenApiClientId: string
   uiOpenApiClientSecret: string
-  uiOpenApiOauthUrl: string
-  uiOpenApiAuthCode: string
-  uiOpenApiRedirectUri: string
-  uiOpenApiCodeChallenge: string
-  uiOpenApiCodeChallengeMethod: string
 
   // 安全设置
   securityEncType: string
@@ -148,14 +143,9 @@ const setting: SettingState = {
   uiUpdateProxyUrl: 'https://mirror.ghproxy.com',
 
   // 账户设置
-  uiOpenApi: 'inputToken',
+  uiEnableOpenApiType: 'inline',
   uiOpenApiClientId: '',
   uiOpenApiClientSecret: '',
-  uiOpenApiOauthUrl: 'https://api.xhofe.top/alist/ali_open/token',
-  uiOpenApiAuthCode: '',
-  uiOpenApiRedirectUri: 'oob',
-  uiOpenApiCodeChallenge: '11111',
-  uiOpenApiCodeChallengeMethod: 'plain',
 
   // 安全设置
   securityEncType: 'aesctr',
@@ -283,14 +273,9 @@ function _loadSetting(val: any) {
   setting.uiUpdateProxyUrl = defaultString(val.uiUpdateProxyUrl, 'https://mirror.ghproxy.com')
 
   // 账户设置
-  setting.uiOpenApi = defaultValue(val.uiOpenApi, ['qrCode', 'inputToken', 'pkce'])
+  setting.uiEnableOpenApiType = defaultValue(val.uiEnableOpenApiType, ['inline', 'custom'])
   setting.uiOpenApiClientId = defaultString(val.uiOpenApiClientId, '')
   setting.uiOpenApiClientSecret = defaultString(val.uiOpenApiClientSecret, '')
-  setting.uiOpenApiOauthUrl = defaultString(val.uiOpenApiOauthUrl, 'https://api.xhofe.top/alist/ali_open/token')
-  setting.uiOpenApiAuthCode = defaultString(val.uiOpenApiAuthCode, '')
-  setting.uiOpenApiRedirectUri = defaultString(val.uiOpenApiRedirectUri, 'oob')
-  setting.uiOpenApiCodeChallenge = defaultString(val.uiOpenApiCodeChallenge, '11111')
-  setting.uiOpenApiCodeChallengeMethod = defaultValue(val.uiOpenApiCodeChallengeMethod, ['plain', 'S256'])
 
   // 安全设置
   setting.securityEncType = defaultValue(val.securityEncType, ['aesctr', 'rc4md5'])
@@ -506,8 +491,7 @@ const useSettingStore = defineStore('setting', {
 
       if (this.proxyType.startsWith('http')) {
         const auth = this.proxyUserName && this.proxyPassword ? this.proxyUserName + ':' + this.proxyPassword : ''
-        const proxy = this.proxyType + '://' + (auth ? auth + '@' : '') + this.proxyHost + ':' + this.proxyPort
-        return proxy
+        return this.proxyType + '://' + (auth ? auth + '@' : '') + this.proxyHost + ':' + this.proxyPort
       }
       return {
         hostname: this.proxyHost,

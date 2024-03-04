@@ -83,7 +83,9 @@ const playByHls = (video: HTMLMediaElement, url: string, art: Artplayer) => {
   if (HlsJs.isSupported()) {
     // @ts-ignore
     if (art.hls) art.hls.destroy()
-    const hls = new HlsJs()
+    const hls = new HlsJs({
+      maxBufferLength: 100
+    })
     hls.detachMedia()
     hls.loadSource(url)
     hls.attachMedia(video)
@@ -532,7 +534,7 @@ const getVideoInfo = async (art: Artplayer) => {
       selector: data.qualities,
       onSelect: async (item: selectorItem) => {
         if (item.html === '原画') {
-          let currentTime = art.currentTime
+          let currentTime = art.video.currentTime
           if (art.hls) {
             art.hls.detachMedia()
             art.hls.destroy()

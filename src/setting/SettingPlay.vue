@@ -35,11 +35,11 @@ const playerType = computed(() => {
   return settingStore.uiVideoPlayerPath.toLowerCase()
 })
 
-const handleClearOutDateDanmuCache = ()=> {
+const handleClearOutDateDanmuCache = () => {
   cache.clearOutDate()
   message.success('清理弹幕搜索缓存成功')
 }
-const handleClearDanmuCache = ()=> {
+const handleClearDanmuCache = () => {
   cache.clearSelf()
   message.success('清理弹幕搜索缓存成功')
 }
@@ -340,7 +340,9 @@ const handleClearDanmuCache = ()=> {
       <a-popover position='bottom'>
         <i class='iconfont iconbulb' />
         <template #content>
-          <div style='min-width: 400px'>只有使用 <span class='opblue'>内置网页播放器或者MPV播放器</span> 时才支持同步 播放进度</div>
+          <div style='min-width: 400px'>只有使用 <span class='opblue'>内置网页播放器或者MPV播放器</span> 时才支持同步
+            播放进度
+          </div>
         </template>
       </a-popover>
     </div>

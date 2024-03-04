@@ -7,6 +7,7 @@ import DebugLog from '../utils/debuglog'
 import { IAliUserDriveCapacity, IAliUserDriveDetails } from './models'
 import { GetSignature } from './utils'
 import getUuid from 'uuid-by-string'
+import { useSettingStore } from '../store'
 
 export const TokenReTimeMap = new Map<string, number>()
 export const TokenLockMap = new Map<string, number>()
@@ -120,8 +121,9 @@ export default class AliUser {
 
 
   static async OpenApiTokenRefreshAccount(token: ITokenInfo, showMessage: boolean, forceRefresh: boolean = false): Promise<boolean> {
+    if (!token.open_api_refresh_token) return false
+    if (!forceRefresh && new Date(token.open_api_expires_in).getTime() >= Date.now()) return true
     // 防止重复刷新
-    if (!forceRefresh && token.open_api_expires_in >= Date.now())  return true
     if (forceRefresh) {
       OpenApiTokenLockMap.delete(token.user_id)
       OpenApiTokenReTimeMap.delete(token.user_id)
@@ -137,9 +139,14 @@ export default class AliUser {
       OpenApiTokenLockMap.delete(token.user_id)
       return true
     }
+    let { uiEnableOpenApiType, uiOpenApiClientId, uiOpenApiClientSecret } = useSettingStore()
     let url = 'https://openapi.alipan.com/oauth/access_token'
     let client_id = 'c58bfbdd05954e8a9ec5d4d58b1e9de6'
     let client_secret = '7234e9215d20426dbee11dfadc17b49a'
+    if (uiEnableOpenApiType === 'custom') {
+      client_id = uiOpenApiClientId
+      client_secret = uiOpenApiClientSecret
+    }
     const postData = {
       refresh_token: token.open_api_refresh_token,
       grant_type: 'refresh_token',
@@ -151,6 +158,7 @@ export default class AliUser {
     if (AliHttp.IsSuccess(resp.code)) {
       OpenApiTokenReTimeMap.set(token.user_id, Date.now())
       const { access_token, refresh_token, token_type, expires_in } = resp.body
+      token.open_api_token_type = token_type
       token.open_api_access_token = access_token
       token.open_api_refresh_token = refresh_token
       token.open_api_expires_in = Date.now() + expires_in * 1000
@@ -164,14 +172,9 @@ export default class AliUser {
       UserDAL.SaveUserToken(token)
       return true
     } else {
-      if (resp.body?.code != 'InvalidParameter.RefreshToken') {
-        DebugLog.mSaveWarning('OpenApiTokenRefreshAccount err=' + (resp.code || '') + ' ' + (resp.body?.code || ''), resp.body)
-      }
+      DebugLog.mSaveWarning('OpenApiTokenRefreshAccount err=' + (resp.code || '') + ' ' + (resp.body?.code || ''), resp.body)
       if (showMessage) {
-        message.error('刷新账号[' + token.user_name + '] token 失败,需要重新登录')
-        UserDAL.UserLogOff(token.user_id)
-      } else {
-        UserDAL.UserClearFromDB(token.user_id)
+        message.error('刷新账号[' + token.user_name + '] OpenApiToken 失败, 请重新获取', 5)
       }
     }
     return false
@@ -190,7 +193,7 @@ export default class AliUser {
     if (AliHttp.IsSuccess(resp.code)) {
       return resp.body.qrCodeUrl
     } else {
-      message.error('获取二维码失败：' + resp.body?.message)
+      message.error('获取二维码失败，请重新输入')
       return ''
     }
   }
@@ -226,7 +229,7 @@ export default class AliUser {
     return false
   }
 
-  static async OpenApiLoginByAuthCode(token: ITokenInfo, client_id: string, client_secret: string, authCode: string): Promise<any> {
+  static async OpenApiLoginByAuthCode(token: ITokenInfo, client_id: string, client_secret: string, authCode: string, issave: boolean = false): Promise<any> {
     // 构造请求体
     const postData: any = {
       code: authCode,
@@ -242,6 +245,16 @@ export default class AliUser {
       token.open_api_access_token = access_token
       token.open_api_refresh_token = refresh_token
       token.open_api_expires_in = Date.now() + expires_in * 1000
+      if (issave) {
+        window.WebUserToken({
+          user_id: token.user_id,
+          name: token.user_name,
+          access_token: token.access_token,
+          open_api_access_token: token.open_api_access_token,
+          refresh: true
+        })
+        UserDAL.SaveUserToken(token)
+      }
       return true
     } else {
       if (resp.body?.code === 'InvalidCode') {

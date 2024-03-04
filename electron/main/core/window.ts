@@ -235,14 +235,14 @@ export function createElectronWindow(width: number, height: number, center: bool
     show: false,
     width: width,
     height: height,
-    minWidth: width > 1036 ? 1036 : width,
-    minHeight: height > 720 ? 720 : height,
+    minWidth: width > 936 ? 936 : width,
+    minHeight: height > 680 ? 680 : height,
     center: center,
     icon: getStaticPath('icon_256x256.ico'),
     useContentSize: true,
     frame: false,
     transparent: false,
-    hasShadow: width > 1036,
+    hasShadow: width > 936,
     autoHideMenuBar: true,
     backgroundColor: theme && theme == 'dark' ? '#23232e' : '#ffffff',
     webPreferences: {
@@ -273,7 +273,7 @@ export function createElectronWindow(width: number, height: number, center: bool
 
   if (DEBUGGING && devTools) {
     if (width < 100) {
-      win.setSize(1036, 720)
+      win.setSize(936, 680)
     }
     win.show()
     win.webContents.openDevTools({ mode: 'bottom' })

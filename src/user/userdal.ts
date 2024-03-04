@@ -58,7 +58,7 @@ export default class UserDAL {
           await AliUser.ApiTokenRefreshAccount(token, false)
           await AliUser.ApiSessionRefreshAccount(token, false)
         }
-        if (openapi_expire_time > 0 && openapi_expire_time - dateNow < 1000 * 60 * 3) {
+        if (openapi_expire_time - dateNow < 1000 * 60 * 3) {
           await AliUser.OpenApiTokenRefreshAccount(token, false)
         }
       } catch (err: any) {
@@ -259,7 +259,6 @@ export default class UserDAL {
       // 仅刷新个人信息
       await Promise.all([
         AliUser.ApiUserInfo(token),
-        AliUser.ApiUserDriveInfo(token),
         AliUser.ApiUserPic(token),
         AliUser.ApiUserVip(token)
       ])
@@ -278,7 +277,6 @@ export default class UserDAL {
       // 刷新用户信息
       await Promise.all([
         AliUser.ApiUserInfo(token),
-        AliUser.ApiUserDriveInfo(token),
         AliUser.ApiUserPic(token),
         AliUser.ApiUserVip(token)
       ])

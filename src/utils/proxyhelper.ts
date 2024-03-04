@@ -214,86 +214,88 @@ export async function createProxyServer(port: number) {
         return
       }
       if (!encType) {
-        // 转码视频 302重定向
+        // 302重定向
         clientRes.writeHead(302, { 'Location': proxyUrl })
         clientRes.end()
-      } else {
-        let decryptTransform: any = null
-        // 需要解密
-        console.warn('proxy.range', clientReq.headers.range)
-        // 要定位请求文件的位置 bytes=xxx-
-        const range = clientReq.headers.range
-        const start = range ? parseInt(range.replace('bytes=', '').split('-')[0]) : 0
-        const flowEnc = getFlowEnc(user_id, file_size, encType, password)!!
-        decryptTransform = flowEnc.decryptTransform()
-        if (start) {
-          await flowEnc.setPosition(start)
-        }
-        console.warn('proxyUrl', proxyUrl)
-        delete clientReq.headers.host
-        delete clientReq.headers.referer
-        delete clientReq.headers.authorization
-        await new Promise((resolve, reject) => {
-          // 处理请求，让下载的流量经过代理服务器
-          const httpRequest = ~proxyUrl.indexOf('https') ? https : http
-          const proxyServer = httpRequest.request(proxyUrl, {
-            method: clientReq.method,
-            headers: clientReq.headers,
-            rejectUnauthorized: false,
-            agent: ~proxyUrl.indexOf('https') ? httpsAgent : httpAgent
-          }, (httpResp: any) => {
-            console.error('httpResp.headers', httpResp.statusCode, httpResp.headers)
-            clientRes.statusCode = httpResp.statusCode
-            if (clientRes.statusCode % 300 < 5) {
-              // 可能出现304，redirectUrl = undefined
-              const redirectUrl = httpResp.headers.location || '-'
-              if (decryptTransform) {
-                // Referer
-                httpResp.headers.location = getProxyUrl({
-                  user_id, drive_id, file_id, password, weifa,
-                  file_size, encType, quality, proxy_url
-                })
-              }
-              console.log('302 redirectUrl:', redirectUrl)
-            } else if (httpResp.headers['content-range'] && httpResp.statusCode === 200) {
-              // 文件断点续传下载
-              clientRes.statusCode = 206
-            }
-            for (const key in httpResp.headers) {
-              clientRes.setHeader(key, httpResp.headers[key])
-            }
-            // 解密文件名
-            if (clientReq.method === 'GET' && clientRes.statusCode === 200 && encType && securityFileNameAutoDecrypt) {
-              let fileName = getUrlFileName(proxyUrl)
-              if (fileName) {
-                let ext = path.extname(fileName)
-                let securityPassword = getEncPassword(user_id, encType, password)
-                let decName = decodeName(securityPassword, securityEncType, fileName.replace(ext, '')) || ''
-                clientRes.setHeader('content-disposition', `attachment; filename*=UTF-8''${encodeURIComponent(decName + ext)};`)
-              }
-            }
-            httpResp.on('end', () => resolve(true))
-            // 是否解密
-            decryptTransform ? httpResp.pipe(decryptTransform).pipe(clientRes) : httpResp.pipe(clientRes)
-          })
-          clientReq.pipe(proxyServer)
-          // 关闭解密流
-          proxyServer.on('close', async () => {
-            decryptTransform && decryptTransform.destroy()
-          })
-          proxyServer.on('error', (e: Error) => {
-            clientRes.end()
-            console.log('proxyServer socket error: ' + e)
-          })
-          // 重定向的请求 关闭时 关闭被重定向的请求
-          clientRes.on('close', async () => {
-            proxyServer.destroy()
-          })
-        })
-        clientReq.on('error', (e: Error) => {
-          console.log('client socket error: ' + e)
-        })
+        return
       }
+      // 是否需要解密
+      let decryptTransform: any = null
+      console.warn('proxy.range', clientReq.headers.range)
+      // 要定位请求文件的位置 bytes=xxx-
+      const range = clientReq.headers.range
+      const start = range ? parseInt(range.replace('bytes=', '').split('-')[0]) : 0
+      const flowEnc = getFlowEnc(user_id, file_size, encType, password)!!
+      decryptTransform = flowEnc.decryptTransform()
+      if (start) {
+        await flowEnc.setPosition(start)
+      }
+      delete clientReq.headers.host
+      delete clientReq.headers.referer
+      delete clientReq.headers.authorization
+      await new Promise((resolve, reject) => {
+        // 处理请求，让下载的流量经过代理服务器
+        const httpRequest = ~proxyUrl.indexOf('https') ? https : http
+        const proxyServer = httpRequest.request(proxyUrl, {
+          method: clientReq.method,
+          headers: clientReq.headers,
+          rejectUnauthorized: false,
+          agent: ~proxyUrl.indexOf('https') ? httpsAgent : httpAgent
+        }, (httpResp: any) => {
+          console.error('httpResp.headers', httpResp.statusCode, httpResp.headers)
+          clientRes.statusCode = httpResp.statusCode
+          if (clientRes.statusCode % 300 < 5) {
+            // 可能出现304，redirectUrl = undefined
+            const redirectUrl = httpResp.headers.location || '-'
+            if (decryptTransform) {
+              // Referer
+              httpResp.headers.location = getProxyUrl({
+                user_id, drive_id, file_id, password, weifa,
+                file_size, encType, quality, proxy_url
+              })
+            }
+            console.log('302 redirectUrl:', redirectUrl)
+          } else if (httpResp.headers['content-range'] && httpResp.statusCode === 200) {
+            // 文件断点续传下载
+            clientRes.statusCode = 206
+          }
+          for (const key in httpResp.headers) {
+            clientRes.setHeader(key, httpResp.headers[key])
+          }
+          // 解密文件名
+          if (clientReq.method === 'GET' && clientRes.statusCode === 200 && encType && securityFileNameAutoDecrypt) {
+            let fileName = getUrlFileName(proxyUrl)
+            if (fileName) {
+              let ext = path.extname(fileName)
+              let securityPassword = getEncPassword(user_id, encType, password)
+              let decName = decodeName(securityPassword, securityEncType, fileName.replace(ext, '')) || ''
+              clientRes.setHeader('content-disposition', `attachment; filename*=UTF-8''${encodeURIComponent(decName + ext)};`)
+            }
+          }
+          httpResp.on('end', () => resolve(true))
+          if (decryptTransform) {
+            httpResp.pipe(decryptTransform).pipe(clientRes)
+          } else {
+            httpResp.pipe(clientRes)
+          }
+        })
+        clientReq.pipe(proxyServer)
+        // 关闭解密流
+        proxyServer.on('close', async () => {
+          decryptTransform && decryptTransform.destroy()
+        })
+        proxyServer.on('error', (e: Error) => {
+          clientRes.end()
+          console.log('proxyServer socket error: ' + e)
+        })
+        // 重定向的请求 关闭时 关闭被重定向的请求
+        clientRes.on('close', async () => {
+          proxyServer.destroy()
+        })
+      })
+      clientReq.on('error', (e: Error) => {
+        console.log('client socket error: ' + e)
+      })
     }
   })
   proxyServer.listen(port)

@@ -12,7 +12,7 @@ import {
   useWinStore
 } from '../store'
 import { onHideRightMenu, TestAlt, TestCtrl, TestKey, TestShift } from '../utils/keyboardhelper'
-import { getResourcesPath, openExternal } from '../utils/electronhelper'
+import { openExternal } from '../utils/electronhelper'
 import DebugLog from '../utils/debuglog'
 
 import Setting from '../setting/index.vue'
@@ -28,10 +28,6 @@ import ShutDown from '../setting/ShutDown.vue'
 import MyModal from './MyModal.vue'
 import { B64decode } from '../utils/format'
 import { throttle } from '../utils/debounce'
-import ServerHttp from '../aliapi/server'
-import { existsSync, readFileSync } from 'fs'
-import os from 'os'
-import { getPkgVersion } from '../utils/utils'
 
 const panVisible = ref(true)
 const appStore = useAppStore()
@@ -173,29 +169,6 @@ onUnmounted(() => {
   window.removeEventListener('mousedown', onMouseDown)
   window.removeEventListener('click', onHideRightMenu)
 })
-
-const getAppVersion = computed(() => {
-  const pkgVersion = getPkgVersion()
-  if (os.platform() === 'linux') {
-    return pkgVersion
-  }
-  let appVersion = ''
-  const localVersion = getResourcesPath('localVersion')
-  if (localVersion && existsSync(localVersion)) {
-    appVersion = readFileSync(localVersion, 'utf-8')
-  } else {
-    appVersion = pkgVersion
-  }
-  return appVersion
-})
-
-const verLoading = ref(false)
-const handleCheckVer = () => {
-  verLoading.value = true
-  ServerHttp.CheckUpgrade().then(() => {
-    verLoading.value = false
-  })
-}
 </script>
 <template>
   <a-layout style='height: 100vh' draggable='false'>
@@ -308,10 +281,6 @@ const handleCheckVer = () => {
           <div class='footerBar fix'>
             <span class='footAria' title='Aria已连接' v-if='footStore.ariaInfo'> {{ footStore.ariaInfo }} </span>
             <span class='footAria' title='Aria已离线' v-else> Aria ⚯ Offline </span>
-          </div>
-
-          <div class='footerBar fix' style='padding: 0 8px; cursor: pointer' @click='handleCheckVer'>
-            {{ getAppVersion }}
           </div>
 
           <a-popover v-model:popup-visible='footStore.taskVisible' trigger='click' position='top' class='asynclist'>

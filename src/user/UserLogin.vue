@@ -1,6 +1,6 @@
 <script setup lang='ts'>
-import { ref } from 'vue'
-import { ITokenInfo, useUserStore } from '../store'
+import { h, ref } from 'vue'
+import { ITokenInfo, useSettingStore, useUserStore } from '../store'
 import UserDAL from '../user/userdal'
 import Config from '../config'
 import message from '../utils/message'
@@ -8,18 +8,26 @@ import DebugLog from '../utils/debuglog'
 import { GetSignature } from '../aliapi/utils'
 import getUuid from 'uuid-by-string'
 import AliUser from '../aliapi/user'
+import { Input, Modal, Space } from '@arco-design/web-vue'
 
 const useUser = useUserStore()
+const settingStore = useSettingStore()
 const loginCur = ref(1)
 const loginToken = ref<ITokenInfo>()
 const loginStatus = ref<'wait' | 'error' | 'finish' | 'process'>('process')
 const loginLoading = ref(true)
+const client_id = ref('c58bfbdd05954e8a9ec5d4d58b1e9de6')
+const client_secret = ref('7234e9215d20426dbee11dfadc17b49a')
 
 const intervalId = ref()
-const qrCodeLoading = ref(false)
 const qrCodeUrl = ref('')
 const qrCodeStatusType = ref()
 const qrCodeStatusTips = ref()
+
+
+const cb = (val: any) => {
+  settingStore.updateStore(val)
+}
 
 function b64decode(e: string) {
   const t = atob(e)
@@ -49,8 +57,7 @@ const refreshStepTips = (status: 'error' | 'finish' | 'process', index: number) 
   loginCur.value = index
 }
 
-const refreshQrCodeStatus = (codeUrl: string = '', type: string = 'info', tips: string = '') => {
-  qrCodeLoading.value = false
+const refreshQrCodeStatus = (codeUrl: string = '', type: string = 'info', tips: string = '请用阿里云盘 App 扫码') => {
   qrCodeUrl.value = codeUrl
   qrCodeStatusType.value = type
   qrCodeStatusTips.value = tips
@@ -76,6 +83,7 @@ const handleOpen = () => {
       loginLoading.value = false
       if (msg.indexOf('bizExt') > 0) {
         loginStepFirst(msg)
+        webview.stop()
       }
     })
   }, 1000)
@@ -83,6 +91,8 @@ const handleOpen = () => {
 
 const handleClose = () => {
   loginLoading.value = true
+  client_id.value = 'c58bfbdd05954e8a9ec5d4d58b1e9de6'
+  client_secret.value = '7234e9215d20426dbee11dfadc17b49a'
   clearInterval(intervalId.value)
   refreshStepTips('process', 1)
   refreshQrCodeStatus()
@@ -148,6 +158,13 @@ const loginStepFirst = async (msg: string) => {
         }
       }
       loginToken.value = token
+      if (settingStore.uiEnableOpenApiType === 'custom') {
+        client_id.value = settingStore.uiOpenApiClientId.trim()
+        client_secret.value = settingStore.uiOpenApiClientSecret.trim()
+      } else {
+        client_id.value = 'c58bfbdd05954e8a9ec5d4d58b1e9de6'
+        client_secret.value = '7234e9215d20426dbee11dfadc17b49a'
+      }
       refreshStepTips('process', 2)
       loginStepSecond(token)
     } catch (err: any) {
@@ -164,16 +181,17 @@ const loginStepSecond = async (token: ITokenInfo) => {
     message.error('请重新登录')
     return
   }
-  qrCodeLoading.value = true
-  let client_id = 'c58bfbdd05954e8a9ec5d4d58b1e9de6'
-  let client_secret = '7234e9215d20426dbee11dfadc17b49a'
-  let codeUrl = await AliUser.OpenApiQrCodeUrl(client_id, client_secret, 250, 250)
+  loginLoading.value = false
+  clearInterval(intervalId.value)
+  let codeUrl = await AliUser.OpenApiQrCodeUrl(client_id.value, client_secret.value, 250, 250)
   if (!codeUrl) {
-    refreshQrCodeStatus('', 'info', '获取二维码失败')
+    refreshQrCodeStatus('', 'error', '获取二维码失败')
     refreshStepTips('error', 2)
+    handlerChangeType()
     return
   }
   refreshQrCodeStatus(codeUrl, 'info', '状态：等待扫码登录')
+  refreshStepTips('process', 2)
   // 监听状态
   intervalId.value = setInterval(async () => {
     const { authCode, statusCode, statusType, statusTips } = await AliUser.OpenApiQrCodeStatus(codeUrl)
@@ -190,16 +208,64 @@ const loginStepSecond = async (token: ITokenInfo) => {
     }
     if (authCode && statusCode === 'LoginSuccess') {
       // 构造请求体
-      await AliUser.OpenApiLoginByAuthCode(token, client_id, client_secret, authCode)
+      await AliUser.OpenApiLoginByAuthCode(token, client_id.value, client_secret.value, authCode)
       loginSuccess(token)
       clearInterval(intervalId.value)
     }
   }, 1500)
 }
 
-const handleRefreshQrCodeUrl = () => {
+const handlerChangeType = () => {
   clearInterval(intervalId.value)
   refreshQrCodeStatus()
+  if (settingStore.uiEnableOpenApiType === 'custom') {
+    Modal.open({
+      title: '输入开发者账号',
+      bodyStyle: { minWidth: '340px' },
+      content: () => h(Space, { direction: 'vertical' }, () => [
+        h(Input, {
+          type: 'text',
+          tabindex: '-1',
+          allowClear: true,
+          modelValue: settingStore.uiOpenApiClientId.trim(),
+          style: { width: '340px' },
+          placeholder: '客户端ID',
+          'onUpdate:modelValue': (e) => cb({ uiOpenApiClientId: e.trim() })
+        }),
+        h(Input, {
+          type: 'text',
+          tabindex: '-1',
+          allowClear: true,
+          modelValue: settingStore.uiOpenApiClientSecret.trim(),
+          style: { width: '340px' },
+          placeholder: '客户端密钥',
+          'onUpdate:modelValue': (e) => cb({ uiOpenApiClientSecret: e.trim() })
+        })
+      ]),
+      okText: '确认',
+      cancelText: '取消',
+      onBeforeOk: async (e: any) => {
+        if (settingStore.uiOpenApiClientId && settingStore.uiOpenApiClientSecret) {
+          client_id.value = settingStore.uiOpenApiClientId
+          client_secret.value = settingStore.uiOpenApiClientSecret
+          handleRefreshQrCodeUrl()
+          return true
+        } else {
+          message.error('请输入开发者账号')
+          return false
+        }
+      }
+    })
+  } else {
+    client_id.value = 'c58bfbdd05954e8a9ec5d4d58b1e9de6'
+    client_secret.value = '7234e9215d20426dbee11dfadc17b49a'
+    handleRefreshQrCodeUrl()
+  }
+}
+
+const handleRefreshQrCodeUrl = () => {
+  refreshQrCodeStatus()
+  clearInterval(intervalId.value)
   loginStepSecond(loginToken.value!!)
 }
 
@@ -242,11 +308,10 @@ const loginSuccess = (token: ITokenInfo) => {
   <a-modal title="登录阿里云盘账号" v-model:visible='useUser.userShowLogin'
            :mask-closable='false' unmount-on-close :footer='false'
            class='userloginmodal' @before-open='handleOpen' @close='handleClose'>
-    <div class="modalbody" style="width: 600px;height: fit-content">
+    <div class="modalbody" style="width: fit-content;height: fit-content;overflow: hidden">
       <a-steps v-model:current="loginCur" :status="loginStatus">
         <a-step description="扫码或账号登录">第一次扫码</a-step>
         <a-step description="手机授权">第二次扫码</a-step>
-        <a-step description="登录完成">登录完成</a-step>
       </a-steps>
       <div id='logindiv'>
         <div class='logincontent'>
@@ -256,19 +321,30 @@ const loginSuccess = (token: ITokenInfo) => {
                      plugins nodeintegration disablewebsecurity
                      webpreferences="allowRunningInsecureContent"
                      src="about:blank" style="width: 100%; height: 400px; border: none; overflow: hidden" />
-            <div class="qrcodeframe" v-show="loginCur === 2">
+            <div class="qrcodeframe" v-if="loginCur === 2 && !loginLoading">
               <a-image
                 width='250'
                 height='250'
                 :hide-footer='true'
                 :preview='false'
-                :show-loader="loginLoading"
+                :show-loader="true"
                 @click="handleRefreshQrCodeUrl"
                 style="display:inline-block;"
-                :src="qrCodeUrl" />
+                :src="qrCodeUrl">
+              </a-image>
               <a-alert banner center :show-icon="false" :type='qrCodeStatusType'>
                 {{ qrCodeStatusTips }}
               </a-alert>
+            </div>
+            <div class='settingrow' v-if="loginCur === 2">
+              <a-radio-group
+                type='button' tabindex='-1'
+                :model-value='settingStore.uiEnableOpenApiType'
+                @change="handlerChangeType"
+                @update:model-value='cb({ uiEnableOpenApiType: $event })'>
+                <a-radio tabindex='-1' value='inline'>内置方式</a-radio>
+                <a-radio tabindex='-1' value='custom'>自定义方式</a-radio>
+              </a-radio-group>
             </div>
           </div>
         </div>
