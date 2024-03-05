@@ -96,6 +96,8 @@ export interface SettingState {
   downAutoStart: boolean
 
   // webdav
+  webDavEnable: boolean
+  webDavAutoEnable: boolean
   webDavHost: string
   webDavPort: number
   webDavListCache: number
@@ -225,9 +227,11 @@ const setting: SettingState = {
   downAutoStart: true,
 
   // webdav
+  webDavEnable: false,
+  webDavAutoEnable: false,
   webDavHost: '127.0.0.1',
-  webDavPort: 2000,
-  webDavListCache: 40,
+  webDavPort: 12000,
+  webDavListCache: 10,
   webDavStrategy: 'redirect',
 
   // 高级选项
@@ -346,9 +350,11 @@ function _loadSetting(val: any) {
   setting.downAutoStart = defaultBool(val.downAutoStart, true)
 
   // webdav
+  setting.webDavEnable = defaultBool(val.webDavEnable, false)
+  setting.webDavAutoEnable = defaultBool(val.webDavAutoEnable, false)
   setting.webDavHost = defaultString(val.webDavHost, '127.0.0.1')
-  setting.webDavPort = defaultNumber(val.webDavPort, 2000)
-  setting.webDavListCache = defaultNumber(val.webDavListCache, 40)
+  setting.webDavPort = defaultNumber(val.webDavPort, 12000)
+  setting.webDavListCache = defaultNumber(val.webDavListCache, 10)
   setting.webDavStrategy = defaultValue(val.webDavStrategy, ['redirect', 'proxy'])
 
   // 高级选项

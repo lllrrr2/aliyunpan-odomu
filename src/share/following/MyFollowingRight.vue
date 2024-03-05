@@ -23,7 +23,6 @@ import AliFollowing from '../../aliapi/following'
 import AliShare from '../../aliapi/share'
 
 import { Tooltip as AntdTooltip } from 'ant-design-vue'
-import 'ant-design-vue/es/tooltip/style/css'
 import { modalShowShareLink } from '../../utils/modal'
 
 const daoruModel = ref(false)

@@ -22,7 +22,6 @@ import { ref } from 'vue'
 import UploadDAL from '../transfer/uploaddal'
 
 import { Tooltip as AntdTooltip } from 'ant-design-vue'
-import 'ant-design-vue/es/tooltip/style/css'
 import useUploadedStore from './UploadedStore'
 import { IStateUploadTask } from '../utils/dbupload'
 import message from '../utils/message'

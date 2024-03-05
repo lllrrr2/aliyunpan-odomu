@@ -10,7 +10,6 @@ import { FileData, FileNodeData, LoadScanDir, NewScanDriver, ResetScanDriver } f
 import { DeleteFromSameData, GetSameFile } from './scansame'
 
 import { Checkbox as AntdCheckbox } from 'ant-design-vue'
-import 'ant-design-vue/es/checkbox/style/css'
 import { GetDriveID } from '../../aliapi/utils'
 
 const winStore = useWinStore()

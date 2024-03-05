@@ -5,7 +5,6 @@ import { AriaChangeToLocal, AriaChangeToRemote, AriaTest } from '../utils/aria2c
 import message from '../utils/message'
 
 import { Checkbox as AntdCheckbox } from 'ant-design-vue'
-import 'ant-design-vue/es/checkbox/style/css'
 
 const settingStore = useSettingStore()
 const cb = (val: any) => {

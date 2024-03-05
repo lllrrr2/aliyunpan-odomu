@@ -22,7 +22,6 @@ import { copyToClipboard, openExternal } from '../../utils/electronhelper'
 import message from '../../utils/message'
 
 import { Tooltip as AntdTooltip } from 'ant-design-vue'
-import 'ant-design-vue/es/tooltip/style/css'
 import { modalShowShareLink } from '../../utils/modal'
 import { GetShareUrlFormate } from '../../utils/shareurl'
 import useShareHistoryStore from './ShareHistoryStore'

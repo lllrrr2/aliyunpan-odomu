@@ -20,7 +20,6 @@ import {
   TestKeyboardSelect
 } from '../utils/keyboardhelper'
 import { Tooltip as AntdTooltip } from 'ant-design-vue'
-import 'ant-design-vue/es/tooltip/style/css'
 import { IStateDownFile } from './DownDAL'
 import { TestButton } from '../utils/mosehelper'
 import { xorWith } from 'lodash'

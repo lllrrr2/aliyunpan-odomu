@@ -6,8 +6,6 @@ import { useUserStore, useWinStore } from '../../store'
 import { GetTreeNodes, ICopyTreeInfo, ICopyTreeNode, LoadDir, NewCopyTreeInfo } from './usercopy'
 
 import { Checkbox as AntdCheckbox, Tree as AntdTree } from 'ant-design-vue'
-import 'ant-design-vue/es/checkbox/style/css'
-import 'ant-design-vue/es/tree/style/css'
 
 const winStore = useWinStore()
 const userStore = useUserStore()

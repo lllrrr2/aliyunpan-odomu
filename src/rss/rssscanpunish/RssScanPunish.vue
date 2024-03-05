@@ -19,8 +19,6 @@ import {
 import { DeleteFromScanDataPunish, GetTreeCheckedSize, GetTreeNodes, GetWeiGuiFile } from './scanpunish'
 
 import { Checkbox as AntdCheckbox, Tree as AntdTree } from 'ant-design-vue'
-import 'ant-design-vue/es/tree/style/css'
-import 'ant-design-vue/es/checkbox/style/css'
 import { EventDataNode } from 'ant-design-vue/es/tree'
 import { modalSelectPanDir } from '../../utils/modal'
 import { GetDriveID } from '../../aliapi/utils'

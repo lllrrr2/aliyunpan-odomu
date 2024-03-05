@@ -19,8 +19,6 @@ import {
 import { DeleteFromScanClean, GetCleanFile, GetTreeCheckedSize, GetTreeNodes } from './ScanClean'
 
 import { Checkbox as AntdCheckbox, Tree as AntdTree } from 'ant-design-vue'
-import 'ant-design-vue/es/tree/style/css'
-import 'ant-design-vue/es/checkbox/style/css'
 import { EventDataNode } from 'ant-design-vue/es/tree'
 import { GetDriveID } from '../../aliapi/utils'
 

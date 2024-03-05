@@ -23,7 +23,6 @@ import { copyToClipboard, getFromClipboard, openExternal } from '../../utils/ele
 import message from '../../utils/message'
 
 import { Tooltip as AntdTooltip } from 'ant-design-vue'
-import 'ant-design-vue/es/tooltip/style/css'
 import { modalShowShareLink } from '../../utils/modal'
 import { ArrayKeyList } from '../../utils/utils'
 import { GetShareUrlFormate } from '../../utils/shareurl'

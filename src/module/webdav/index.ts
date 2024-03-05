@@ -23,9 +23,9 @@ class WebDavServer {
   private readonly rootFileSystem: CustomRootFileSystem
   private readonly httpAuthentication: BasicAuthentication
   private readonly privilegeManager: SimplePathPrivilegeManager
-  private webDavExecute: any
   private webDavServer: any
   private fileInfo: any
+  private isStart: boolean = false
 
   constructor(options?: WebDAVServerOptions) {
     this.userManager = new UserManager()
@@ -35,28 +35,9 @@ class WebDavServer {
     this.options = setDefaultServerOptions(Object.assign({
       httpAuthentication: this.httpAuthentication,
       privilegeManager: this.privilegeManager,
-      rootFileSystem: this.rootFileSystem
+      rootFileSystem: this.rootFileSystem,
+      requireAuthentification: false
     }, options))
-    this.webDavExecute = this.execute()
-  }
-
-  private execute() {
-    const server = new WebDAVServer(this.options)
-    server.beforeRequest(async (ctx: HTTPRequestContext, next: () => void) => {
-      // console.log('beforeRequest', ctx.request.method)
-      const { headers, method } = ctx.request
-      const { depth } = headers
-      this.handleRequestPaths(ctx)
-      // this.handleOptionsRequest(ctx, next)
-      await this.handleGetRequest(ctx, next)
-    })
-    server.afterRequest(async (ctx: HTTPRequestContext, next: () => void) => {
-      console.info('afterRequest.method', ctx.request.method)
-      console.info('afterRequest.request', ctx.request)
-      console.info('afterRequest.response', ctx.response)
-      next()
-    })
-    return server.executeRequest
   }
 
   private handleRequestPaths(ctx: HTTPRequestContext) {
@@ -141,30 +122,57 @@ class WebDavServer {
 
   config(options: WebDAVServerOptions) {
     this.options = Object.assign(this.options, options)
+    return this
+  }
+
+  isStarted() {
+    return this.isStart
+  }
+
+  createExecute() {
+    const server = new WebDAVServer(this.options)
+    server.beforeRequest(async (ctx: HTTPRequestContext, next: () => void) => {
+      // console.log('beforeRequest', ctx.request.method)
+      const { headers, method } = ctx.request
+      const { depth } = headers
+      this.handleRequestPaths(ctx)
+      // this.handleOptionsRequest(ctx, next)
+      await this.handleGetRequest(ctx, next)
+    })
+    server.afterRequest(async (ctx: HTTPRequestContext, next: () => void) => {
+      console.info('afterRequest.method', ctx.request.method)
+      console.info('afterRequest.request', ctx.request)
+      console.info('afterRequest.response', ctx.response)
+      next()
+    })
+    return server.executeRequest
   }
 
   async start(): Promise<any> {
     const _this = this
     let iUsers = await this.getAllUser()
-    if (iUsers.length > 0) {
-      return new Promise((resolve, reject) => {
-        _this.webDavServer = http.createServer(this.webDavExecute)
+    return new Promise((resolve, reject) => {
+      if (iUsers.length > 0) {
+        let execute = this.createExecute()
+        _this.webDavServer = http.createServer(execute)
         _this.webDavServer.on('error', (err: any) => {
-          if (err.code === 'EADDRINUSE') {
+          _this.isStart = false
+          if (err.code === 'EADDRINUSE' || err.code === 'EACCES') {
             _this.webDavServer.close()
-            reject(`端口${this.options.port}已被占用`)
+            _this.webDavServer.removeAllListeners('error')
+            reject(`端口${this.options.port}已被占用，请修改端口`)
           } else {
             reject(err)
           }
         })
         _this.webDavServer.listen(this.options.port, this.options.hostname, () => {
+          _this.isStart = true
           resolve(true)
         })
-      })
-    } else {
-      message.error('请先添加用户')
-      return false
-    }
+      } else {
+        reject('请先添加用户')
+      }
+    })
   }
 
   async stop(): Promise<boolean> {
@@ -172,7 +180,8 @@ class WebDavServer {
     try {
       if (_this.webDavServer) {
         await promisify(_this.webDavServer.close).call(_this.webDavServer)
-        _this.webDavServer.closeAllConnections()
+        await _this.webDavServer.closeAllConnections()
+        _this.isStart = false
         return true
       } else {
         return false
@@ -185,16 +194,16 @@ class WebDavServer {
   setUser(username: string, password: string, path: string, rights: BasicPrivilege[] | string[], isModify: boolean, isAdmin?: boolean): Promise<Error | boolean> {
     return new Promise((resolve, reject) => {
       if (!username || !password) {
-        message.error(isModify ? '添加用户失败' : '修改用户失败')
+        message.error(isModify ? '【WebDav】添加用户失败' : '【WebDav】修改用户失败')
         reject(false)
       }
       this.userManager.getUserByName(username, async (error: Error, user?: IUser) => {
         if (!isModify && user) {
-          message.error('重复添加用户')
+          message.error('【WebDav】重复添加用户')
           reject(false)
         }
         if (isModify && !user) {
-          message.error('用户不存在')
+          message.error('【WebDav】用户不存在')
           reject(false)
         }
         let rights1 = this.setRights(path, rights)
@@ -230,6 +239,14 @@ class WebDavServer {
     })
   }
 
+  getUserNum(): Promise<number> {
+    return new Promise((resolve, reject) => {
+      this.userManager.getUserNum((error: Error, userNum: number) => {
+        error ? resolve(0) : resolve(userNum)
+      })
+    })
+  }
+
   getUser(username: string): Promise<IUser | undefined> {
     return new Promise((resolve, reject) => {
       this.userManager.getUserByName(username, (error: Error, user?: IUser) => {
@@ -243,4 +260,4 @@ class WebDavServer {
   }
 }
 
-export default WebDavServer
+export default new WebDavServer()

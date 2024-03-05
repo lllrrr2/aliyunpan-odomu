@@ -7,7 +7,6 @@ import { humanExpiration } from '../../utils/format'
 import { useWinStore } from '../../store'
 
 import { Tree as AntdTree } from 'ant-design-vue'
-import 'ant-design-vue/es/tree/style/css'
 import { EventDataNode } from 'ant-design-vue/es/tree'
 import { modalCloseAll, modalSelectPanDir } from '../../utils/modal'
 import ShareDAL from './ShareDAL'

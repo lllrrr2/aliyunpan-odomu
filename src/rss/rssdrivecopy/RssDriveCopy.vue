@@ -6,9 +6,7 @@ import { useSettingStore, useUserStore, useWinStore } from '../../store'
 import { ICopyTreeNode, LoadDir, NewCopyTreeInfo } from './drivecopy'
 
 import { Checkbox as AntdCheckbox, Tree as AntdTree } from 'ant-design-vue'
-import 'ant-design-vue/es/checkbox/style/css'
 
-import 'ant-design-vue/es/tree/style/css'
 import AliFileCmd from '../../aliapi/filecmd'
 import { GetDriveID } from '../../aliapi/utils'
 

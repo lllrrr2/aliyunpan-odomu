@@ -23,7 +23,6 @@ import { copyToClipboard, openExternal } from '../../utils/electronhelper'
 import message from '../../utils/message'
 
 import { Tooltip as AntdTooltip } from 'ant-design-vue'
-import 'ant-design-vue/es/tooltip/style/css'
 import { ArrayKeyList } from '../../utils/utils'
 import { GetShareUrlFormate } from '../../utils/shareurl'
 import useMyTransferShareStore from './MyShareTransferStore'

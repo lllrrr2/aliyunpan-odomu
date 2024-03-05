@@ -9,8 +9,6 @@ import { LoadScanDir, NewScanDriver, ResetScanDriver, TreeNodeData, TreeSelectAl
 import { GetEnmptyDir, GetTreeNodes } from './scanenmpty'
 
 import { Checkbox as AntdCheckbox, Tree as AntdTree } from 'ant-design-vue'
-import 'ant-design-vue/es/tree/style/css'
-import 'ant-design-vue/es/checkbox/style/css'
 import { EventDataNode } from 'ant-design-vue/es/tree'
 import DB from '../../utils/db'
 import { GetDriveID } from '../../aliapi/utils'

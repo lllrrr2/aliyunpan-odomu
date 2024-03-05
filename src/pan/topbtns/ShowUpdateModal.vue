@@ -13,8 +13,6 @@ import { execFile, SpawnOptions } from 'child_process'
 import { shell } from 'electron'
 import path from 'path'
 import { Progress as AntdProgress } from 'ant-design-vue'
-import 'ant-design-vue/es/progress/style/css'
-
 
 const props = defineProps({
   visible: {

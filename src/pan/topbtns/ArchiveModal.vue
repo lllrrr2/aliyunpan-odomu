@@ -4,7 +4,6 @@ import message from '../../utils/message'
 import { useFootStore, useSettingStore, useWinStore } from '../../store'
 
 import { Tree as AntdTree } from 'ant-design-vue'
-import 'ant-design-vue/es/tree/style/css'
 import { modalCloseAll, modalSelectPanDir } from '../../utils/modal'
 import PanDAL from '../../pan/pandal'
 import { treeSelectToExpand } from '../../utils/antdtree'

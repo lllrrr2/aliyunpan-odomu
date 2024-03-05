@@ -45,6 +45,11 @@ class UserManager implements ITestableUserManager, IListUserManager {
     })
   }
 
+  getUserNum(callback: (error: Error, userNum: number) => void): any {
+    this.storeUser.getUsers().then((r) => {
+      callback(Errors.None, r.length)
+    })
+  }
 }
 
 export default UserManager

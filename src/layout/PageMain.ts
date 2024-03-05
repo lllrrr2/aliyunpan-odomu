@@ -14,6 +14,7 @@ import { portIsOccupied } from '../utils/utils'
 import { createProxyServer } from '../utils/proxyhelper'
 import { Server } from 'http'
 import cache from '../utils/cache'
+import WebDavServer from '../module/webdav'
 
 export let MainProxyPort: number = 8000
 export let MainProxyServer: Server | null
@@ -35,7 +36,7 @@ export function PageMain() {
           MainProxyServer = await createProxyServer(MainProxyPort)
         })
       }
-      DebugLog.mSaveSuccess('小白羊启动')
+      // DebugLog.mSaveSuccess('小白羊启动')
       await ShareDAL.aLoadFromDB().catch((err: any) => {
         DebugLog.mSaveDanger('ShareDALLDB', err)
       })
@@ -78,6 +79,18 @@ export function PageMain() {
         DebugLog.mSaveDanger('AppCacheDALDB', err)
       })
 
+      // 启动WebDav
+      if (useSettingStore().webDavAutoEnable) {
+        await WebDavServer.config({
+          port: useSettingStore().webDavPort,
+          hostname: useSettingStore().webDavHost,
+          requireAuthentification: false
+        }).start().then(()=>{
+          useSettingStore().webDavEnable = WebDavServer.isStarted()
+        }).catch((err: any) => {
+          useSettingStore().webDavEnable = false
+        })
+      }
       // 开启定时任务
       setTimeout(timeEvent, 1000)
     })

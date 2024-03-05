@@ -26,7 +26,6 @@ import message from '../../utils/message'
 import AliShare from '../../aliapi/share'
 
 import { Tooltip as AntdTooltip } from 'ant-design-vue'
-import 'ant-design-vue/es/tooltip/style/css'
 import { modalEditShareLink, modalShowShareLink } from '../../utils/modal'
 import { ArrayKeyList } from '../../utils/utils'
 import { GetShareUrlFormate } from '../../utils/shareurl'

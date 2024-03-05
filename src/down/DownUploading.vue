@@ -20,7 +20,6 @@ import { computed, ref, watch } from 'vue'
 import useUploadingStore from './UploadingStore'
 
 import { Tooltip as AntdTooltip } from 'ant-design-vue'
-import 'ant-design-vue/es/tooltip/style/css'
 import UploadingDAL from '../transfer/uploadingdal'
 import { TestButton } from '../utils/mosehelper'
 import { xorWith } from 'lodash'

@@ -25,7 +25,6 @@ import { onMounted, ref, watchEffect } from 'vue'
 import PanDAL from './pandal'
 
 import { Tooltip as AntdTooltip } from 'ant-design-vue'
-import 'ant-design-vue/es/tooltip/style/css'
 
 import {
   dropMoveSelectedFile,
