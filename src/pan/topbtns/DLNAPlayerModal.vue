@@ -113,7 +113,9 @@ const handlePlay = async (index: number) => {
       drive_id: first.drive_id,
       file_id: first.file_id,
       file_size: first.size,
-      encType: encType
+      encType: encType,
+      weifa: first.icon === 'weifa' ? 1 : 0,
+      quality: uiVideoQuality,
     })
     playercurr.play(playUrl, { title: info.name, type: info.mime_type, seek: play_cursor },
       (err: any, res: any) => {
