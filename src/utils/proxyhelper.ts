@@ -10,7 +10,7 @@ import { MainProxyPort } from '../layout/PageMain'
 import AliFile from '../aliapi/file'
 import path from 'path'
 import { localPwd } from './aria2c'
-import ip from 'ip'
+import os from 'os'
 
 // 默认maxFreeSockets=256
 const httpsAgent = new HttpsAgent({ keepAlive: true })
@@ -44,6 +44,27 @@ interface FileInfo {
   encType?: string
 
   [key: string]: string | number | undefined
+}
+
+export function getIPAddress() {
+  let ipv4 = ''
+  const interfaces = os.networkInterfaces()
+  for (const dev in interfaces) {
+    let device = interfaces[dev]
+    if (device) {
+      device.forEach((details, alias) => {
+        if (dev.includes('以太网') || dev == 'WLAN') {
+          if (details.family == 'IPv4' && !details.internal
+              && details.address.startsWith('192.168')) {
+            ipv4 = details.address
+            return
+          }
+        }
+      })
+    }
+  }
+  console.log(ipv4)
+  return ipv4 || '127.0.0.1'
 }
 
 export function getEncType(file: IAliGetFileModel | IAliFileItem | { description: string }): string {
@@ -85,14 +106,14 @@ export function getFlowEnc(user_id: string, fileSize: number, encType: string, p
 }
 
 export function getProxyUrl(info: FileInfo) {
-  let proxyUrl = `http://${ip.address('public', 'ipv4')}:${MainProxyPort}/proxy`
+  let proxyUrl = `http://${getIPAddress()}:${MainProxyPort}/proxy`
   let params = Object.keys(info).filter(v => info[v])
     .map((key: string) => `${encodeURIComponent(key)}=${encodeURIComponent(info[key]!!)}`)
   return `${proxyUrl}?${params.join('&')}`
 }
 
 export function getRedirectUrl(info: FileInfo) {
-  let redirectUrl = `http://${ip.address('public', 'ipv4')}:${MainProxyPort}/redirect`
+  let redirectUrl = `http://${getIPAddress()}:${MainProxyPort}/redirect`
   let params = Object.keys(info).filter(v => info[v])
     .map((key: string) => `${encodeURIComponent(key)}=${encodeURIComponent(info[key]!!)}`)
   return `${redirectUrl}?${params.join('&')}`

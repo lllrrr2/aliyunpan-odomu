@@ -20,9 +20,6 @@ devDependencies:
   '@types/howler':
     specifier: ^2.2.11
     version: 2.2.11
-  '@types/ip':
-    specifier: ^1.1.3
-    version: 1.1.3
   '@types/lodash':
     specifier: ^4.14.202
     version: 4.14.202
@@ -119,9 +116,6 @@ devDependencies:
   howler:
     specifier: ^2.2.4
     version: 2.2.4
-  ip:
-    specifier: ^2.0.1
-    version: 2.0.1
   isomorphic-fetch:
     specifier: ^3.0.0
     version: 3.0.0
@@ -1110,12 +1104,6 @@ packages:
 
   /@types/howler@2.2.11:
     resolution: {integrity: sha512-7aBoUL6RbSIrqKnpEgfa1wSNUBK06mn08siP2QI0zYk7MXfEJAaORc4tohamQYqCqVESoDyRWSdQn2BOKWj2Qw==}
-    dev: true
-
-  /@types/ip@1.1.3:
-    resolution: {integrity: sha512-64waoJgkXFTYnCYDUWgSATJ/dXEBanVkaP5d4Sbk7P6U7cTTMhxVyROTckc6JKdwCrgnAjZMn0k3177aQxtDEA==}
-    dependencies:
-      '@types/node': 20.11.24
     dev: true
 
   /@types/keyv@3.1.4:

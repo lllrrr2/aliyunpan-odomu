@@ -9,7 +9,7 @@ import { Sleep } from '../utils/format'
 import AppCache from '../utils/appcache'
 import { getUserData, openExternal } from '../utils/electronhelper'
 import path from 'path'
-import ip from 'ip'
+import { getIPAddress } from '../utils/proxyhelper'
 
 const cb = (val: any) => {
   if (Object.hasOwn(val, 'webDavPort') && val.webDavPort !== settingStore.webDavPort) {
@@ -72,7 +72,7 @@ const handleWebDav = async (newVal: any) => {
 
 const handleGetLocalIp = () => {
   if (settingStore.webDavHost.includes('127')) {
-    let localIp = ip.address('public', 'ipv4')
+    let localIp = getIPAddress()
     cb({ webDavHost: localIp })
   } else {
     cb({ webDavHost: '127.0.0.1' })

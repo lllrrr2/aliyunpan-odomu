@@ -4,12 +4,12 @@ import { dlnaHelpers, MediaRendererOptions, parseTime, UpnpMediaRendererClient }
 import mime from 'mime-types'
 import { DeviceInfo } from './dlna'
 import path from 'path'
+import { ClearFileName } from '../../utils/filehelper'
 
 
 interface Option extends MediaRendererOptions {
   title?: string;
   type?: string;
-  seek?: number;
   subtitles?: string[];
 }
 
@@ -53,15 +53,18 @@ class Player extends EventEmitter {
   }
 
   private escapeSpecialChars = (value: string) => {
-    let escapeText = value
+    return ClearFileName(value)
       .normalize('NFD')
       .replace(/[\u0300-\u036f]/g, '') // remove all accents from characters
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
       .replace(/’/g, '\'')
-      .replace(path.extname(value), '') // remove file extension
-    return encodeURIComponent(escapeText)
+      .replace(/\s+/g, '')
+      .replace(path.extname(value), '')
+      .replace(/[<>"/\\|?* '&%$^`,;=()![\]\-~#]+/g, '')
+      .replaceAll('.', '')
+      .replaceAll('-', '')
   }
 
   private callBack = (err: any, res: any) => {
@@ -114,11 +117,6 @@ class Player extends EventEmitter {
       client.load(url, media)
         .then((res: any) => cb(null, res))
         .catch((err: any) => cb(err, null))
-        .finally(() => {
-          if (opts.seek) {
-            this.seek(opts.seek, cb)
-          }
-        })
     })
   }
 

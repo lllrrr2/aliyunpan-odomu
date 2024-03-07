@@ -24,10 +24,12 @@ const handleOpen = () => {
 }
 
 const handleSearch = () => {
+  let lists = new Set()
   okLoading.value = true
   Dlna.search()
   Dlna.on('update', (player: any) => {
-    playerList.value.push(player)
+    lists.add(player)
+    playerList.value = Array.from(lists)
   })
   setTimeout(() => {
     okLoading.value = false
@@ -96,13 +98,14 @@ const handlePlay = async (index: number) => {
       playercurr.play(play_url, {
           title: info.name,
           type: info.mime_type,
-          seek: play_cursor,
           subtitles: [subTitleUrl]
         }, (err: any, res: any) => {
           if (err) {
-            message.error(err.message)
+            console.error(err)
+            message.error('投屏失败，请修改文件名称')
           } else {
             message.success('投屏成功')
+            playercurr.seek(play_cursor)
           }
         }
       )
@@ -117,12 +120,14 @@ const handlePlay = async (index: number) => {
       weifa: first.icon === 'weifa' ? 1 : 0,
       quality: uiVideoQuality,
     })
-    playercurr.play(playUrl, { title: info.name, type: info.mime_type, seek: play_cursor },
+    playercurr.play(playUrl, { title: info.name, type: info.mime_type },
       (err: any, res: any) => {
         if (err) {
-          message.error(err.message)
+          console.error(err)
+          message.error('投屏失败，请修改文件名称')
         } else {
           message.success('投屏成功')
+          playercurr.seek(play_cursor)
         }
       }
     )
