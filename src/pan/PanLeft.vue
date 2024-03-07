@@ -99,7 +99,7 @@ const onRowItemDragOver = (ev: any) => {
   ev.preventDefault()
 }
 
-const onRowItemDrop = (ev: any, movetodirid: string) => {
+const onRowItemDrop = (ev: any, data: any) => {
   ev.stopPropagation()
   ev.preventDefault()
   ev.target.style.outline = 'none'
@@ -111,9 +111,9 @@ const onRowItemDrop = (ev: any, movetodirid: string) => {
       const path = filesList[i].path
       files.push(path)
     }
-    modalUpload(movetodirid, files)
+    modalUpload(data.key, files)
   } else {
-    dropMoveSelectedFile(movetodirid, true)
+    dropMoveSelectedFile(data.drive_id, data.key, true)
   }
 }
 
@@ -215,7 +215,7 @@ const filterTreeData = computed(() => {
             <template #title='{ dataRef }'>
               <span v-if="dataRef.key.length == 40 || dataRef.key.includes('root')"
                     class='dirtitle treedragnode'
-                    @drop='onRowItemDrop($event, dataRef.key)'
+                    @drop='onRowItemDrop($event, dataRef)'
                     @dragover='onRowItemDragOver'
                     @dragenter='onRowItemDragEnter'
                     @dragleave='onRowItemDragLeave'>

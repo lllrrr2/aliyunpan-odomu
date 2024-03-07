@@ -479,8 +479,6 @@ export default class AliDirFileList {
 
   static async _ApiSearchFileListCount(dir: IAliFileResp): Promise<number> {
     const url = 'adrive/v3/file/search'
-
-
     let query = ''
     let drive_id_list = []
     if (dir.dirID.startsWith('color')) {

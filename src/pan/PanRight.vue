@@ -188,7 +188,7 @@ const handleChangeDrive = (value: any) => {
   DriveID = GetDriveID(panTreeStore.user_id, value)
   handleRefresh()
 }
-const handleSearchCheck = ()=> {
+const handleSearchCheck = () => {
   if (useSettingStore().securityHideBackupDrive) {
     inputsearchType.value = inputsearchType.value.filter((t) => t != 'backup')
   }
@@ -488,12 +488,12 @@ const onRowItemDragOver = (ev: any) => {
     ev.preventDefault()
   }
 }
-const onRowItemDrop = (ev: any, movetodirid: string) => {
+const onRowItemDrop = (ev: any, data: any) => {
   ev.stopPropagation()
   ev.preventDefault()
   ev.target.style.outline = 'none'
   ev.target.style.background = ''
-  dropMoveSelectedFile(movetodirid, false)
+  dropMoveSelectedFile(data.drive_id, data.file_id, false)
 }
 const onRowItemDragEnd = (ev: any) => {
   if (dragingRowItem.value) {
@@ -833,7 +833,7 @@ const onPanDragEnd = (ev: any) => {
             @contextmenu='(event:MouseEvent)=>handleRightClick({event,node:{key:item.file_id}} )'
             @dragstart='(ev) => onRowItemDragStart(ev, item.file_id)'
             @dragend='onRowItemDragEnd'
-            @drop='onRowItemDrop($event, item.file_id)'
+            @drop='onRowItemDrop($event, item)'
             @dragover='onRowItemDragOver'
             @dragenter='onRowItemDragEnter'
             @dragleave='onRowItemDragLeave'>
@@ -958,8 +958,8 @@ const onPanDragEnd = (ev: any) => {
               {{ item.sizeStr }}
             </div>
             <div class='filetime'>{{ item.timeStr }}</div>
-            <div class='filesize' style="width: 76px" v-show="item.media_duration">
-              <span>{{ '总时:' + item.media_duration }}</span>
+            <div class='filesize' style="width: 76px" v-show="item.media_duration || item.media_play_cursor">
+              <span>{{ '总时:' + (item.media_duration || '未知时长')}}</span>
               <span v-show='item.media_play_cursor'>
                 {{ '已看:' + item.media_play_cursor }}
               </span>

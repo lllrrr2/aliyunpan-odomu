@@ -13,6 +13,7 @@ import {
 } from '../store'
 import { onHideRightMenu, TestAlt, TestCtrl, TestKey, TestShift } from '../utils/keyboardhelper'
 import { openExternal } from '../utils/electronhelper'
+import { QRCode as AntQRCode } from 'ant-design-vue'
 import DebugLog from '../utils/debuglog'
 
 import Setting from '../setting/index.vue'
@@ -328,14 +329,26 @@ onUnmounted(() => {
               </div>
             </template>
           </a-popover>
-          <a-popover v-model:popup-visible='footStore.sponsorVisible' trigger='click' position='top' class='asynclist'>
+          <a-popover v-model:popup-visible='footStore.sponsorVisible'
+                     trigger='hover' position='top' class='asynclist'>
             <div class='footerBar fix' style='cursor: pointer'>
               <i class='iconfont iconbiaozhang' />
               <span>赞赏一下</span>
             </div>
             <template #content>
-              <div class='flex flex-col' style='text-align: center;width: 280px;height: 280px'>
-                <img src='/images/wexin_reward.png' alt='赞赏码'>
+              <div style="display:flex;">
+                <div style="flex: 1;">
+                  <AntQRCode
+                    value="https://www.alipan.com/cpx/member?userCode=NDAwNTA5"
+                    icon="/favicon.ico"
+                    errorLevel="Q"
+                    :bordered="false"
+                    bg-color="#F0F8FF"
+                    :size="250" />
+                </div>
+                <div style="flex: 1;text-align: right;">
+                  <img style="width: 250px;height: 250px" src='/images/wexin_reward.jpg' alt='赞赏码'>
+                </div>
               </div>
             </template>
           </a-popover>

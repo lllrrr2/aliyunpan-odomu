@@ -9,6 +9,7 @@ import { Sleep } from '../utils/format'
 import AppCache from '../utils/appcache'
 import { getUserData, openExternal } from '../utils/electronhelper'
 import path from 'path'
+import ip from 'ip'
 
 const cb = (val: any) => {
   if (Object.hasOwn(val, 'webDavPort') && val.webDavPort !== settingStore.webDavPort) {
@@ -34,6 +35,7 @@ const form = reactive({
   webDavPath: '/',
   webDavRights: ['all']
 })
+
 const handleWebDav = async (newVal: any) => {
   if (!WebDavServer) {
     message.error('【WebDav】:服务初始化失败，请重启软件')
@@ -65,6 +67,15 @@ const handleWebDav = async (newVal: any) => {
   } catch (error: any) {
     message.error(`【WebDav】:${error}`)
     return false
+  }
+}
+
+const handleGetLocalIp = () => {
+  if (settingStore.webDavHost.includes('127')) {
+    let localIp = ip.address('public', 'ipv4')
+    cb({ webDavHost: localIp })
+  } else {
+    cb({ webDavHost: '127.0.0.1' })
   }
 }
 
@@ -162,19 +173,25 @@ const handleJumpPath = () => {
     <div class='settingspace'></div>
     <div class='settinghead'>:主机(Host)</div>
     <div class='settingrow'>
-      <a-input tabindex="-1" :disabled="settingStore.webDavEnable" :style="{ width: '280px' }"
-               v-model.trim='settingStore.webDavHost'
-               placeholder="WebDav地址（IP）" @update:model-value='cb({ webDavHost: $event })'>
+      <a-input-search tabindex="-1"
+                      :disabled="settingStore.webDavEnable"
+                      style="width: 320px;"
+                      v-model.trim='settingStore.webDavHost'
+                      button-text='ip'
+                      allow-clear
+                      search-button
+                      @search="handleGetLocalIp"
+                      placeholder="地址（IP）" @update:model-value='cb({ webDavHost: $event })'>
         <template #prefix> http://</template>
         <template #suffix> /webdav</template>
-      </a-input>
+      </a-input-search>
     </div>
     <div class='settingspace'></div>
     <div class='settinghead'>:端口(Port)</div>
     <div class='settingrow'>
       <a-input-number
         :disabled="settingStore.webDavEnable"
-        tabindex='-1' :style="{ width: '280px' }"
+        tabindex='-1' :style="{ width: '320px' }"
         placeholder='默认：2000'
         :model-value='settingStore.webDavPort'
         @update:model-value='cb({ webDavPort: $event })' />
@@ -183,7 +200,7 @@ const handleJumpPath = () => {
     <div class='settinghead'>:目录缓存时间(秒)</div>
     <div class='settingrow'>
       <a-input-number
-        tabindex='-1' :style="{ width: '280px' }"
+        tabindex='-1' :style="{ width: '320px' }"
         hide-button placeholder='默认：40s'
         :model-value='settingStore.webDavListCache'
         @update:model-value='cb({ webDavListCache: $event })' />
@@ -191,7 +208,7 @@ const handleJumpPath = () => {
     <div class='settingspace'></div>
     <div class='settinghead'>:资源访问策略</div>
     <div class='settingrow'>
-      <a-select tabindex="-1" :style="{ width: '280px' }"
+      <a-select tabindex="-1" :style="{ width: '320px' }"
                 :model-value="settingStore.webDavStrategy"
                 :popup-container="'#SettingDiv'"
                 @update:model-value="cb({ webDavStrategy: $event })">
@@ -207,7 +224,7 @@ const handleJumpPath = () => {
                 :field-names="{ key: 'uid', value: 'username', label: 'username'}"
                 :virtual-list-props='{height:120}'
                 :options='options'
-                :style="{width:'280px'}"
+                :style="{width:'320px'}"
                 placeholder='选择一个用户'
                 :popup-container="'#SettingDiv'"
                 :loading='loading' allow-clear

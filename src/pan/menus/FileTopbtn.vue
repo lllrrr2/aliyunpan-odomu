@@ -7,6 +7,7 @@ import {
   menuCopyFileTree,
   menuCopySelectedFile,
   menuCreatShare,
+  menuDLNA,
   menuDownload,
   menuFavSelectFile,
   menuFileColorChange,
@@ -102,11 +103,6 @@ const isPic = computed(() => {
               @click='() => menuJumpToDir()'>
       <i class='iconfont icondakaiwenjianjia1' />打开位置
     </a-button>
-    <a-button v-if="isselected && !isselectedmulti && (dirtype == 'search' || dirtype == 'color' || dirtype == 'trash' || dirtype == 'video')"
-              type='text' size='small' tabindex='-1' title='Ctrl+R'
-              @click='() => modalShuXing(istree, dirtype.includes("pic"))'>
-      <i class='iconfont iconshuxing' />属性
-    </a-button>
     <a-dropdown v-if="dirtype !== 'video' && dirtype !== 'mypic'" trigger='hover' class='rightmenu' position='bl'>
       <a-button type='text' size='small' tabindex='-1' class='danger'>
         <i class='iconfont icondelete' />删除<i class='iconfont icondown' />
@@ -154,10 +150,10 @@ const isPic = computed(() => {
           <template #icon><i class='iconfont iconfangkuang' /></template>
           <template #default>清除标记</template>
         </a-doption>
-        <!--        <a-doption v-show="isvideo" @click="() => menuDLNA()">-->
-        <!--          <template #icon> <i class="iconfont icontouping2" /> </template>-->
-        <!--          <template #default>DLNA投屏</template>-->
-        <!--        </a-doption>-->
+        <a-doption v-show="isvideo" @click="() => menuDLNA()">
+          <template #icon><i class="iconfont icontouping2" /></template>
+          <template #default>DLNA投屏</template>
+        </a-doption>
         <a-doption v-show='isvideo' @click='() => menuM3U8Download()'>
           <template #icon><i class='iconfont iconluxiang' /></template>
           <template #default>M3U8下载</template>

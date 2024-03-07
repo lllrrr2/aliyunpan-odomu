@@ -10,6 +10,7 @@ import { GetDriveType } from '../aliapi/utils'
 export interface TreeNodeData {
   __v_skip: true
   key: string
+  drive_id?: string
   parent_file_id?: string
   title: string
   namesearch?: string
@@ -21,6 +22,7 @@ export interface TreeNodeData {
 
 export interface DirData {
   file_id: string
+  drive_id: string
   parent_file_id: string
   description: string
   name: string
@@ -79,6 +81,7 @@ export default class TreeStore {
     const root: DirData = {
       file_id: driveType.key,
       parent_file_id: '',
+      drive_id: drive_id,
       name: driveType.title,
       description: '',
       time: 0,
@@ -117,7 +120,7 @@ export default class TreeStore {
         childrenMap2.set(key, value)
       })
       OneDriver.DirChildrenMap = childrenMap2
-      OneDriver.DirTotalSizeMap.root = TotalSize('root', OneDriver.DirTotalSizeMap, OneDriver.DirFileSizeMap, OneDriver.DirChildrenMap)
+      OneDriver.DirTotalSizeMap.root = TotalSize(driveType.key, OneDriver.DirTotalSizeMap, OneDriver.DirFileSizeMap, OneDriver.DirChildrenMap)
       DriverData.set(OneDriver.drive_id, OneDriver)
     } else {
       OneDriver.DirChildrenMap = childrenMap
@@ -181,6 +184,7 @@ export default class TreeStore {
       const item = dirs[i]
       const dirItem: DirData = {
         file_id: item.file_id,
+        drive_id: item.drive_id,
         parent_file_id: item.parent_file_id,
         name: item.name,
         time: item.time,
@@ -256,6 +260,7 @@ export default class TreeStore {
       const itemNode: TreeNodeData = {
         __v_skip: true,
         key: item.file_id,
+        drive_id: item.drive_id,
         parent_file_id: item.parent_file_id,
         title: item.name,
         description: item.description,
@@ -414,7 +419,7 @@ export default class TreeStore {
     const driveType = GetDriveType(usePanTreeStore().user_id, drive_id)
     if (dir.parent_file_id === 'root') dir.parent_file_id = driveType.key
     if (dir.file_id === 'root') dir.file_id = driveType.key
-    return { __v_skip: true, drive_id, namesearch: '', ...dir }
+    return { __v_skip: true, namesearch: '', ...dir }
   }
 
 
@@ -599,7 +604,7 @@ export default class TreeStore {
       if (!dir) break
       if (dir.parent_file_id === 'root') dir.parent_file_id = driveType.key
       if (dir.file_id === 'root') dir.file_id = driveType.key
-      dirPath.push({ __v_skip: true, drive_id, namesearch: '', ...dir } as IAliGetDirModel)
+      dirPath.push({ __v_skip: true, namesearch: '', ...dir } as IAliGetDirModel)
       file_id = dir.parent_file_id
     }
     dirPath.reverse()

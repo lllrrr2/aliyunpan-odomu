@@ -358,6 +358,7 @@ const usePanFileStore = defineStore('panfile', {
       if (list.length > 0) return list[0]
       return undefined
     },
+
     mSetFocus(key: string) {
       this.ListFocusKey = key
       this.mRefreshListDataShow(false)
@@ -398,6 +399,7 @@ const usePanFileStore = defineStore('panfile', {
         PanDAL.RefreshPanTreeAllNode(this.DriveID)
       }
     },
+
     mFavorFiles(isfavor: boolean, file_idList: string[]) {
       const listDataRaw = this.ListDataRaw
       let isChange = false
@@ -411,6 +413,7 @@ const usePanFileStore = defineStore('panfile', {
       }
       if (isChange) this.mRefreshListDataShow(false)
     },
+
     mColorFiles(color: string, file_idList: string[]) {
       const listDataRaw = this.ListDataRaw
       let isChange = false
@@ -438,6 +441,7 @@ const usePanFileStore = defineStore('panfile', {
       }
       if (isChange) this.mRefreshListDataShow(false)
     },
+
     mSaveFileScrollTo(file_id: string) {
       if (file_id == 'refresh') file_id = this.ListSelectKey
       this.scrollToFile = file_id

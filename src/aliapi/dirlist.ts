@@ -322,6 +322,7 @@ export default class AliDirList {
       }
       const add: DirData = {
         file_id: item.file_id,
+        drive_id: item.drive_id,
         parent_file_id: item.parent_file_id,
         name: item.name,
         time: item.time,
@@ -362,7 +363,7 @@ export default class AliDirList {
           order_by: 'name ASC',
           marker: dir.next_marker
         }
-        const url = 'adrive/v3/file/search?jsonmask=next_marker%2Citems(created_at%2Cfile_id%2Cname%2Cparent_file_id%2Cupdated_at%2Cdescription)'
+        const url = 'adrive/v3/file/search?jsonmask=next_marker%2Citems(drive_id%2Ccreated_at%2Cfile_id%2Cname%2Cparent_file_id%2Cupdated_at%2Cdescription)'
         const resp = await AliHttp.Post(url, postData, user_id, '')
         try {
           if (AliHttp.IsSuccess(resp.code)) {
@@ -380,6 +381,7 @@ export default class AliDirList {
               }
               const add: DirData = {
                 file_id: item.file_id,
+                drive_id: item.drive_id,
                 parent_file_id: item.parent_file_id,
                 name: item.name,
                 time: new Date(item.updated_at).getTime(),
@@ -493,6 +495,7 @@ export default class AliDirList {
                     }
                     const add: DirData = {
                       file_id: item.file_id,
+                      drive_id: item.drive_id,
                       parent_file_id: item.parent_file_id,
                       name: item.name,
                       time: new Date(item.updated_at).getTime(),

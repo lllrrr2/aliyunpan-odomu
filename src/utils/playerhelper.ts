@@ -186,7 +186,7 @@ const PlayerUtils = {
     if (play_duration > 0 && play_duration > 0 && play_cursor >= play_duration - 10) {
       play_cursor = play_duration - 10
     }
-    return { play_duration, play_cursor }
+    return { info, play_duration, play_cursor }
   },
   async getDirFileList(user_id: string, drive_id: string, parent_file_id: string) {
     const dir = await AliDirFileList.ApiDirFileList(user_id, drive_id, parent_file_id, '', 'name asc', '')
@@ -258,7 +258,13 @@ const PlayerUtils = {
   async mpvPlayer(token: ITokenInfo, binary: string, playArgs: any, otherArgs: any, options: SpawnOptions, exitCallBack: any) {
     let { file, fileList, playList, playFileListPath } = otherArgs
     // console.log('otherArgs', otherArgs)
-    let { uiAutoColorVideo, uiVideoEnablePlayerList, uiVideoPlayerHistory, uiVideoPlayerExit, uiVideoSubtitleMode } = useSettingStore()
+    let {
+      uiAutoColorVideo,
+      uiVideoEnablePlayerList,
+      uiVideoPlayerHistory,
+      uiVideoPlayerExit,
+      uiVideoSubtitleMode
+    } = useSettingStore()
     let socketPath = is.windows() ? '\\\\.\\pipe\\mpvserver' : '/tmp/mpvserver.sock'
     let currentTime = 0
     let currentFileId = file.file_id
@@ -284,8 +290,9 @@ const PlayerUtils = {
             const item = playList[status.value]
             await AliFile.ApiUpdateVideoTime(token.user_id, item.drive_id, currentFileId, currentTime)
             currentFileId = (item && item.file_id) || undefined
-            if (currentFileId && uiAutoColorVideo && !item.description.includes('ce74c3c')) {
-              AliFileCmd.ApiFileColorBatch(token.user_id, item.drive_id, item.description ? item.description + ',' + 'ce74c3c' : 'ce74c3c', [currentFileId]).then((success) => {
+            const description = item.description
+            if (currentFileId && uiAutoColorVideo && description && !description.includes('ce74c3c')) {
+              AliFileCmd.ApiFileColorBatch(token.user_id, item.drive_id, item.description, 'ce74c3c', [currentFileId]).then((success) => {
                 usePanFileStore().mColorFiles('ce74c3c', success)
               })
             }

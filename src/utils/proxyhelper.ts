@@ -10,6 +10,7 @@ import { MainProxyPort } from '../layout/PageMain'
 import AliFile from '../aliapi/file'
 import path from 'path'
 import { localPwd } from './aria2c'
+import ip from 'ip'
 
 // 默认maxFreeSockets=256
 const httpsAgent = new HttpsAgent({ keepAlive: true })
@@ -84,14 +85,14 @@ export function getFlowEnc(user_id: string, fileSize: number, encType: string, p
 }
 
 export function getProxyUrl(info: FileInfo) {
-  let proxyUrl = `http://127.0.0.1:${MainProxyPort}/proxy`
+  let proxyUrl = `http://${ip.address('public', 'ipv4')}:${MainProxyPort}/proxy`
   let params = Object.keys(info).filter(v => info[v])
     .map((key: string) => `${encodeURIComponent(key)}=${encodeURIComponent(info[key]!!)}`)
   return `${proxyUrl}?${params.join('&')}`
 }
 
 export function getRedirectUrl(info: FileInfo) {
-  let redirectUrl = `http://127.0.0.1:${MainProxyPort}/redirect`
+  let redirectUrl = `http://${ip.address('public', 'ipv4')}:${MainProxyPort}/redirect`
   let params = Object.keys(info).filter(v => info[v])
     .map((key: string) => `${encodeURIComponent(key)}=${encodeURIComponent(info[key]!!)}`)
   return `${redirectUrl}?${params.join('&')}`

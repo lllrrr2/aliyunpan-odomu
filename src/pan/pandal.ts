@@ -92,6 +92,7 @@ export default class PanDAL {
     const dir: TreeNodeData = {
       __v_skip: true,
       key: driveType.key,
+      drive_id: drive_id,
       parent_file_id: '',
       title: driveType.title,
       namesearch: '',
@@ -109,6 +110,7 @@ export default class PanDAL {
     const dir: TreeNodeData = {
       __v_skip: true,
       title: driveType.title,
+      drive_id: drive_id,
       parent_file_id: '',
       namesearch: '',
       key: driveType.key,

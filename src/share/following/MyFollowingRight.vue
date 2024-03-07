@@ -221,15 +221,14 @@ const handleSearchEnter = (event: any) => {
               <div class="followingname" @click="handleOpenLink(item.user_id)">{{ item.nick_name }}
                 <a-badge v-if="item.has_unread_message" status="processing"></a-badge>
               </div>
-              <div v-for='msg in item.latest_messages'
-                   :key='msg.sequence_id'
-                   class='followingmessage'
-                   @click='handleOpenShare(msg.content.share.share_id, msg.content.share.share_pwd, msg.content.file_id_list)'>
-                {{ msg.createdstr }} : {{ msg.display_action }}
-                <div v-for='(file, index) in msg.content.file_list' :key='index'>
-                  <span style='padding: 10px;margin-bottom: 10px;position: relative;'>{{ file.name }}</span>
+              <template v-if="item.latest_messages.length > 0">
+                <div class='followingmessage' @click='handleOpenShare(item.latest_messages[0].content.share.share_id, item.latest_messages[0].content.share.share_pwd, item.latest_messages[0].content.file_id_list)'>
+                  {{ item.latest_messages[0].createdstr }} : {{ item.latest_messages[0].display_action }}
+                  <div v-for='(file, index) in item.latest_messages[0].content.file_list' :key='index'>
+                    <span style='padding: 10px;margin-bottom: 10px;position: relative;'>{{ file.name }}</span>
+                  </div>
                 </div>
-              </div>
+              </template>
             </div>
           </div>
         </div>

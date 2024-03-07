@@ -385,8 +385,8 @@ export function menuCopySelectedFile(istree: boolean, copyby: string) {
 }
 
 
-export function dropMoveSelectedFile(movetodirid: string, istree: boolean) {
-  const selectedData = PanDAL.GetPanSelectedData(false)
+export function dropMoveSelectedFile(drive_id: string, movetodirid: string, istree: boolean) {
+  const selectedData = PanDAL.GetPanSelectedData(istree)
   if (selectedData.isErrorSelected) return
   if (selectedData.isError) {
     message.error('复制移动操作失败 父文件夹错误！')
@@ -424,18 +424,11 @@ export function dropMoveSelectedFile(movetodirid: string, istree: boolean) {
     return
   }
 
-  let to_drive_id = selectedData.drive_id
-  if (istree) {
-    // 获取父节点
-    if (movetodirid.includes('root')) {
-      to_drive_id = GetDriveID(selectedData.user_id, movetodirid)
-      movetodirid = 'root'
-    } else {
-      let dirPath = TreeStore.GetDirPath(selectedData.drive_id, movetodirid)
-      if (dirPath.length == 0) {
-        to_drive_id = GetDriveID(selectedData.user_id, selectedData.drive_id)
-      }
-    }
+  let to_drive_id = drive_id || selectedData.drive_id
+  // 获取父节点
+  if (movetodirid.includes('root')) {
+    to_drive_id = GetDriveID(selectedData.user_id, movetodirid)
+    movetodirid = 'root'
   }
   AliFileCmd.ApiMoveBatch(selectedData.user_id, selectedData.drive_id, file_idList, to_drive_id, movetodirid)
     .then(async (success: string[]) => {
@@ -466,14 +459,10 @@ export async function menuFileColorChange(istree: boolean, color: string) {
     message.error('不能标记相同的颜色')
     return
   }
-  let parts = description.split(',')
-  let encryptPart = parts.find(part => part.includes('xbyEncrypt')) || ''
-  let colorPart = color || parts.find(part => /c.{6}$/.test(part)) || ''
-  color = color ? [encryptPart, colorPart].filter(Boolean).join(',') : encryptPart
   if (topbtnLock.has('menuFileColorChange')) return
   topbtnLock.add('menuFileColorChange')
   try {
-    const successList = await AliFileCmd.ApiFileColorBatch(selectedData.user_id, selectedData.drive_id, color, selectedData.selectedKeys)
+    const successList = await AliFileCmd.ApiFileColorBatch(selectedData.user_id, selectedData.drive_id, description, color, selectedData.selectedKeys)
     usePanFileStore().mColorFiles(color, successList)
   } catch (err: any) {
     message.error(err.message)

@@ -90,6 +90,8 @@ export function PageMain() {
         }).catch((err: any) => {
           useSettingStore().webDavEnable = false
         })
+      } else {
+        useSettingStore().webDavEnable = false
       }
       // 开启定时任务
       setTimeout(timeEvent, 1000)

@@ -348,8 +348,9 @@ const refreshSetting = async (art: Artplayer, item: any) => {
   autoPlayNumber = playList.findIndex(list => list.file_id == pageVideo.file_id)
   // 更新标记
   const settingStore = useSettingStore()
-  if (settingStore.uiAutoColorVideo && !item.description) {
-    AliFileCmd.ApiFileColorBatch(pageVideo.user_id, pageVideo.drive_id, 'ce74c3c', [item.file_id])
+  const description = item.description
+  if (settingStore.uiAutoColorVideo && description && !description.includes('ce74c3c')) {
+    AliFileCmd.ApiFileColorBatch(pageVideo.user_id, pageVideo.drive_id, item.description, 'ce74c3c', [item.file_id])
       .then((success) => {
         usePanFileStore().mColorFiles('ce74c3c', success)
       })

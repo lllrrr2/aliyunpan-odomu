@@ -100,7 +100,11 @@ export default class AliFileCmd {
   }
 
 
-  static async ApiFileColorBatch(user_id: string, drive_id: string, color: string, file_idList: string[]): Promise<string[]> {
+  static async ApiFileColorBatch(user_id: string, drive_id: string, description: string, color: string, file_idList: string[]): Promise<string[]> {
+    let parts = description.split(',') || []
+    let encryptPart = parts.find((part: any) => part.includes('xbyEncrypt')) || ''
+    let colorPart = color || parts.find((part: any) => /c.{6}$/.test(part)) || ''
+    color = color ? [encryptPart, colorPart].filter(Boolean).join(',') : encryptPart
     const batchList = ApiBatchMaker('/file/update', file_idList, (file_id: string) => {
       return { drive_id: drive_id, file_id: file_id, description: color }
     })

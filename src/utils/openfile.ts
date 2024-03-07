@@ -172,8 +172,8 @@ async function Video(token: ITokenInfo, file: IAliGetFileModel, subTitleFile: an
     uiVideoPlayer,
     uiVideoPlayerPath
   } = useSettingStore()
-  if (uiAutoColorVideo && !desc.includes('ce74c3c')) {
-    AliFileCmd.ApiFileColorBatch(token.user_id, file.drive_id, desc ? desc + ',' + 'ce74c3c' : 'ce74c3c', [file.file_id]).then((success) => {
+  if (uiAutoColorVideo && desc && !desc.includes('ce74c3c')) {
+    AliFileCmd.ApiFileColorBatch(token.user_id, file.drive_id, file.description, 'ce74c3c', [file.file_id]).then((success) => {
       usePanFileStore().mColorFiles('ce74c3c', success)
     })
   }
@@ -194,7 +194,7 @@ async function Video(token: ITokenInfo, file: IAliGetFileModel, subTitleFile: an
       parent_file_name: parent_file_name,
       expire_time: 0,
       password: password,
-      encType: getEncType(file),
+      encType: getEncType(playCursorInfo?.info || ''),
       play_cursor: play_cursor
     }
     window.WebOpenWindow({ page: 'PageVideo', data: pageVideo, theme: 'dark' })
