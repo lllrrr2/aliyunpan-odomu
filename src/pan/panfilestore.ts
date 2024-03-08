@@ -14,6 +14,7 @@ import { IAliFileResp } from '../aliapi/dirfilelist'
 import PanDAL from './pandal'
 import TreeStore from '../store/treestore'
 import { useFootStore } from '../store'
+import { OrderDir } from '../utils/filenameorder'
 
 type Item = IAliGetFileModel
 
@@ -282,6 +283,12 @@ const usePanFileStore = defineStore('panfile', {
         for (let i = 0, maxi = results.length; i < maxi; i++) {
           if (results[i].score > -200000) showList.push(results[i].obj)
         }
+        // 重新排序
+        const orders = this.ListOrderKey
+          .replace(' desc', ' DESC')
+          .replace(' asc', ' ASC')
+          .split(' ')
+        OrderDir(orders[0], orders[1], showList)
       } else {
         showList = this.ListDataRaw.concat()
       }
