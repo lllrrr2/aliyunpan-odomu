@@ -29,11 +29,11 @@ const RefreshLock = new Set<string>()
 export default class PanDAL {
 
   static async aReLoadBackupDrive(token: ITokenInfo): Promise<void> {
-    const { user_id, default_drive_id, resource_drive_id, backup_drive_id } = token
+    const { user_id, default_drive_id, resource_drive_id, backup_drive_id, pic_drive_id } = token
     const drive_id = backup_drive_id
     const pantreeStore = usePanTreeStore()
     // 保存DriveId
-    pantreeStore.mSaveUser(user_id, default_drive_id, resource_drive_id, backup_drive_id)
+    pantreeStore.mSaveUser(user_id, default_drive_id, resource_drive_id, backup_drive_id, pic_drive_id)
     pantreeStore.drive_id = drive_id
     if (!user_id || !pantreeStore.drive_id) return
     const backupCache = await DB.getValueObject('AllDir_' + drive_id)
@@ -52,10 +52,10 @@ export default class PanDAL {
   }
 
   static async aReLoadResourceDrive(token: ITokenInfo): Promise<void> {
-    const { user_id, default_drive_id, resource_drive_id, backup_drive_id } = token
+    const { user_id, default_drive_id, resource_drive_id, backup_drive_id, pic_drive_id } = token
     const pantreeStore = usePanTreeStore()
     // 保存DriveId
-    pantreeStore.mSaveUser(user_id, default_drive_id, resource_drive_id, backup_drive_id)
+    pantreeStore.mSaveUser(user_id, default_drive_id, resource_drive_id, backup_drive_id, pic_drive_id)
     if (!user_id || !resource_drive_id) return
     const resourceCache = await DB.getValueObject('AllDir_' + resource_drive_id)
     if (resourceCache) {

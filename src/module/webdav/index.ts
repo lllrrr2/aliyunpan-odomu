@@ -165,7 +165,7 @@ class WebDavServer {
             reject(err)
           }
         })
-        _this.webDavServer.listen(this.options.port, this.options.hostname, () => {
+        _this.webDavServer.listen(this.options.port, () => {
           _this.isStart = true
           resolve(true)
         })

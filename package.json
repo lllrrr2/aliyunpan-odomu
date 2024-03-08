@@ -1,7 +1,7 @@
 {
   "name": "alixby",
   "description": "阿里云盘小白羊",
-  "version": "3.24.30722",
+  "version": "3.24.30811",
   "main": "dist/electron/main/index.js",
   "author": {
     "name": "Odomu",
@@ -28,7 +28,7 @@
     "@types/lodash": "^4.14.202",
     "@types/markdown-it": "^13.0.7",
     "@types/mime-types": "^2.1.4",
-    "@types/node": "^20.11.24",
+    "@types/node": "^20.11.25",
     "@types/node-ssdp": "^4.0.4",
     "@types/secp256k1": "^4.0.6",
     "@types/thunky": "^1.1.2",
@@ -75,7 +75,7 @@
     "terser": "^5.29.1",
     "thunky": "^1.1.0",
     "tree-kill": "^1.2.2",
-    "typescript": "^5.3.3",
+    "typescript": "^5.4.2",
     "upnp-client-ts": "^1.1.1",
     "uuid": "^9.0.1",
     "uuid-by-string": "^4.0.0",

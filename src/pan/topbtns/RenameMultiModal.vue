@@ -55,11 +55,13 @@ const handleSwitch = (val: string) => {
 
 const replaceData = ref<string[]>([])
 const indexData = [
-  { label: '第#个 例如:第001个', value: '第#个' },
-  { label: '(#) 例如:(001)', value: '(#)' },
-  { label: '[#] 例如:[001]', value: '[#]' },
-  { label: '#.  例如:001.', value: '#.' },
-  { label: '#-  例如:001-', value: '#-' }
+  { label: '# 例如:01', value: '#' },
+  { label: '(#) 例如:(01)', value: '(#)' },
+  { label: '[#] 例如:[01]', value: '[#]' },
+  { label: '第#个 例如:第01个', value: '第#个' },
+  { label: 'S01E# 例如:S01E01', value: 'S01E#' },
+  { label: '#.  例如:01.', value: '#.' },
+  { label: '#-  例如:01-', value: '#-' }
 ]
 const renameConfig = reactive(NewRenameConfigData())
 

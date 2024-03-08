@@ -11,6 +11,7 @@ export interface PanTreeState {
   default_drive_id: string
   backup_drive_id: string
   resource_drive_id: string
+  pic_drive_id: string
 
   History: IAliGetDirModel[]
 
@@ -41,6 +42,7 @@ const usePanTreeStore = defineStore('pantree', {
     default_drive_id: '',
     backup_drive_id: '',
     resource_drive_id: '',
+    pic_drive_id: '',
     History: [],
     selectDir: {
       __v_skip: true,
@@ -172,9 +174,9 @@ const usePanTreeStore = defineStore('pantree', {
       if (isExpaned) PanDAL.RefreshPanTreeAllNode(this.drive_id)
     },
 
-    mSaveUser(user_id: string, default_drive_id: string, resource_drive_id: string, backup_drive_id: string) {
+    mSaveUser(user_id: string, default_drive_id: string, resource_drive_id: string, backup_drive_id: string, pic_drive_id: string) {
       this.$reset()
-      this.$patch({ user_id, default_drive_id, resource_drive_id, backup_drive_id })
+      this.$patch({ user_id, default_drive_id, resource_drive_id, backup_drive_id, pic_drive_id })
     },
 
     mShowDir(dir: IAliGetDirModel, dirPath: IAliGetDirModel[], treeSelectedKeys: string[], treeExpandedKeys: string[]) {

@@ -63,7 +63,7 @@ export function getIPAddress() {
       })
     }
   }
-  console.log(ipv4)
+  // console.log(ipv4)
   return ipv4 || '127.0.0.1'
 }
 

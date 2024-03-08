@@ -193,6 +193,7 @@ export default class UserDAL {
   }
 
   static async LoadPanData(token: ITokenInfo) {
+    console.warn('LoadPanData....')
     // 刷新网盘数据
     if (!useSettingStore().securityHideResourceDrive) {
       await PanDAL.aReLoadResourceDrive(token)

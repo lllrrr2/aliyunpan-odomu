@@ -7,7 +7,7 @@ import {
   MoveInfo,
   OpenReadStreamInfo
 } from 'webdav-server/lib/index.v2'
-import { usePanTreeStore } from '../../../store'
+import { usePanTreeStore, useSettingStore } from '../../../store'
 import TreeStore from '../../../store/treestore'
 import AliFile from '../../../aliapi/file'
 import AliDirFileList from '../../../aliapi/dirfilelist'
@@ -27,42 +27,74 @@ class Request {
 
   }
 
+  static async getRootDirectory(ctx: IContextInfo): Promise<StructDirectory[]> {
+    let { backup_drive_id, resource_drive_id, pic_drive_id } = usePanTreeStore()
+    let { securityHideBackupDrive, securityHideResourceDrive, securityHidePicDrive } = useSettingStore()
+    let resPan = {
+      files: [],
+      folders: [],
+      current: {
+        name: '备份盘',
+        drive_id: backup_drive_id,
+        description: '',
+        parent_file_id: '',
+        file_id: 'backup_root',
+        ext: '',
+        rootFolderType: 0
+      }
+    }
+    let backupPan = {
+      files: [],
+      folders: [],
+      current: {
+        name: '资源盘',
+        drive_id: resource_drive_id,
+        parent_file_id: '',
+        description: '',
+        file_id: 'resource_root',
+        ext: '',
+        rootFolderType: 0
+      }
+    }
+    let picPan = {
+      files: [],
+      folders: [],
+      current: {
+        name: '相册',
+        drive_id: pic_drive_id,
+        parent_file_id: '',
+        description: '',
+        file_id: 'pic_root',
+        ext: '',
+        rootFolderType: 0
+      }
+    }
+    let rootDir = []
+    if (!securityHideBackupDrive) {
+      rootDir.push(backupPan)
+    }
+    if (!securityHideResourceDrive) {
+      rootDir.push(resPan)
+    }
+    if (!securityHidePicDrive) {
+      rootDir.push(picPan)
+    }
+    return rootDir
+  }
+
   static async getStructDirectory(ctx: IContextInfo, drive_id: string, file_id: string): Promise<StructDirectory[] | StructDirectory | Error> {
     console.log('api.getStructDirectory, file_id', file_id)
     try {
       // 如果为根路径，加入备份盘和资源盘
       if (file_id == 'root') {
-        return [{
-          files: [],
-          folders: [],
-          current: {
-            name: '备份盘',
-            drive_id: usePanTreeStore().backup_drive_id,
-            description: '',
-            parent_file_id: '',
-            file_id: 'backup_root',
-            ext: '',
-            rootFolderType: 0
-          }
-        }, {
-          files: [],
-          folders: [],
-          current: {
-            name: '资源盘',
-            drive_id: usePanTreeStore().resource_drive_id,
-            parent_file_id: '',
-            description: '',
-            file_id: 'resource_root',
-            ext: '',
-            rootFolderType: 0
-          }
-        }]
+       return this.getRootDirectory(ctx)
       }
+      let { user_id } = usePanTreeStore()
       // 获取访问的文件路径
       let dir = TreeStore.GetDir(drive_id, file_id)
       let dirPath = TreeStore.GetDirPath(drive_id, file_id)
       if (!dir || (dirPath.length == 0 && !file_id.includes('root'))) {
-        let findPath = await AliFile.ApiFileGetPath(usePanTreeStore().user_id, drive_id, file_id)
+        let findPath = await AliFile.ApiFileGetPath(user_id, drive_id, file_id)
         if (findPath.length > 0) {
           dirPath = findPath
           dir = { ...dirPath[dirPath.length - 1] }
@@ -74,7 +106,7 @@ class Request {
       // 根据文件id加载文件列表
       let files: any[] = []
       let folders: any[] = []
-      const resp = await AliDirFileList.ApiDirFileList(usePanTreeStore().user_id, drive_id, file_id, '', 'name asc', '', '', false)
+      const resp = await AliDirFileList.ApiDirFileList(user_id, drive_id, file_id, '', 'name asc', '', '', false)
       resp.items.forEach((item) => {
         if (item.isDir) folders.push(item)
         else files.push(item)

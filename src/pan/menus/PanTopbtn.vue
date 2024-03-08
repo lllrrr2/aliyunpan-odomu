@@ -80,12 +80,12 @@ const handleClickBottleFish = async () => {
   <div v-if="dirtype == 'video'" class='toppanbtn' tabindex='-1'>
     <a-space direction='horizontal'>
       <a-button size='small' tabindex='-1'
-                :type="videoSelectType === 'recent' ? 'dashed' : 'text'"
+                :type="videoSelectType === 'recent' ? 'secondary' : 'dashed'"
                 @click='handleSelectRecentPlay'>
         <i class='iconfont iconfile_video' />正在观看
       </a-button>
       <a-button size='small' tabindex='-1'
-                :type="videoSelectType === 'allComp' ? 'dashed' : 'text'"
+                :type="videoSelectType === 'allComp' ? 'secondary' : 'dashed'"
                 @click='handleSelectAllCompilation'>
         <i class='iconfont iconrss_video' />全部专辑
       </a-button>

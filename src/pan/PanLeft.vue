@@ -297,13 +297,23 @@ const filterTreeData = computed(() => {
   </div>
 </template>
 
-<style>
+<style lang="less">
 .treeleft {
   margin-left: -6px;
 }
 
 .dirtree {
   height: 100%;
+}
+
+.ant-tree.ant-tree-show-line .ant-tree-child-tree li:not(:last-child)::before {
+  border-left: none !important;
+}
+
+.ant-tree.ant-tree-show-line li:not(:last-child)::before {
+  border-left: 1px dashed #d9d9d9;
+  top: 10px;
+  left: 11px
 }
 
 .dirtree .iconfont,
