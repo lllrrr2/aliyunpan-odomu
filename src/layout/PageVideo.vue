@@ -103,6 +103,7 @@ const playByHls = (video: HTMLMediaElement, url: string, art: Artplayer) => {
           hls.recoverMediaError()
         } else if (errorType === HlsJs.ErrorTypes.NETWORK_ERROR) {
           if (pageVideo.expire_time && pageVideo.expire_time <= Date.now()) {
+            await updateVideoTime()
             await getVideoInfo(art)
           } else {
             art.emit('video:error', data)
