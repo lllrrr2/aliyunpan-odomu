@@ -291,7 +291,7 @@ const PlayerUtils = {
             await AliFile.ApiUpdateVideoTime(token.user_id, item.drive_id, currentFileId, currentTime)
             currentFileId = (item && item.file_id) || undefined
             const description = item.description
-            if (currentFileId && uiAutoColorVideo && description && !description.includes('ce74c3c')) {
+            if (currentFileId && uiAutoColorVideo && (!description || !description.includes('ce74c3c'))) {
               AliFileCmd.ApiFileColorBatch(token.user_id, item.drive_id, item.description, 'ce74c3c', [currentFileId]).then((success) => {
                 usePanFileStore().mColorFiles('ce74c3c', success)
               })

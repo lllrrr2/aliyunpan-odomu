@@ -172,7 +172,7 @@ async function Video(token: ITokenInfo, file: IAliGetFileModel, subTitleFile: an
     uiVideoPlayer,
     uiVideoPlayerPath
   } = useSettingStore()
-  if (uiAutoColorVideo && desc && !desc.includes('ce74c3c')) {
+  if (uiAutoColorVideo && (!desc || !desc.includes('ce74c3c'))) {
     AliFileCmd.ApiFileColorBatch(token.user_id, file.drive_id, file.description, 'ce74c3c', [file.file_id]).then((success) => {
       usePanFileStore().mColorFiles('ce74c3c', success)
     })

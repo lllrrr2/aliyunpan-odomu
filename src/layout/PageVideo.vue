@@ -350,7 +350,7 @@ const refreshSetting = async (art: Artplayer, item: any) => {
   // 更新标记
   const settingStore = useSettingStore()
   const description = item.description
-  if (settingStore.uiAutoColorVideo && description && !description.includes('ce74c3c')) {
+  if (settingStore.uiAutoColorVideo && (!description || !description.includes('ce74c3c'))) {
     AliFileCmd.ApiFileColorBatch(pageVideo.user_id, pageVideo.drive_id, item.description, 'ce74c3c', [item.file_id])
       .then((success) => {
         usePanFileStore().mColorFiles('ce74c3c', success)
