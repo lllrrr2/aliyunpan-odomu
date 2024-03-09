@@ -5,8 +5,9 @@ export interface IShareSiteModel {
   title: string
   url: string
   tip: string
-  group: string,
+  group: string
   color: string
+  external: string
 }
 
 export interface IShareSiteGroupModel {

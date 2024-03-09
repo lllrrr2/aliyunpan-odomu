@@ -29,7 +29,7 @@ const handleSite = (item: IShareSiteModel) => {
     else siteUrl.value = ''
   }
 
-  if (item.group == 'doc') {
+  if (item.group == 'doc' || item.external) {
     openExternal(siteUrl.value)
     siteUrl.value = ''
     return

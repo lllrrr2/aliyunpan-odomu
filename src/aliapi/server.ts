@@ -130,7 +130,8 @@ export default class ServerHttp {
               url: item.url,
               tip: item.tip,
               group: item.group,
-              color: item.color
+              color: item.color,
+              external: item.external
             }
             if (add.url.length > 0) list.push(add)
           }

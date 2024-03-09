@@ -1,7 +1,7 @@
 {
   "name": "alixby",
   "description": "阿里云盘小白羊",
-  "version": "3.24.30816",
+  "version": "3.24.30922",
   "main": "dist/electron/main/index.js",
   "author": {
     "name": "Odomu",
@@ -84,7 +84,7 @@
     "vite-plugin-electron": "0.15.6",
     "vite-plugin-electron-renderer": "0.14.5",
     "vue": "3.4.21",
-    "vue-tsc": "^2.0.5",
+    "vue-tsc": "^2.0.6",
     "webdav-server": "^2.6.2",
     "whacko": "^0.19.1"
   },
