@@ -154,16 +154,6 @@ async function Video(token: ITokenInfo, file: IAliGetFileModel, subTitleFile: an
     return
   }
   let desc = file.description
-  let play_cursor = 0
-  let play_duration = 0
-  let playCursorInfo = await PlayerUtils.getPlayCursor(token.user_id, file.drive_id, file.file_id)
-  if (playCursorInfo) {
-    play_cursor = playCursorInfo.play_cursor
-    play_duration = playCursorInfo.play_duration
-  } else {
-    play_cursor = file.media_play_cursor ? parseInt(file.media_play_cursor) : 0
-    play_duration = file.media_duration ? parseInt(file.media_duration) : 0
-  }
   const {
     uiAutoColorVideo,
     uiVideoQuality,
@@ -178,6 +168,13 @@ async function Video(token: ITokenInfo, file: IAliGetFileModel, subTitleFile: an
     })
   }
   if (uiVideoPlayer == 'web') {
+    let play_cursor = 0
+    let playCursorInfo = await PlayerUtils.getPlayCursor(token.user_id, file.drive_id, file.file_id)
+    if (playCursorInfo) {
+      play_cursor = playCursorInfo.play_cursor
+    } else {
+      play_cursor = file.media_play_cursor ? parseInt(file.media_play_cursor) : 0
+    }
     // 获取文件夹信息
     const info = await AliFile.ApiFileInfo(token.user_id, file.drive_id, file.parent_file_id)
     let parent_file_name = ''
@@ -221,15 +218,11 @@ async function Video(token: ITokenInfo, file: IAliGetFileModel, subTitleFile: an
     }
   }
   let otherArgs: any = {
-    file,
-    subTitleFile,
-    play_cursor,
-    play_duration,
+    file, subTitleFile,
     playList: [],
     fileList: [],
     playFileListPath: '',
-    rawData,
-    password,
+    rawData, password,
     quality: uiVideoQuality
   }
   // 清晰度选择

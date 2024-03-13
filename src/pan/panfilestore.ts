@@ -15,6 +15,7 @@ import PanDAL from './pandal'
 import TreeStore from '../store/treestore'
 import { useFootStore } from '../store'
 import { OrderDir } from '../utils/filenameorder'
+import { onHideRightMenuScroll } from '../utils/keyboardhelper'
 
 type Item = IAliGetFileModel
 
@@ -338,6 +339,7 @@ const usePanFileStore = defineStore('panfile', {
       this.$patch({ ListSelected: data.selectedNew, ListFocusKey: data.focusLast, ListSelectKey: data.selectedLast })
       this.mRefreshListDataShow(false)
     },
+
     mRangSelect(lastkey: string, file_idList: string[]) {
       if (this.ListDataShow.length == 0) return
       const selectedNew = new Set<string>(this.ListSelected)
@@ -345,6 +347,13 @@ const usePanFileStore = defineStore('panfile', {
         selectedNew.add(file_idList[i])
       }
       this.$patch({ ListSelected: selectedNew, ListFocusKey: lastkey, ListSelectKey: lastkey })
+      this.mRefreshListDataShow(false)
+    },
+
+    mCancelSelect() {
+      onHideRightMenuScroll()
+      this.ListSelected.clear()
+      this.ListFocusKey = ''
       this.mRefreshListDataShow(false)
     },
 
@@ -422,6 +431,7 @@ const usePanFileStore = defineStore('panfile', {
     },
 
     mColorFiles(color: string, file_idList: string[]) {
+      if (color === 'notEncrypt') color = ''
       const listDataRaw = this.ListDataRaw
       let isChange = false
       const fileMap = new Set(file_idList)

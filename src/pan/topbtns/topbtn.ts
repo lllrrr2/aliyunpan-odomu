@@ -31,7 +31,8 @@ import { isEmpty } from 'lodash'
 import { GetDriveID } from '../../aliapi/utils'
 import AliAlbum from '../../aliapi/album'
 import { getEncType } from '../../utils/proxyhelper'
-import { Modal } from '@arco-design/web-vue'
+import { Modal, Option, Select } from '@arco-design/web-vue'
+import { h } from 'vue'
 
 const topbtnLock = new Set()
 
@@ -99,6 +100,7 @@ export function menuDownload(istree: boolean, tips: boolean = true) {
     return
   }
   const settingStore = useSettingStore()
+  const panTreeStore = usePanTreeStore()
   const savePath = settingStore.AriaIsLocal ? settingStore.downSavePath : settingStore.ariaSavePath
   const savePathFull = settingStore.downSavePathFull
   const downSavePathDefault = settingStore.downSavePathDefault
@@ -112,7 +114,7 @@ export function menuDownload(istree: boolean, tips: boolean = true) {
   let files: IAliGetFileModel[] = []
   if (istree) {
     files = [{
-      ...usePanTreeStore().selectDir,
+      ...panTreeStore.selectDir,
       isDir: true,
       ext: '',
       mime_extension: '',
@@ -442,6 +444,66 @@ export function dropMoveSelectedFile(drive_id: string, movetodirid: string, istr
     })
 }
 
+export async function menuFileEncTypeChange(istree: boolean) {
+  const selectedData = PanDAL.GetPanSelectedData(istree)
+  const description = selectedData.fileDescription || selectedData.parentDirDescription
+  if (selectedData.isError) {
+    message.error('标记加密文件操作失败 父文件夹错误')
+    return
+  }
+  if (selectedData.isErrorSelected) {
+    message.error('没有可以标记加密的文件')
+    return
+  }
+  if (topbtnLock.has('menuFileEncTypeChange')) return
+  topbtnLock.add('menuFileEncTypeChange')
+  let encType = 'xbyEncrypt1'
+  Modal.open({
+    title: '标记加密',
+    okText: '标记',
+    bodyStyle: { minWidth: '340px' },
+    content: () => h(Select, {
+      tabindex: '-1',
+      defaultValue: 'xbyEncrypt1',
+      onChange: (value: any) => encType = value
+    }, () => [
+      h(Option, { tabindex: '-1', value: 'notEncrypt', label: '未加密' }),
+      h(Option, { tabindex: '-1', value: 'xbyEncrypt1', label: '加密文件' }),
+      h(Option, { tabindex: '-1', value: 'xbyEncrypt2', label: '私密文件' })
+    ]),
+    onOk: async () => {
+      try {
+        const successList = await AliFileCmd.ApiFileColorBatch(selectedData.user_id, selectedData.drive_id, description, encType, selectedData.selectedKeys)
+        usePanFileStore().mColorFiles(encType, successList)
+      } catch (err: any) {
+        message.error(err.message)
+        DebugLog.mSaveDanger('menuFileEncTypeChange', err)
+      }
+    },
+    onCancel: () => {
+      topbtnLock.delete('menuFileEncTypeChange')
+    }
+  })
+  topbtnLock.delete('menuFileEncTypeChange')
+}
+
+export async function menuFileClearHistory(istree: boolean) {
+  const selectedData = PanDAL.GetPanSelectedData(istree)
+  if (selectedData.isError) {
+    message.error('清除历史操作失败 父文件夹错误')
+    return
+  }
+  if (selectedData.isErrorSelected) {
+    message.error('没有可以清除历史的文件')
+    return
+  }
+  if (topbtnLock.has('menuFileClearHistory')) return
+  topbtnLock.add('menuFileClearHistory')
+  await AliFileCmd.ApiFileHistoryBatch(selectedData.user_id, selectedData.drive_id, selectedData.selectedKeys)
+  await PanDAL.aReLoadOneDirToShow('', 'refresh', false)
+  usePanFileStore().mCancelSelect()
+  topbtnLock.delete('menuFileClearHistory')
+}
 
 export async function menuFileColorChange(istree: boolean, color: string) {
   const selectedData = PanDAL.GetPanSelectedData(istree)

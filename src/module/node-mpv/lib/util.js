@@ -1,7 +1,6 @@
-'use strict'
-
 import { exec } from 'node:child_process'
 import ErrorHandler from './error'
+import { stat } from 'node:fs'
 
 const util = {
   // Finds the correct command to start the IPC socket for mpv. It looks at the
@@ -53,8 +52,7 @@ const util = {
             if (stdout.match(/UNKNOWN/) == null) {
               // get the version part of the output
               // looking for mpv 0.XX.Y
-              const regex_match = (stdout.match(/(mpv) \d+.\d+.\d+/))
-
+              const regex_match = stdout.match(/mpv.*\d+\.\d+\.\d+/g)
               if (regex_match) {
                 const match = regex_match[0]
                 // split at the whitespace to get the numbers
@@ -87,6 +85,34 @@ const util = {
       }
     })
   },
+  // Chcks if the  binary passed in by the user actually exists
+  // If nothing is passsed in the function is successfully resolved because
+  // 'mpv' will be used
+  //
+  // @param binary {string}
+  // Path to the mpv binary
+  //
+  // @return {pormise}
+  //
+  checkMpvBinary: function(binary) {
+    return new Promise((resolve, reject) => {
+      if (binary) {
+        // check if the binary is actually working
+        stat(binary, (err, stats) => {
+          // check for the error
+          if (err && err.errno == -2) {
+            reject(new ErrorHandler().errorMessage(2, 'start()', [binary]))
+          } else {
+            resolve()
+          }
+        })
+      }
+      // if no binary is passed 'mpv' is used
+      else {
+        resolve()
+      }
+    })
+  },
   // Merges the options input by the user with the default options, giving
   // the user input options priority
   //
@@ -102,10 +128,11 @@ const util = {
       debug: false,
       verbose: false,
       // Windows and UNIX defaults
-      socket: '',
+      socket: process.platform === 'win32' ? '\\\\.\\pipe\\mpvserver' : '/tmp/node-mpv.sock',
       audio_only: false,
       auto_restart: true,
       time_update: 1,
+      binary: null,
       spawnOptions: {
         shell: true,
         windowsVerbatimArguments: true
@@ -215,6 +242,47 @@ const util = {
     // get the top most caller of the function stack for error message purposes
     const stackMatch = new Error().stack.match(/at\s\w*[^getCaller]\.\w*\s/g)
     return stackMatch[stackMatch.length - 1].split('.')[1].trim() + '()'
+  },
+  // extracts the protocol from a source string,e.g. http://someurl.com returns http
+  // returns null if no protocol was found
+  // @param source
+  // 		source string
+  //
+  // @return
+  // 		protocol string
+  extractProtocolFromSource: function(source) {
+    return !source.includes('://') ? null : source.split('://')[0]
+  },
+  // checks if a given protocol is supported
+  // @param protocol
+  // 		protocol string, e.g. "http"
+  //
+  // @returns
+  // 		boolean if the protocol is supported by mpv
+  validateProtocol: function(protocol) {
+    return [
+      'appending',
+      'av',
+      'bd',
+      'cdda',
+      'dvb',
+      'dvd',
+      'edl',
+      'fd',
+      'fdclose',
+      'file',
+      'hex',
+      'http',
+      'https',
+      'lavf',
+      'memory',
+      'mf',
+      'null',
+      'slice',
+      'smb',
+      'udp',
+      'ytdl'
+    ].includes(protocol)
   }
 }
 

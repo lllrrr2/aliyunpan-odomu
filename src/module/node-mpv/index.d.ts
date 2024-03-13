@@ -1,7 +1,3 @@
-// Type definitions for node-mpv 2.0-beta.0
-// Project: node-mpv <https://github.com/j-holub/Node-MPV>
-// Definitions by: leonekmi <me@leonekmi.fr>
-
 import EventEmitter = NodeJS.EventEmitter
 import { SpawnOptions } from 'node:child_process'
 
@@ -91,6 +87,11 @@ type EventListenerArgsWithMultipleData<
   DataType,
   DataType1
 > = [EventName, VoidCallbackWithData2<DataType, DataType1>];
+
+interface Chapter {
+  title?: string;
+  time?: number;
+}
 
 export default class NodeMpv implements EventEmitter {
   /**
@@ -544,6 +545,22 @@ export default class NodeMpv implements EventEmitter {
    */
   getFilename(format?: 'full' | 'stripped'): Promise<string>;
 
+  /**
+   * Retrieve chapter count
+   */
+  getChapterCount(): Promise<number>;
+
+  /**
+   * Retrieve a chapter by index
+   * @param index
+   */
+  getChapter(index: number): Promise<Chapter>;
+
+  /**
+   * Retrieve a chapter list
+   */
+  getChapters(): Promise<Chapter[]>;
+
   // https://github.com/j-holub/Node-MPV/blob/master/lib/mpv/_playlist.js
   /**
    * Load a playlist file
@@ -640,7 +657,7 @@ export default class NodeMpv implements EventEmitter {
   /**
    * Starts mpv, by spawning a child process or by attaching to existing socket
    */
-  start(): Promise<void>;
+  start(mpv_args?: []): Promise<void>;
 
   /**
    * Closes mpv
@@ -648,6 +665,11 @@ export default class NodeMpv implements EventEmitter {
    * [Important!] Calling method `quit` doesn't trigger the event `quit`
    */
   quit(): Promise<void>;
+
+  /**
+   * Returns the status of mpv
+   */
+  isRunning(): boolean;
 
   // https://github.com/j-holub/Node-MPV/blob/master/lib/mpv/_subtitle.js
   /**

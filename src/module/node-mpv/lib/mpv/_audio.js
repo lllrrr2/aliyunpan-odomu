@@ -6,22 +6,13 @@ const audio = {
   // title subtitle title in the UI
   // lang subitlte language
   addAudioTrack: function(file, flag, title, lang) {
-    let args = [file]
+    let args = [file];
     // add the flag if specified
-    if (flag) {
-      args = [...args, flag]
-    }
-
+    if(flag) { args = [...args, flag]}
     // add the title if specified
-    if (title) {
-      args = [...args, title]
-    }
-
+    if(title){ args = [...args, title]}
     // add the language if specified
-    if (lang) {
-      args = [...args, lang]
-    }
-
+    if(lang) { args = [...args, lang]}
     // finally add the argument
     return this.command('audio-add', args)
   },
@@ -46,7 +37,6 @@ const audio = {
   speed: function(factor) {
     return this.socket.setProperty('speed', factor)
   }
-
 }
 
 export default audio

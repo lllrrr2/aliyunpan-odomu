@@ -98,7 +98,28 @@ const information = {
 
     // get the information
     return this.getProperty(format === 'stripped' ? 'filename' : 'path')
-  }
+  },
+
+  // Returns specified chapter.
+  //
+  // @return {promise}
+  getChapter: async function(index){
+    return {
+      title : await this.getProperty(`chapter-list/${index}/title`),
+      time: await this.getProperty(`chapter-list/${index}/time`)
+    }
+  },
+
+  // Returns chapters list if available
+  // @return {promise}
+  getChapters: async function() {
+    const count = await this.getChapterCount();
+    let chapters = [];
+    for (let i =0; i < count; i++){
+      chapters.push(await this.getChapter(i))
+    }
+    return chapters;
+  },
 }
 
 export default information

@@ -23,6 +23,7 @@ const pageVideo = appStore.pageVideo!
 const isTop = ref(false)
 let autoPlayNumber = 0
 let lastPlayNumber = -1
+let currentTime = 0
 let playbackRate = 1
 let longPressSpeed = 1
 let ArtPlayerRef: Artplayer
@@ -275,7 +276,7 @@ const initEvent = (art: Artplayer) => {
     if (art.video.currentTime > 0
       && !art.video.paused && !art.video.ended
       && art.video.readyState > art.video.HAVE_CURRENT_DATA) {
-      const currentTime = art.currentTime
+      currentTime = art.currentTime
       const endDuration = art.storage.get('autoSkipEnd')
       if (currentTime > 0 && endDuration > 0) {
         if (endDuration <= currentTime) {
@@ -461,7 +462,6 @@ const defaultControls = async (art: Artplayer) => {
     html: '片头',
     tooltip: '点击设置片头',
     click: async (component, event) => {
-      let currentTime = art.currentTime
       if (art.storage.get('autoSkipBegin') > 0) {
         art.storage.set('autoSkipBegin', 0)
         art.notice.show = `取消设置片头`
@@ -478,7 +478,6 @@ const defaultControls = async (art: Artplayer) => {
     html: '片尾',
     tooltip: '点击设置片尾',
     click: async (component, event) => {
-      let currentTime = art.currentTime
       if (art.storage.get('autoSkipEnd') > 0) {
         art.storage.set('autoSkipEnd', 0)
         art.notice.show = `取消设置片尾`
@@ -536,18 +535,17 @@ const getVideoInfo = async (art: Artplayer) => {
       selector: data.qualities,
       onSelect: async (item: selectorItem) => {
         if (item.html === '原画') {
-          let currentTime = art.video.currentTime
           if (art.hls) {
             art.hls.detachMedia()
             art.hls.destroy()
           }
           art.url = item.url
           await art.play().catch()
-          art.currentTime = currentTime
           art.playbackRate = playbackRate
         } else {
           await art.switchQuality(item.url)
         }
+        art.currentTime = currentTime
       }
     })
     // 内嵌字幕
@@ -669,6 +667,7 @@ const getVideoCursor = async (art: Artplayer, play_cursor?: number) => {
   } else {
     art.currentTime = autoSkipBegin
   }
+  currentTime = art.currentTime
 }
 
 let onlineSubData: any = { name: '', data: '', dataUrl: '', type: '' }
@@ -912,6 +911,7 @@ onBeforeUnmount(() => {
   onlineSubData.type = ''
   autoPlayNumber = 0
   lastPlayNumber = -1
+  currentTime = 0
   playbackRate = 1
   longPressSpeed = 1
   ArtPlayerRef && ArtPlayerRef.destroy(false)

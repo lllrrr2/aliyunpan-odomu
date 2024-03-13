@@ -174,11 +174,11 @@ class ipcInterface extends EventEmitter {
       this.socket.removeAllListeners('close')
       this.socket.removeAllListeners('error')
       this.socket.removeAllListeners('data')
+      // Destroy the Net Socket
+      this.socket.destroy()
     } catch (e) {
 
     }
-    // Destroy the Net Socket
-    this.socket.destroy()
   }
 
   // Sends message over the ipc socket and appends the \n character that

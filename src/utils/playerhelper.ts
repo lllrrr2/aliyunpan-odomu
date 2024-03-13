@@ -197,10 +197,13 @@ const PlayerUtils = {
     }
     return curDirFileList.sort((a, b) => a.name.localeCompare(b.name, 'zh-CN'))
   },
-  async createPlayListFile(user_id: string, file_id: string, duration: number, quality: string, play_cursor: number, fileExt: string, fileList: IAliGetFileModel[]) {
+  async createPlayListFile(
+    user_id: string, file_id: string,
+    quality: string, fileExt: string,
+    fileList: IAliGetFileModel[], play_referer: string) {
     let contentStr = ''
-    if (fileExt.includes('m3u')) {
-      let header = '#EXTM3U\r\n#EXT-X-ALLOW-CACHE:NO\r\n'
+    if (fileExt.includes('m3u8')) {
+      let header = `#EXTM3U\r\n#EXT-X-ALLOW-CACHE:NO\r\n#EXTVLCOPT:http-referrer=${play_referer}\r\n#EXTVLCOPT:http-user-agent=custom-user-agent\r\n`
       let end = '#EXT-X-ENDLIST\r\n'
       let list = ''
       for (let item of fileList) {
@@ -221,7 +224,6 @@ const PlayerUtils = {
     if (fileExt == 'dpl') {
       let header = 'DAUMPLAYLIST'
       let playname = ''
-      let playtime = 'playtime=' + play_cursor
       let topindex = 'topindex=0'
       let saveplaypos = `saveplaypos=0`
       let list = ''
@@ -242,16 +244,10 @@ const PlayerUtils = {
         let listStr = `${start}*file*${url}\r\n${start}*title*${title}\r\n${start}*played*0\r\n`
         if (item.file_id === file_id) {
           playname = 'playname=' + url
-          if (duration > 0) {
-            listStr += `${start}*duration2*${duration}\r\n`
-          }
-          if (play_cursor > 0) {
-            listStr += `${start}*start*${play_cursor}\r\n`
-          }
         }
         list += listStr
       }
-      contentStr = `${header}\r\n${playname}\r\n${playtime}\r\n${topindex}\r\n${saveplaypos}\r\n${list}`
+      contentStr = `${header}\r\n${playname}\r\n${topindex}\r\n${saveplaypos}\r\n${list}`
     }
     return createTmpFile(contentStr, 'play_list' + '.' + fileExt)
   },
@@ -267,80 +263,98 @@ const PlayerUtils = {
     } = useSettingStore()
     let socketPath = is.windows() ? '\\\\.\\pipe\\mpvserver' : '/tmp/mpvserver.sock'
     let currentTime = 0
-    let currentFileId = file.file_id
+    let currentFileInfo = file
+    let lastUpdateRecordTime = Date.now()
     let mpv: mpvAPI = new mpvAPI(
       {
         debug: false,
         verbose: false,
         binary: binary,
         socket: socketPath,
+        auto_restart: true,
         spawnOptions: options
       },
       playArgs
     )
+    const updateTimeRecord = async (play_cursor: number) => {
+      if (!await mpv.isPaused() || !play_cursor || play_cursor <= 0) return
+      if (currentFileInfo.file_id && uiVideoPlayerHistory) {
+        let recordTime = Date.now()
+        if (recordTime - lastUpdateRecordTime > 5000) {
+          lastUpdateRecordTime = recordTime
+          await AliFile.ApiUpdateVideoTime(token.user_id, currentFileInfo.drive_id, currentFileInfo.file_id, play_cursor)
+        }
+      }
+    }
     try {
-      await mpv.start()
+      let playListParams: any = []
+      let playIndex = 0
       if (uiVideoEnablePlayerList) {
-        await mpv.loadPlaylist(playFileListPath)
-        await mpv.play()
-        mpv.on('status', async (status: { property: string; value: any }) => {
-          // console.log('status', status)
-          if (status.property === 'playlist-pos' && status.value != -1) {
-            // 保存历史
-            const item = playList[status.value]
-            await AliFile.ApiUpdateVideoTime(token.user_id, item.drive_id, currentFileId, currentTime)
-            currentFileId = (item && item.file_id) || undefined
-            const description = item.description
-            if (currentFileId && uiAutoColorVideo && (!description || !description.includes('ce74c3c'))) {
-              AliFileCmd.ApiFileColorBatch(token.user_id, item.drive_id, item.description, 'ce74c3c', [currentFileId]).then((success) => {
-                usePanFileStore().mColorFiles('ce74c3c', success)
-              })
+        playIndex = otherArgs.playList.findIndex((v: any) => v.file_id == file.file_id) || 0
+        playListParams = [
+          '--playlist=' + playFileListPath,
+          '--playlist-start=' + playIndex
+        ]
+      }
+      await mpv.start(playListParams)
+      mpv.on('status', async (status: { property: string; value: any }) => {
+        // console.log('status', status)
+        if (status.property == 'duration' && status.value > 0) {
+          if (uiVideoPlayerHistory) {
+            let playCursorInfo = await this.getPlayCursor(token.user_id, currentFileInfo.drive_id, currentFileInfo.file_id)
+            if (playCursorInfo && playCursorInfo.play_cursor > 0) {
+              await mpv.seek(playCursorInfo.play_cursor, 'absolute')
             }
-            mpv.once('started', async () => {
-              if (currentFileId && uiVideoPlayerHistory) {
-                let playCursorInfo = await this.getPlayCursor(token.user_id, file.drive_id, currentFileId)
-                if (playCursorInfo && playCursorInfo.play_cursor > 0) {
-                  await mpv.seek(playCursorInfo.play_cursor, 'absolute')
-                }
-              }
-              if (item && uiVideoSubtitleMode === 'auto') {
-                let filename = item.name
-                let proxyInfo: any = await Db.getValueObject('ProxyInfo')
-                if (proxyInfo.subtitle_url) {
-                  await mpv.addSubtitles(proxyInfo.subtitle_url, 'select', filename)
-                } else {
-                  let subTitlesList = fileList.filter((file: any) => /srt|vtt|ass/.test(file.ext))
-                  if (subTitlesList.length > 0) {
-                    let subTitleFile = this.filterSubtitleFile(filename, subTitlesList)
-                    if (subTitleFile) {
-                      const data = await getRawUrl(token.user_id, subTitleFile.drive_id, subTitleFile.file_id, getEncType(subTitleFile))
-                      if (typeof data !== 'string' && data.url && data.url != '') {
-                        await mpv.addSubtitles(data.url, 'select', subTitleFile.name || filename)
-                      }
-                    }
+          }
+          if (uiVideoSubtitleMode === 'auto') {
+            let proxyInfo: any = await Db.getValueObject('ProxyInfo')
+            if (proxyInfo && proxyInfo.subtitle_url) {
+              await mpv.addSubtitles(proxyInfo.subtitle_url, 'select', currentFileInfo.name)
+            } else {
+              let subTitlesList = fileList.filter((file: any) => /srt|vtt|ass/.test(file.ext))
+              if (subTitlesList.length > 0) {
+                let subTitleFile = this.filterSubtitleFile(currentFileInfo.name, subTitlesList)
+                if (subTitleFile) {
+                  const data = await getRawUrl(token.user_id, subTitleFile.drive_id, subTitleFile.file_id, getEncType(subTitleFile))
+                  if (typeof data !== 'string' && data.url && data.url != '') {
+                    await mpv.addSubtitles(data.url, 'select', subTitleFile.name || currentFileInfo.name)
                   }
                 }
               }
-            })
+            }
           }
-        })
-      }
+        } else if (playList.length && status.property === 'playlist-pos' && status.value != -1) {
+          // 保存历史
+          currentFileInfo = playList[status.value]
+          if (uiVideoPlayerHistory && status.value != playIndex) {
+            await updateTimeRecord(currentTime)
+          }
+          // 自动标记
+          const { drive_id, file_id, description } = currentFileInfo
+          if (uiAutoColorVideo && (!description || !description.includes('ce74c3c'))) {
+            AliFileCmd.ApiFileColorBatch(token.user_id, drive_id, description, 'ce74c3c', [file_id])
+              .then((success) => {
+                usePanFileStore().mColorFiles('ce74c3c', success)
+              })
+          }
+        }
+      })
+      mpv.on('seek', (timePosition) => {
+        // console.log('seek', timePosition)
+        updateTimeRecord(timePosition.end)
+      })
       mpv.on('timeposition', (timeposition: number) => {
         // console.log('timeposition', currentTime)
         currentTime = timeposition
       })
       mpv.on('quit', async () => {
-        if (currentFileId) {
-          await AliFile.ApiUpdateVideoTime(token.user_id, file.drive_id, currentFileId, currentTime)
-        }
+        await updateTimeRecord(currentTime)
         exitCallBack()
       })
       if (uiVideoPlayerExit) {
         mpv.on('stopped', async () => {
           message.info('播放完毕，自动退出软件', 8)
-          if (currentFileId) {
-            await AliFile.ApiUpdateVideoTime(token.user_id, file.drive_id, currentFileId, currentTime)
-          }
+          await updateTimeRecord(currentTime)
           await mpv.quit()
         })
       }
@@ -384,12 +398,13 @@ const PlayerUtils = {
       commandStr = `${argsToStr(command)}`
     }
     // 构造播放参数
-    let { file, subTitleFile, play_cursor, play_duration, rawData, quality, password } = otherArgs
+    let { file, subTitleFile, rawData, quality, password } = otherArgs
     let encType = getEncType(file)
     let play_url = ''
     let play_referer = token.open_api_access_token ? 'https://openapi.alipan.com/' : 'https://www.alipan.com/'
     let { uiVideoEnablePlayerList, uiVideoPlayerExit, uiVideoPlayerHistory, uiVideoPlayerParams } = useSettingStore()
     let playerArgs: any = []
+    let options: SpawnOptions = { detached: !uiVideoPlayerExit }
     let subTitleUrl = ''
     if (rawData) {
       // 加载转码的内嵌字幕
@@ -408,8 +423,14 @@ const PlayerUtils = {
         subTitleUrl = data.url
       }
     }
-    let options: SpawnOptions = { detached: !uiVideoPlayerExit }
-    if (isPotplayer) {
+    if (isPotplayer && !uiVideoPlayerHistory) {
+      let play_cursor = 0
+      let playCursorInfo = await PlayerUtils.getPlayCursor(token.user_id, file.drive_id, file.file_id)
+      if (playCursorInfo) {
+        play_cursor = playCursorInfo.play_cursor
+      } else {
+        play_cursor = file.media_play_cursor ? parseInt(file.media_play_cursor) : 0
+      }
       playerArgs = ['/new', '/autoplay', `/referer=${argsToStr(play_referer)}`, `/title=${argsToStr(file.name)}`]
       if (play_cursor > 0 && uiVideoPlayerHistory) {
         playerArgs.push(`/seek=${argsToStr(humanTime(play_cursor))}`)
@@ -422,7 +443,6 @@ const PlayerUtils = {
       playerArgs = [
         '--force-window=immediate',
         '--hwdec=auto',
-        '--geometry=80%',
         '--autofit-larger=100%x100%',
         '--autofit-smaller=640',
         '--audio-pitch-correction=yes',
@@ -433,14 +453,8 @@ const PlayerUtils = {
         `--referrer=${argsToStr(play_referer)}`,
         `--title=${argsToStr(file.name)}`
       ]
-      if (play_cursor > 0 && uiVideoPlayerHistory) {
-        playerArgs.push(`--start=${argsToStr(humanTime(play_cursor))}`)
-      }
-      if (subTitleUrl.length > 0) {
-        playerArgs.push(`--sub-file=${argsToStr(subTitleUrl)}`)
-      }
     }
-    if (isMPV && uiVideoPlayerParams.length > 0) {
+    if (uiVideoPlayerParams.length > 0) {
       const params = uiVideoPlayerParams.replaceAll(/\s+/g, '').split(',')
       playerArgs.push(...params)
     }
@@ -455,12 +469,13 @@ const PlayerUtils = {
       otherArgs.fileList = fileList
       console.log('getDirFileList', fileList)
       otherArgs.playList = fileList.filter((v: any) => v.category.includes('video'))
-      otherArgs.playFileListPath = await this.createPlayListFile(token.user_id, file.file_id, play_duration, quality, play_cursor, isPotplayer ? 'dpl' : 'm3u', otherArgs.playList)
+      otherArgs.playFileListPath = await this.createPlayListFile(
+        token.user_id, file.file_id,
+        quality, isPotplayer ? 'dpl' : 'm3u8',
+        otherArgs.playList, play_referer
+      )
       // console.log('tmpFile', tmpFile)
-      const playIndex = otherArgs.playList.findIndex((v: any) => v.file_id == file.file_id) || 0
-      if (isMPV) {
-        playArgs.push(`--playlist-start=${playIndex}`)
-      } else {
+      if (!isMPV) {
         playArgs.unshift(otherArgs.playFileListPath)
       }
     } else {
@@ -473,7 +488,7 @@ const PlayerUtils = {
       }
       otherArgs = {}
     }
-    if (!encType && rawData) {
+    if (!encType && play_url) {
       let info: any = {
         user_id: token.user_id,
         drive_id: file.drive_id,

@@ -10,7 +10,9 @@ import {
   menuDLNA,
   menuDownload,
   menuFavSelectFile,
+  menuFileClearHistory,
   menuFileColorChange,
+  menuFileEncTypeChange,
   menuJumpToDir,
   menuM3U8Download,
   menuTrashSelectFile,
@@ -144,6 +146,16 @@ const isPic = computed(() => {
         <a-doption v-show='isvideo' @click='() => menuVideoXBT()'>
           <template #icon><i class='iconfont iconjietu' /></template>
           <template #default>雪碧图</template>
+        </a-doption>
+        <a-doption v-show='isShowBtn' type='text' size='small' tabindex='-1' title='Ctrl+M'
+                   @click="() => menuFileEncTypeChange(istree)">
+          <template #icon><i class='iconfont iconsafebox' /></template>
+          <template #default>标记加密</template>
+        </a-doption>
+        <a-doption v-show='isShowBtn && isallcolored' type='text' size='small' tabindex='-1' title='Ctrl+M'
+                   @click="() => menuFileClearHistory(istree)">
+          <template #icon><i class='iconfont iconshipin' /></template>
+          <template #default>清除历史</template>
         </a-doption>
         <a-doption v-show='isShowBtn && isallcolored' type='text' size='small' tabindex='-1' title='Ctrl+M'
                    @click="() => menuFileColorChange(istree, '')">

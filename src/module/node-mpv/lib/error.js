@@ -21,12 +21,13 @@ class ErrorHandler {
       0: '无法加载文件或流',
       1: '无效的参数',
       2: '找不到二进制文件',
-      3: 'ipcCommand 无效',
+      3: 'IPC命令无效',
       4: '无法绑定 IPC 套接字',
       5: '超时',
       6: 'MPV 已经运行',
       7: '无法发送 IPC 消息',
-      8: 'MPV 未运行'
+      8: 'MPV 未运行',
+      9: '不支持的播放协议'
     }
   }
 
@@ -45,42 +46,35 @@ class ErrorHandler {
   //
   // @return - JSON error object
   errorMessage(errorCode, method, args, errorMessage, options) {
-
     // basic error object
     let errorObject = {
       'errcode': errorCode,
       'verbose': this.messageDict[errorCode],
       'method': method
     }
-
     // add arguments if available
     if (args) {
       errorObject = Object.assign(errorObject, {
         'arguments': args
       })
     }
-
     // add error Message if available
     if (errorMessage) {
       errorObject = Object.assign(errorObject, {
         'errmessage': errorMessage
       })
     }
-
     // add argument options if available
     if (options) {
       errorObject = Object.assign(errorObject, {
         'options': options
       })
     }
-
     // stack trace
     errorObject = Object.assign(errorObject, {
       'stackTrace': new Error().stack
     })
-
     return errorObject
-
   }
 
 }

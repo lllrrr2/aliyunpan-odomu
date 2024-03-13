@@ -4,6 +4,8 @@ import { IAliFileItem, IAliGetFileModel } from './alimodels'
 import AliDirFileList from './dirfilelist'
 import { ApiBatch, ApiBatchMaker, ApiBatchMaker2, ApiBatchSuccess, EncodeEncName } from './utils'
 import { IDownloadUrl } from './models'
+import AliFile from './file'
+import message from '../utils/message'
 
 export default class AliFileCmd {
   static async ApiCreatNewForder(
@@ -99,16 +101,45 @@ export default class AliFileCmd {
     return ApiBatchSuccess(ismessage ? '从回收站还原' : '', batchList, user_id, '')
   }
 
+  static async ApiFileHistoryBatch(user_id: string, drive_id: string, file_idList: string[]) {
+    let allTask = []
+    const loadingKey = 'filehistorybatch' + Date.now().toString()
+    message.loading('清除历史 执行中...', 60, loadingKey)
+    for (const file_id of file_idList) {
+      allTask.push(AliFile.ApiUpdateVideoTime(user_id, drive_id, file_id, 0))
+      if (allTask.length >= 3) {
+        await Promise.all(allTask).catch()
+        allTask = []
+      }
+    }
+    if (allTask.length > 0) {
+      await Promise.all(allTask).catch()
+    }
+    message.success('成功执行 清除历史', 1, loadingKey)
+  }
 
   static async ApiFileColorBatch(user_id: string, drive_id: string, description: string, color: string, file_idList: string[]): Promise<string[]> {
-    let parts = description.split(',') || []
-    let encryptPart = parts.find((part: any) => part.includes('xbyEncrypt')) || ''
-    let colorPart = color || parts.find((part: any) => /c.{6}$/.test(part)) || ''
-    color = color ? [encryptPart, colorPart].filter(Boolean).join(',') : encryptPart
-    const batchList = ApiBatchMaker('/file/update', file_idList, (file_id: string) => {
+    // 防止加密标记清空
+    if (color && color != 'notEncrypt') {
+      let parts = description.split(',') || []
+      let encryptPart = parts.find((part: any) => part.includes('xbyEncrypt')) || ''
+      let colorPart = color || parts.find((part: any) => /c.{6}$/.test(part)) || ''
+      color = color ? [encryptPart, colorPart].filter(Boolean).join(',') : encryptPart
+    } else {
+      color = ''
+    }
+    let batchList = ApiBatchMaker('/file/update', file_idList, (file_id: string) => {
       return { drive_id: drive_id, file_id: file_id, description: color }
     })
-    return ApiBatchSuccess(color == '' ? '清除文件标记' : color.includes('ce74c3c') ? '' : '标记文件', batchList, user_id, '')
+    let title = ''
+    if (color == '') {
+      title = '清除标记'
+    } else if (color.includes('ce74c3c')) {
+      title = ''
+    } else if (color.includes('xbyEncrypt')) {
+      title = '标记加密'
+    }
+    return ApiBatchSuccess(title, batchList, user_id, '')
   }
 
 

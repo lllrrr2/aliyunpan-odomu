@@ -80,6 +80,21 @@ class NodeMpv extends EventEmitter {
       )
     }
 
+    // MPV accepts various protocols, but the all start with <protocol>://, leave this input as it is
+    // if it's a file, transform the path into the absolute filepath, such that it can be played
+    // by any mpv instance, started in any working directory
+    // also checks if the protocol is supported by mpv and throws an error otherwise
+    const sourceProtocol = util.extractProtocolFromSource(source)
+    if (sourceProtocol && !util.validateProtocol(sourceProtocol)) {
+      throw (
+        this.errorHandler.errorMessage(
+          9,
+          caller,
+          options ? [source, mode].concat(options) : [source, mode],
+          null,
+          'See https://mpv.io/manual/stable/#protocols for supported protocols')
+      )
+    }
     // if the source is a URI, leave it as it is. MPV only accepts HTTP URIs, so checking
     // if http is included is sufficient
     // if it's a file, transform the path into the absolute filepath, such that it can be played
