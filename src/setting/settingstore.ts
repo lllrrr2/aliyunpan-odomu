@@ -4,6 +4,9 @@ import { getUserDataPath } from '../utils/electronhelper'
 import { useAppStore } from '../store'
 import PanDAL from '../pan/pandal'
 import { existsSync, readFileSync, writeFileSync } from 'fs'
+import message from '../utils/message'
+import { createProxyServer } from '../utils/proxyhelper'
+import { Sleep } from '../utils/format'
 
 declare type ProxyType = 'none' | 'http' | 'https' | 'socks4' | 'socks4a' | 'socks5' | 'socks5h'
 declare type VideoQuality = 'Origin' | 'QHD' | 'FHD' | 'HD' | 'SD' | 'LD'
@@ -111,6 +114,7 @@ export interface SettingState {
   debugDowningListMax: number
   debugDownedListMax: number
   debugFolderSizeCacheHour: number
+  debugProxyPort: number
   // 自动填写 分享链接提取码
   yinsiLinkPassword: boolean
   yinsiZipPassword: boolean
@@ -242,6 +246,7 @@ const setting: SettingState = {
   debugDowningListMax: 1000,
   debugDownedListMax: 5000,
   debugFolderSizeCacheHour: 72,
+  debugProxyPort: 10000,
   // 自动填写 分享链接提取码
   yinsiLinkPassword: false,
   yinsiZipPassword: false,
@@ -365,6 +370,7 @@ function _loadSetting(val: any) {
   setting.debugDowningListMax = 1000
   setting.debugDownedListMax = defaultNumberSub(val.debugDownedListMax, 5000, 1000, 50000)
   setting.debugFolderSizeCacheHour = defaultValue(val.debugFolderSizeCacheHour, [72, 2, 8, 24, 48, 72])
+  setting.debugProxyPort = defaultNumber(val.debugProxyPort, 10000)
   // 自动填写 分享链接提取码
   setting.yinsiLinkPassword = defaultBool(val.yinsiLinkPassword, false)
   setting.yinsiZipPassword = defaultBool(val.yinsiZipPassword, false)
@@ -476,6 +482,16 @@ const useSettingStore = defineStore('setting', {
       }
       if (Object.hasOwn(partial, 'proxyUseProxy')) {
         this.WebSetProxy()
+      }
+      // 重启软件服务
+      if (Object.hasOwn(partial, 'debugProxyPort') && window.MainProxyServer) {
+        const loadingKey = 'proxyServer' + Date.now().toString()
+        message.loading('重启软件服务中...', 60, loadingKey)
+        await window.MainProxyServer.close()
+        window.MainProxyPort = this.debugProxyPort
+        window.MainProxyServer = await createProxyServer(this.debugProxyPort)
+        await Sleep(2000)
+        message.success('软件服务重启完成', 3, loadingKey)
       }
       SaveSetting()
       useAppStore().toggleTheme(setting.uiTheme)

@@ -6,11 +6,12 @@ import https, { Agent as HttpsAgent } from 'https'
 import { GetExpiresTime } from './utils'
 import { decodeName } from '../module/flow-enc/utils'
 import { IAliFileItem, IAliGetFileModel } from '../aliapi/alimodels'
-import { MainProxyPort } from '../layout/PageMain'
 import AliFile from '../aliapi/file'
 import path from 'path'
 import { localPwd } from './aria2c'
 import os from 'os'
+import message from './message'
+import DebugLog from './debuglog'
 
 // 默认maxFreeSockets=256
 const httpsAgent = new HttpsAgent({ keepAlive: true })
@@ -55,7 +56,7 @@ export function getIPAddress() {
       device.forEach((details, alias) => {
         if (dev.includes('以太网') || dev == 'WLAN') {
           if (details.family == 'IPv4' && !details.internal
-              && details.address.startsWith('192.168')) {
+            && details.address.startsWith('192.168')) {
             ipv4 = details.address
             return
           }
@@ -106,14 +107,14 @@ export function getFlowEnc(user_id: string, fileSize: number, encType: string, p
 }
 
 export function getProxyUrl(info: FileInfo) {
-  let proxyUrl = `http://${getIPAddress()}:${MainProxyPort}/proxy`
+  let proxyUrl = `http://${getIPAddress()}:${window.MainProxyPort}/proxy`
   let params = Object.keys(info).filter(v => info[v])
     .map((key: string) => `${encodeURIComponent(key)}=${encodeURIComponent(info[key]!!)}`)
   return `${proxyUrl}?${params.join('&')}`
 }
 
 export function getRedirectUrl(info: FileInfo) {
-  let redirectUrl = `http://${getIPAddress()}:${MainProxyPort}/redirect`
+  let redirectUrl = `http://${getIPAddress()}:${window.MainProxyPort}/redirect`
   let params = Object.keys(info).filter(v => info[v])
     .map((key: string) => `${encodeURIComponent(key)}=${encodeURIComponent(info[key]!!)}`)
   return `${redirectUrl}?${params.join('&')}`
@@ -258,7 +259,7 @@ export async function createProxyServer(port: number) {
       await new Promise((resolve, reject) => {
         // 处理请求，让下载的流量经过代理服务器
         const httpRequest = ~proxyUrl.indexOf('https') ? https : http
-        const proxyServer = httpRequest.request(proxyUrl, {
+        const agentServer = httpRequest.request(proxyUrl, {
           method: clientReq.method,
           headers: clientReq.headers,
           rejectUnauthorized: false,
@@ -301,18 +302,18 @@ export async function createProxyServer(port: number) {
             httpResp.pipe(clientRes)
           }
         })
-        clientReq.pipe(proxyServer)
+        clientReq.pipe(agentServer)
         // 关闭解密流
-        proxyServer.on('close', async () => {
+        agentServer.on('close', async () => {
           decryptTransform && decryptTransform.destroy()
         })
-        proxyServer.on('error', (e: Error) => {
+        agentServer.on('error', (e: Error) => {
           clientRes.end()
           console.log('proxyServer socket error: ' + e)
         })
         // 重定向的请求 关闭时 关闭被重定向的请求
         clientRes.on('close', async () => {
-          proxyServer.destroy()
+          agentServer.destroy()
         })
       })
       clientReq.on('error', (e: Error) => {
@@ -321,5 +322,13 @@ export async function createProxyServer(port: number) {
     }
   })
   proxyServer.listen(port)
+  proxyServer.on('error', (err: any) => {
+    if (err.code === 'EADDRINUSE' || err.code === 'EACCES') {
+      proxyServer.close()
+      proxyServer.removeAllListeners('error')
+      DebugLog.mSaveDanger(`【软件服务端口】：${port}已被占用，请修改端口`)
+      message.error(`【软件服务端口】端口：${port}已被占用，请修改端口`, 5)
+    }
+  })
   return proxyServer
 }

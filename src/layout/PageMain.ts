@@ -10,14 +10,9 @@ import DebugLog from '../utils/debuglog'
 import PanDAL from '../pan/pandal'
 import UploadingDAL from '../transfer/uploadingdal'
 import { Sleep } from '../utils/format'
-import { portIsOccupied } from '../utils/utils'
 import { createProxyServer } from '../utils/proxyhelper'
-import { Server } from 'http'
 import cache from '../utils/cache'
 import WebDavServer from '../module/webdav'
-
-export let MainProxyPort: number = 8000
-export let MainProxyServer: Server | null
 
 export function PageMain() {
   if (window.WinMsg) return
@@ -26,15 +21,9 @@ export function PageMain() {
   Promise.resolve()
     .then(async () => {
       // 创建代理server
-      if (!MainProxyServer) {
-        MainProxyPort = await portIsOccupied(8000)
-        MainProxyServer = await createProxyServer(MainProxyPort)
-      } else {
-        MainProxyServer.on('close', async () => {
-          await Sleep(2000)
-          MainProxyPort = await portIsOccupied(8000)
-          MainProxyServer = await createProxyServer(MainProxyPort)
-        })
+      if (!window.MainProxyServer) {
+        window.MainProxyPort = useSettingStore().debugProxyPort
+        window.MainProxyServer = await createProxyServer(window.MainProxyPort)
       }
       // DebugLog.mSaveSuccess('小白羊启动')
       await ShareDAL.aLoadFromDB().catch((err: any) => {

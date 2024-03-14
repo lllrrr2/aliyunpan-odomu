@@ -146,7 +146,9 @@ export default class ServerHttp {
             modalShowPost(response.data.POST, response.data.POST_ID)
           }
         }
-      })
+      }).catch((err: any) => {
+      DebugLog.mSaveDanger('CheckConfigUpgrade', err)
+    })
   }
 
   static async CheckUpgrade(showMessage: boolean = true): Promise<void> {
@@ -205,7 +207,7 @@ export default class ServerHttp {
             }
           }
           if (useSettingStore().uiUpdateProxyEnable &&
-              useSettingStore().uiUpdateProxyUrl.length > 0) {
+            useSettingStore().uiUpdateProxyUrl.length > 0) {
             verData.verUrl = useSettingStore().uiUpdateProxyUrl + '/' + verData.verUrl
           }
           if (this.compareVer(remoteVer, configVer) > 0) {

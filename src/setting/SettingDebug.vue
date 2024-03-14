@@ -124,6 +124,28 @@ const handleJumpPath = () => {
     </div>
   </div>
   <div class="settingcard">
+    <div class='settinghead'>:软件服务端口</div>
+    <a-popover position='bottom'>
+      <i class='iconfont iconbulb' />
+      <template #content>
+        <div>
+          默认：<span class='opred'>10000</span>
+          <hr />
+          用于文件相关的服务【如：加载播放列表、解密文件等】
+          <br />
+          修改后需要重新打开修改软件刷新链接
+          <span class='opred'>相关功能异常时需要修改该值</span>
+        </div>
+      </template>
+    </a-popover>
+    <div class='settingrow'>
+      <a-input-number
+        tabindex='-1' :style="{ width: '252px' }"
+        placeholder='默认：10000' hide-button
+        :model-value='settingStore.debugProxyPort'
+        @update:model-value='cb({ debugProxyPort: $event })' />
+    </div>
+    <div class='settingspace'></div>
     <div class="settinghead">
       :缓存路径
       <span class="opblue" style="margin-left: 12px; padding: 0 12px">( {{ settingStore.debugDirSize }} )</span>
