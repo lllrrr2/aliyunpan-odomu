@@ -344,6 +344,18 @@ export default class AliFile {
     let items = resp.body.items
     if (AliHttp.IsSuccess(resp.code) && items && items.length > 0) {
       const list: IAliGetDirModel[] = []
+      list.push({
+        __v_skip: true,
+        drive_id: drive_id,
+        album_id: '',
+        file_id: driveType.key,
+        parent_file_id: '',
+        name: driveType.title,
+        namesearch: HanToPin(driveType.title),
+        size: 0,
+        time: 0,
+        description: ''
+      } as IAliGetDirModel)
       for (let i = items.length - 1; i >= 0; i--) {
         const item = items[i]
         if (item.name === 'Default' || item.name === 'resource' || item.name === 'alibum') {
@@ -362,18 +374,6 @@ export default class AliFile {
           description: item.description || ''
         } as IAliGetDirModel)
       }
-      list.push({
-        __v_skip: true,
-        drive_id: drive_id,
-        album_id: '',
-        file_id: driveType.key,
-        parent_file_id: '',
-        name: driveType.title,
-        namesearch: HanToPin(driveType.title),
-        size: 0,
-        time: 0,
-        description: ''
-      } as IAliGetDirModel)
       return list
     } else if (!AliHttp.HttpCodeBreak(resp.code)) {
       DebugLog.mSaveWarning('ApiFileGetPath err=' + file_id + ' ' + (resp.code || ''), resp.body)
@@ -399,9 +399,9 @@ export default class AliFile {
       file_id: file_id
     }
     const resp = await AliHttp.Post(url, postData, user_id, '')
-
     if (AliHttp.IsSuccess(resp.code) && resp.body.items && resp.body.items.length > 0) {
-      const list: string[] = []
+      const driveType = GetDriveType(user_id, drive_id)
+      const list: string[] = [driveType.title]
       for (let i = resp.body.items.length - 1; i >= 0; i--) {
         const item = resp.body.items[i]
         list.push(DecodeEncName(user_id, item).name)
