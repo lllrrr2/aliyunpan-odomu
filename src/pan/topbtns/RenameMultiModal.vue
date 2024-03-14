@@ -15,6 +15,8 @@ import PanDAL from '../pandal'
 import { throttle } from '../../utils/debounce'
 import { IAliGetFileModel } from '../../aliapi/alimodels'
 import { treeSelectToExpand } from '../../utils/antdtree'
+import { copyToClipboard } from '../../utils/electronhelper'
+import path from 'path'
 
 const iconfolder = h('i', { class: 'iconfont iconfile-folder' })
 const foldericonfn = () => iconfolder
@@ -412,7 +414,21 @@ const handleContextMenu = (menuKey: string, treeNodeKey: string) => {
     return
   }
   const checked = new Set(treeCheckedKeys.value.checked)
-  if (menuKey == 'selectall') {
+  if (menuKey.startsWith('selectcopy')) {
+    RunAllNode(treeData.value, (node) => {
+      if (node.key == treeNodeKey) {
+        if (menuKey === 'selectcopyall') {
+          copyToClipboard(node.title)
+          message.success('选择项全名已复制到剪切板')
+        } else if (menuKey === 'selectcopyname') {
+          copyToClipboard(path.parse(node.title).name)
+          message.success('选择项名称已复制到剪切板')
+        }
+        return true
+      }
+      return true
+    })
+  } else if (menuKey == 'selectall') {
     RunAllNode(treeData.value, (node) => {
       if (node.key == treeNodeKey) {
         if (node.children) node.children.map((t) => checked.add(t.key))
@@ -975,7 +991,7 @@ const handleSelectRow = (visible: boolean, treeNodeKey: string) => {
                         @click="handleContextMenu('all', '')">
                 <i
                   :class="treeCheckedKeys.checked.length === allLen ? 'iconfont iconrsuccess' : 'iconfont iconpic2'" />
-                {{ treeCheckedKeys.checked.length === allLen ? '取消全选' : '全选'}}
+                {{ treeCheckedKeys.checked.length === allLen ? '取消全选' : '全选' }}
               </a-button>
               <a-button type='text' size='small' tabindex='-1' style='margin: 0' @click='handleMultiOpt'>
                 <i :class="multiOpt ? 'iconfont iconrsuccess' : 'iconfont iconpic2'" />多次操作
@@ -1018,19 +1034,25 @@ const handleSelectRow = (visible: boolean, treeNodeKey: string) => {
                 <i class='ant-tree-switcher-icon iconfont Arrow' />
               </template>
               <template #title='{ dataRef }'>
-                <a-dropdown v-if='dataRef.isDir' class='smallmenu' :trigger="['contextMenu']"
+                <a-dropdown class='smallmenu' :trigger="['contextMenu']"
                             @select='(value:any)=>handleContextMenu(value,dataRef.key)'
                             @popup-visible-change='(visible:boolean)=>handleSelectRow(visible,dataRef.key)'>
-                  <span :class="dataRef.isMatch ? 'match fulltitle' : 'fulltitle'" title='点击鼠标右键菜单'
+                  <span :class="dataRef.isMatch ? 'match fulltitle' : 'fulltitle'"
+                        title='点击鼠标右键菜单'
                         v-html='dataRef.title'></span>
-                  <template #content>
-                    <a-doption value='selectall'>选则全部子项</a-doption>
+                  <template #content v-if='dataRef.isDir'>
+                    <a-doption value='selectcopyall'>复制选择项全名</a-doption>
+                    <a-doption value='selectcopyname'>复制选择项名称</a-doption>
+                    <a-doption value='selectall'>选择全部子项</a-doption>
                     <a-doption value='selectnone'>反选全部子项</a-doption>
-                    <a-doption value='selectfile'>选则子文件</a-doption>
-                    <a-doption value='selectfolder'>选则子文件夹</a-doption>
+                    <a-doption value='selectfile'>选择子文件</a-doption>
+                    <a-doption value='selectfolder'>选择子文件夹</a-doption>
+                  </template>
+                  <template v-else #content>
+                    <a-doption value='selectcopyall'>复制选择项全名</a-doption>
+                    <a-doption value='selectcopyname'>复制选择项名称</a-doption>
                   </template>
                 </a-dropdown>
-                <span v-else :class="dataRef.isMatch ? 'match fulltitle' : 'fulltitle'" v-html='dataRef.title'></span>
               </template>
             </AntdTree>
           </div>

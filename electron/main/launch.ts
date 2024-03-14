@@ -1,4 +1,4 @@
-import { AppWindow, createMainWindow, createMenu, createTray } from './core/window'
+import { AppWindow, createMainWindow, createTray } from './core/window'
 import { app, ipcMain, session } from 'electron'
 import is from 'electron-is'
 import fixPath from 'fix-path'
@@ -177,7 +177,6 @@ export default class launch extends EventEmitter {
         })
         session.defaultSession.loadExtension(getStaticPath('crx'), { allowFileAccess: true }).then(() => {
           createMainWindow()
-          createMenu()
           createTray()
         })
       })

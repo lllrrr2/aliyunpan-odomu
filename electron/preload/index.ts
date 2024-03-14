@@ -167,34 +167,34 @@ window.WebSetProxy = function(data: { proxyUrl: string }) {
 }
 
 function createRightMenu() {
-  window.addEventListener(
-    'contextmenu',
-    (e) => {
-      try {
-        if (e) e.preventDefault()
-        if (isEleEditable(e.target)) {
-          ipcRenderer.send('WebToElectron', { cmd: 'menuedit' })
-        } else {
-
-          const selectText = window.getSelection()?.toString()
-          if (selectText) ipcRenderer.send('WebToElectron', { cmd: 'menucopy' })
-        }
-      } catch {
+  window.addEventListener('contextmenu', (e) => {
+      if (e) e.preventDefault()
+      const target = e.target as HTMLElement
+      // 检查页面是否是有选择的文本 这里显示复制和剪切选项是否可见
+      const selectText = !!window.getSelection().toString()
+      if (selectText || isEleEditable(target)) {
+        // 读取剪切板是否有文本 这里传递粘贴选项是否可见
+        const showPaste = !!navigator.clipboard.readText()
+        // 判断ReadOnly
+        const isReadOnly = target.hasAttribute('readonly')
+        // 发送给主进程让它显示菜单
+        ipcRenderer.send('show-context-menu', {
+          showPaste: !isReadOnly && showPaste,
+          showCopy: selectText,
+          showCut: !isReadOnly && selectText
+        })
       }
-    },
-    false
+    }
   )
 }
 
 function isEleEditable(e: any): boolean {
-  if (!e) {
-    return false
-  }
-
-  if ((e.tagName === 'INPUT' && e.type !== 'checkbox') || e.tagName === 'TEXTAREA' || e.contentEditable == 'true') {
+  if (!e) return false
+  if (e.tagName === 'TEXTAREA'
+    || (e.tagName === 'INPUT' && e.type !== 'checkbox')
+    || e.contentEditable == 'true') {
     return true
   } else {
-
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return isEleEditable(e.parentNode)
   }

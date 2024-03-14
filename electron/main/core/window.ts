@@ -1,15 +1,4 @@
-import {
-  app,
-  BrowserWindow,
-  ipcMain,
-  Menu,
-  MenuItem,
-  MessageChannelMain,
-  nativeTheme,
-  screen,
-  shell,
-  Tray
-} from 'electron'
+import { app, BrowserWindow, ipcMain, Menu, MessageChannelMain, nativeTheme, screen, shell, Tray } from 'electron'
 import { getAsarPath, getStaticPath, getUserDataPath } from '../utils/mainfile'
 import { existsSync, readFileSync, writeFileSync } from 'fs'
 import is from 'electron-is'
@@ -34,13 +23,6 @@ export const AppWindow: {
   winWidth: 0,
   winHeight: 0,
   winTheme: ''
-}
-export const AppMenu: {
-  menuEdit: Electron.Menu | undefined
-  menuCopy: Electron.Menu | undefined
-} = {
-  menuEdit: undefined,
-  menuCopy: undefined
 }
 
 let timerUpload: NodeJS.Timeout | undefined
@@ -174,19 +156,6 @@ export function createMainWindow() {
   createUpload()
   createDownload()
 }
-
-export function createMenu() {
-  AppMenu.menuEdit = new Menu()
-  AppMenu.menuEdit.append(new MenuItem({ label: '剪切', role: 'cut' }))
-  AppMenu.menuEdit.append(new MenuItem({ label: '复制', role: 'copy' }))
-  AppMenu.menuEdit.append(new MenuItem({ label: '粘贴', role: 'paste' }))
-  AppMenu.menuEdit.append(new MenuItem({ label: '删除', role: 'delete' }))
-  AppMenu.menuEdit.append(new MenuItem({ label: '全选', role: 'selectAll' }))
-  AppMenu.menuCopy = new Menu()
-  AppMenu.menuCopy.append(new MenuItem({ label: '复制', role: 'copy' }))
-  AppMenu.menuCopy.append(new MenuItem({ label: '全选', role: 'selectAll' }))
-}
-
 
 export function createTray() {
   const trayMenuTemplate = [

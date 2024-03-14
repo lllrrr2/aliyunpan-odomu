@@ -1,7 +1,7 @@
 import { AppWindow, createElectronWindow, Referer, ua } from './window'
 import path from 'path'
 import is from 'electron-is'
-import { app, BrowserWindow, dialog, ipcMain, powerSaveBlocker, session, shell } from 'electron'
+import { app, BrowserWindow, dialog, ipcMain, Menu, powerSaveBlocker, session, shell } from 'electron'
 import { existsSync, writeFileSync } from 'fs'
 import { exec, spawn, SpawnOptions } from 'child_process'
 import { ShowError } from './dialog'
@@ -16,6 +16,7 @@ export default class ipcEvent {
   static handleEvents() {
     this.handleWebToElectron()
     this.handleWebToElectronCB()
+    this.handleShowContextMenu()
     this.handleWebShowOpenDialogSync()
     this.handleWebShowSaveDialogSync()
     this.handleWebShowItemInFolder()
@@ -127,6 +128,25 @@ export default class ipcEvent {
       } else {
         event.returnValue = 'backdata'
       }
+    })
+  }
+
+  private static handleShowContextMenu() {
+    ipcMain.on('show-context-menu', (event, params) => {
+      const { showCut, showCopy, showPaste } = params
+      const window = BrowserWindow.fromWebContents(event.sender)
+      // 制作右键菜单
+      let template: Array<Electron.MenuItemConstructorOptions> = [
+        // 设置选项是否可见
+        { role: 'selectAll', label: '全选' },
+        { role: 'copy', label: '复制', visible: showCopy },
+        { role: 'cut', label: '剪切', visible: showCut },
+        { role: 'paste', label: '粘贴', visible: showPaste },
+        { role: 'undo', label: '撤销' }
+      ]
+      // 显示菜单
+      const contextMenu = Menu.buildFromTemplate(template)
+      contextMenu.popup({ window })
     })
   }
 

@@ -17,6 +17,7 @@ import artplayerPluginDanmuku from '../../src/module/video-plugins/artplayer-plu
 import artplayerPluginLibass from '../../src/module/video-plugins/artplayer-plugin-libass'
 import PlayerUtils from '../utils/playerhelper'
 import { simpleToTradition, traditionToSimple } from 'chinese-simple2traditional'
+import path from 'path'
 
 const appStore = useAppStore()
 const pageVideo = appStore.pageVideo!
@@ -580,7 +581,7 @@ const refreshPlayList = async (art: Artplayer, file_id?: string) => {
         // 移除扩展名
         let fileExt = fileList[i].ext
         let fileName = fileList[i].name
-        let html = fileName.substring(0, fileName.length - fileExt.length - 1)
+        let html = path.parse(fileName).name
         playList.push({
           url: '',
           html: html,
