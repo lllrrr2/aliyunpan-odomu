@@ -52,14 +52,14 @@ export default class UserDAL {
       const token = tokenList[i]
       try {
         const expire_time = new Date(token.expire_time).getTime()
-        const openapi_expire_time = new Date(token.open_api_expires_in).getTime()
-        // 自动刷新Token(过期3分钟)
-        if (expire_time - dateNow < 1000 * 60 * 3) {
-          await AliUser.ApiTokenRefreshAccount(token, false)
-          await AliUser.ApiSessionRefreshAccount(token, false)
+        const session_expire_time = new Date(token.session_expires_in).getTime()
+        // 自动刷新Token(过期前5分钟)
+        if (dateNow - expire_time <= 1000 * 60 * 5) {
+          await AliUser.ApiTokenRefreshAccount(token, false, true)
+          await AliUser.OpenApiTokenRefreshAccount(token, false, true)
         }
-        if (openapi_expire_time - dateNow < 1000 * 60 * 3) {
-          await AliUser.OpenApiTokenRefreshAccount(token, false)
+        if (dateNow - session_expire_time <= 1000 * 60) {
+          await AliUser.ApiSessionRefreshAccount(token, false, true)
         }
       } catch (err: any) {
         DebugLog.mSaveDanger('aRefreshAllUserToken', err)
@@ -75,6 +75,7 @@ export default class UserDAL {
       access_token: '',
       refresh_token: '',
 
+      session_expires_in: 0,
       open_api_token_type: '',
       open_api_access_token: '',
       open_api_refresh_token: '',

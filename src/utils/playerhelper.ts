@@ -443,6 +443,7 @@ const PlayerUtils = {
       playerArgs = [
         '--force-window=immediate',
         '--hwdec=auto',
+        '--geometry=50%',
         '--autofit-larger=100%x100%',
         '--autofit-smaller=640',
         '--audio-pitch-correction=yes',

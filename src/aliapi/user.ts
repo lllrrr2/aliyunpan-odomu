@@ -17,8 +17,13 @@ export const SessionLockMap = new Map<string, number>()
 export const SessionReTimeMap = new Map<string, number>()
 export default class AliUser {
 
-  static async ApiSessionRefreshAccount(token: ITokenInfo, showMessage: boolean): Promise<boolean> {
+  static async ApiSessionRefreshAccount(token: ITokenInfo, showMessage: boolean, forceRefresh: boolean = false): Promise<boolean> {
     if (!token.user_id) return false
+    if (!forceRefresh && new Date(token.session_expires_in).getTime() >= Date.now()) return true
+    if (forceRefresh) {
+      SessionLockMap.delete(token.user_id)
+      SessionReTimeMap.delete(token.user_id)
+    }
     while (true) {
       const lock = SessionLockMap.has(token.user_id)
       if (lock) await Sleep(1000)
@@ -41,6 +46,7 @@ export default class AliUser {
     SessionLockMap.delete(token.user_id)
     if (AliHttp.IsSuccess(resp.code)) {
       SessionReTimeMap.set(token.user_id, Date.now())
+      token.session_expires_in = Date.now() + 30 * 60 * 1000
       token.signature = signature
       UserDAL.SaveUserToken(token)
       return true
@@ -156,8 +162,8 @@ export default class AliUser {
     const resp = await AliHttp.Post(url, postData, '', '')
     OpenApiTokenLockMap.delete(token.user_id)
     if (AliHttp.IsSuccess(resp.code)) {
-      OpenApiTokenReTimeMap.set(token.user_id, Date.now())
       const { access_token, refresh_token, token_type, expires_in } = resp.body
+      OpenApiTokenReTimeMap.set(token.user_id, Date.now())
       token.open_api_token_type = token_type
       token.open_api_access_token = access_token
       token.open_api_refresh_token = refresh_token

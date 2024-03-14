@@ -118,6 +118,7 @@ const loginStepFirst = async (msg: string) => {
         tokenfrom: 'account',
         access_token: result.accessToken,
         refresh_token: result.refreshToken,
+        session_expires_in: 0,
         open_api_token_type: '',
         open_api_access_token: '',
         open_api_refresh_token: '',

@@ -125,7 +125,7 @@ export default class AliHttp {
             || data.code == 'UserDeviceOffline'
             || data.code == 'DeviceSessionSignatureInvalid') {
             if (token) {
-              return await AliUser.ApiSessionRefreshAccount(token, true).then((flag: boolean) => {
+              return await AliUser.ApiSessionRefreshAccount(token, true, true).then((flag: boolean) => {
                 if (flag) {
                   return { code: 401, header: '', body: '' } as IUrlRespData
                 }
