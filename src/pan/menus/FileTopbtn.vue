@@ -88,14 +88,6 @@ const isPic = computed(() => {
               @click='() => menuFavSelectFile(istree, false)'>
       <i class='iconfont iconcrown2' />取消收藏
     </a-button>
-    <a-button v-if='inputpicType !== "mypic" && dirtype === "pic"' type='text' size='small' tabindex='-1' title='Ctrl+G'
-              @click='() => menuAddAlbumSelectFile()'>
-      <i class='iconfont iconmoveto' />移入相册
-    </a-button>
-    <a-button v-if='dirtype === "mypic"' type='text' size='small' tabindex='-1'
-              @click='() => menuTrashSelectFile(istree, false, true)'>
-      <i class='iconfont iconqingkong' />移出相册
-    </a-button>
     <a-button v-if='isShowBtn' title='F2 / Ctrl+E' type='text' size='small' tabindex='-1'
               @click='() => modalRename(istree, isselectedmulti, isPic)'>
       <i class='iconfont iconedit-square' />重命名
@@ -131,6 +123,16 @@ const isPic = computed(() => {
     <a-dropdown trigger='hover' class='rightmenu' position='bl'>
       <a-button type='text' size='small' tabindex='-1'>更多<i class='iconfont icondown' /></a-button>
       <template #content>
+        <a-doption v-show='inputpicType !== "mypic" && dirtype === "pic"'
+                   title='Ctrl+X' @click="() => menuAddAlbumSelectFile()">
+          <template #icon><i class='iconfont iconscissor' /></template>
+          <template #default>移入相册</template>
+        </a-doption>
+        <a-doption v-show='dirtype === "mypic"' title='Ctrl+X'
+                   @click="() => menuTrashSelectFile(istree, false, true)">
+          <template #icon><i class='iconfont iconscissor' /></template>
+          <template #default>移出相册</template>
+        </a-doption>
         <a-doption v-show='isShowBtn' title='Ctrl+X' @click="() => menuCopySelectedFile(istree, 'cut')">
           <template #icon><i class='iconfont iconscissor' /></template>
           <template #default>移动到...</template>

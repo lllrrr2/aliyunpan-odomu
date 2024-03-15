@@ -85,20 +85,16 @@ export function createMainWindow() {
       let width = size.width * 0.677
       const height = size.height * 0.866
       if (width > AppWindow.winWidth) AppWindow.winWidth = width
-      if (AppWindow.winWidth > 1036) AppWindow.winWidth = 1036
+      if (AppWindow.winWidth > 990) AppWindow.winWidth = 990
       if (height > AppWindow.winHeight) AppWindow.winHeight = height
-      if (AppWindow.winHeight > 720) AppWindow.winHeight = 720
+      if (AppWindow.winHeight > 680) AppWindow.winHeight = 680
     } catch {
-      AppWindow.winWidth = 1036
-      AppWindow.winHeight = 720
+      AppWindow.winWidth = 990
+      AppWindow.winHeight = 680
     }
   } else {
-    if (AppWindow.winWidth < 1036) {
-      AppWindow.winWidth = 1036
-    }
-    if (AppWindow.winHeight < 720) {
-      AppWindow.winHeight = 720
-    }
+    AppWindow.winWidth = 990
+    AppWindow.winHeight = 680
   }
   AppWindow.mainWindow = createElectronWindow(AppWindow.winWidth, AppWindow.winHeight, true, 'main', AppWindow.winTheme)
 
@@ -204,14 +200,14 @@ export function createElectronWindow(width: number, height: number, center: bool
     show: false,
     width: width,
     height: height,
-    minWidth: width > 936 ? 936 : width,
+    minWidth: width > 990 ? 990 : width,
     minHeight: height > 680 ? 680 : height,
     center: center,
     icon: getStaticPath('icon_256x256.ico'),
     useContentSize: true,
     frame: false,
     transparent: false,
-    hasShadow: width > 936,
+    hasShadow: width > 990,
     autoHideMenuBar: true,
     backgroundColor: theme && theme == 'dark' ? '#23232e' : '#ffffff',
     webPreferences: {

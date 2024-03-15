@@ -97,55 +97,30 @@ export default class AliDirFileList {
         }
       }
 
-      if (item.video_media_metadata) {
+      if (item.video_media_metadata && Object.keys(item.video_media_metadata).length > 0) {
         add.media_width = item.video_media_metadata.width || 0
         add.media_height = item.video_media_metadata.height || 0
         add.media_time = humanDateTimeDateStr(item.video_media_metadata.time)
-        if (item.play_cursor) {
-          add.media_play_cursor = humanTime(item.play_cursor)
-        } else if (item.user_meta) {
-          const meta = JSON.parse(item.user_meta)
-          if (meta.play_cursor) {
-            add.media_play_cursor = humanTime(meta.play_cursor)
-          }
-        }
-        if (item.duration) {
-          add.media_duration = humanTime(item.duration)
-        } else if (item.video_media_metadata.duration) {
-          add.media_duration = humanTime(item.video_media_metadata.duration)
-        }
-      } else if (item.video_preview_metadata) {
+        add.media_duration = humanTime(item.video_media_metadata.duration)
+      } else if (item.video_preview_metadata && Object.keys(item.video_preview_metadata).length > 0) {
         add.media_width = item.video_preview_metadata.width || 0
         add.media_height = item.video_preview_metadata.height || 0
-        if (item.play_cursor) {
-          add.media_play_cursor = humanTime(item.play_cursor)
-        } else if (item.user_meta) {
-          const meta = JSON.parse(item.user_meta)
-          if (meta.play_cursor) {
-            add.media_play_cursor = humanTime(meta.play_cursor)
-          }
-        }
-        if (item.duration) {
-          add.media_duration = humanTime(item.duration)
-        } else if (item.video_preview_metadata.duration) {
-          add.media_duration = humanTime(item.video_preview_metadata.duration)
-        }
-      } else if (item.image_media_metadata) {
+        add.media_duration = humanTime(item.video_preview_metadata.duration)
+      } else if (item.image_media_metadata && Object.keys(item.image_media_metadata).length > 0) {
         add.media_width = item.image_media_metadata.width || 0
         add.media_height = item.image_media_metadata.height || 0
         add.media_time = humanDateTimeDateStr(item.image_media_metadata.time)
-      } else {
-        if (item.duration) {
-          add.media_duration = humanTime(item.duration)
+      }
+      if (item.play_cursor) {
+        add.media_play_cursor = humanTime(item.play_cursor)
+      } else if (item.user_meta) {
+        const meta = JSON.parse(item.user_meta)
+        if (meta.play_cursor) {
+          add.media_play_cursor = humanTime(meta.play_cursor)
         }
-        if (item.play_cursor) {
-          add.media_play_cursor = humanTime(item.play_cursor)
-        } else if (item.user_meta) {
-          const meta = JSON.parse(item.user_meta)
-          if (meta.play_cursor) {
-            add.media_play_cursor = humanTime(meta.play_cursor)
-          }
-        }
+      }
+      if (!add.media_duration && item.duration) {
+        add.media_duration = humanTime(item.duration)
       }
     }
     // 完全违规和部分违规

@@ -15,9 +15,9 @@ export default defineComponent({
     const leftMinWidth = 0
     const rightMinWidth = 220
     const winStore = useWinStore()
-    const bodyWidth = ref(Math.max(winStore.width, 960))
+    const bodyWidth = ref(Math.max(winStore.width, 900))
     const splitMoveing = ref(false)
-    const splitSize = ref(bodyWidth.value < 900 ? '220px' : '260px')
+    const splitSize = ref(bodyWidth.value < 900 ? '220px' : '240px')
     const splitSizeMax = ref(bodyWidth.value - rightMinWidth)
 
     winStore.$subscribe((_m: any, state: WinState) => {
@@ -35,7 +35,7 @@ export default defineComponent({
     })
     watchEffect(() => {
       if(props.visible){
-        splitSize.value = bodyWidth.value < 900 ? '220px' : '260px'
+        splitSize.value = bodyWidth.value < 900 ? '220px' : '240px'
       }else {
         splitSize.value = '0px'
       }

@@ -10,8 +10,8 @@ import AliFile from '../aliapi/file'
 import path from 'path'
 import { localPwd } from './aria2c'
 import os from 'os'
-import message from './message'
 import DebugLog from './debuglog'
+import message from './message'
 
 // 默认maxFreeSockets=256
 const httpsAgent = new HttpsAgent({ keepAlive: true })
