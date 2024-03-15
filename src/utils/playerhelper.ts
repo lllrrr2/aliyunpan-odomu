@@ -263,6 +263,7 @@ const PlayerUtils = {
     } = useSettingStore()
     let socketPath = is.windows() ? '\\\\.\\pipe\\mpvserver' : '/tmp/mpvserver.sock'
     let currentTime = 0
+    let currentPlayIndex = 0
     let currentFileInfo = file
     let lastUpdateRecordTime = Date.now()
     let mpv: mpvAPI = new mpvAPI(
@@ -276,29 +277,18 @@ const PlayerUtils = {
       },
       playArgs
     )
-    const updateTimeRecord = async (play_cursor: number) => {
-      if (!await mpv.isPaused() || !play_cursor || play_cursor <= 0) return
-      if (currentFileInfo.file_id && uiVideoPlayerHistory) {
-        let recordTime = Date.now()
-        if (recordTime - lastUpdateRecordTime > 5000) {
-          lastUpdateRecordTime = recordTime
-          await AliFile.ApiUpdateVideoTime(token.user_id, currentFileInfo.drive_id, currentFileInfo.file_id, play_cursor)
-        }
-      }
-    }
     try {
       let playListParams: any = []
-      let playIndex = 0
       if (uiVideoEnablePlayerList) {
-        playIndex = otherArgs.playList.findIndex((v: any) => v.file_id == file.file_id) || 0
+        currentPlayIndex = otherArgs.playList.findIndex((v: any) => v.file_id == file.file_id) || 0
         playListParams = [
           '--playlist=' + playFileListPath,
-          '--playlist-start=' + playIndex
+          '--playlist-start=' + currentPlayIndex
         ]
       }
       await mpv.start(playListParams)
       mpv.on('status', async (status: { property: string; value: any }) => {
-        // console.log('status', status)
+        console.log('status', status)
         if (status.property == 'duration' && status.value > 0) {
           if (uiVideoPlayerHistory) {
             let playCursorInfo = await this.getPlayCursor(token.user_id, currentFileInfo.drive_id, currentFileInfo.file_id)
@@ -325,10 +315,11 @@ const PlayerUtils = {
           }
         } else if (playList.length && status.property === 'playlist-pos' && status.value != -1) {
           // 保存历史
-          currentFileInfo = playList[status.value]
-          if (uiVideoPlayerHistory && status.value != playIndex) {
-            await updateTimeRecord(currentTime)
+          if (uiVideoPlayerHistory && currentPlayIndex != status.value) {
+            await AliFile.ApiUpdateVideoTime(token.user_id, currentFileInfo.drive_id, currentFileInfo.file_id, currentTime)
           }
+          currentPlayIndex = status.value
+          currentFileInfo = playList[status.value]
           // 自动标记
           const { drive_id, file_id, description } = currentFileInfo
           if (uiAutoColorVideo && (!description || !description.includes('ce74c3c'))) {
@@ -339,9 +330,16 @@ const PlayerUtils = {
           }
         }
       })
-      mpv.on('seek', (timePosition) => {
+      mpv.on('seek', async (timePosition) => {
         // console.log('seek', timePosition)
-        updateTimeRecord(timePosition.end)
+        if (!await mpv.isPaused()) return
+        if (currentFileInfo.file_id && uiVideoPlayerHistory) {
+          let recordTime = Date.now()
+          if (recordTime - lastUpdateRecordTime > 2000) {
+            lastUpdateRecordTime = recordTime
+            await AliFile.ApiUpdateVideoTime(token.user_id, currentFileInfo.drive_id, currentFileInfo.file_id, timePosition.end)
+          }
+        }
       })
       mpv.on('timeposition', (timeposition: number) => {
         // console.log('timeposition', currentTime)
