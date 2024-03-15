@@ -348,13 +348,13 @@ const PlayerUtils = {
         currentTime = timeposition
       })
       mpv.on('quit', async () => {
-        await updateTimeRecord(currentTime)
+        await AliFile.ApiUpdateVideoTime(token.user_id, currentFileInfo.drive_id, currentFileInfo.file_id, currentTime)
         exitCallBack()
       })
       if (uiVideoPlayerExit) {
         mpv.on('stopped', async () => {
           message.info('播放完毕，自动退出软件', 8)
-          await updateTimeRecord(currentTime)
+          await AliFile.ApiUpdateVideoTime(token.user_id, currentFileInfo.drive_id, currentFileInfo.file_id, currentTime)
           await mpv.quit()
         })
       }
