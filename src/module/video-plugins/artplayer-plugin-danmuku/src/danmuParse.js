@@ -52,7 +52,7 @@ export function UniversalDanmuParseFromSearch({ name, pos }, option) {
       let video_url = res.url
       if (video_url && video_url.includes('so.iqiyi.com/links')) {
         // 获取重定向后的地址
-        video_url = await axios.get(video_url.url).then((res) => res.data.match(/URL='(.*)'/)[1])
+        video_url = await axios.get(video_url).then((res) => res.data.match(/URL='(.*)'/)[1]).catch()
       }
       if (video_url) {
         return UniversalDanmuParseFromUrl(video_url, option)

@@ -92,9 +92,6 @@ export function createMainWindow() {
       AppWindow.winWidth = 990
       AppWindow.winHeight = 680
     }
-  } else {
-    AppWindow.winWidth = 990
-    AppWindow.winHeight = 680
   }
   AppWindow.mainWindow = createElectronWindow(AppWindow.winWidth, AppWindow.winHeight, true, 'main', AppWindow.winTheme)
 
@@ -200,14 +197,14 @@ export function createElectronWindow(width: number, height: number, center: bool
     show: false,
     width: width,
     height: height,
-    minWidth: width > 990 ? 990 : width,
-    minHeight: height > 680 ? 680 : height,
+    minWidth: width > 680 ? 680 : width,
+    minHeight: height > 500 ? 500 : height,
     center: center,
     icon: getStaticPath('icon_256x256.ico'),
     useContentSize: true,
     frame: false,
     transparent: false,
-    hasShadow: width > 990,
+    hasShadow: width > 680,
     autoHideMenuBar: true,
     backgroundColor: theme && theme == 'dark' ? '#23232e' : '#ffffff',
     webPreferences: {
@@ -238,7 +235,7 @@ export function createElectronWindow(width: number, height: number, center: bool
 
   if (DEBUGGING && devTools) {
     if (width < 100) {
-      win.setSize(936, 680)
+      win.setSize(800, 680)
     }
     win.show()
     win.webContents.openDevTools({ mode: 'bottom' })

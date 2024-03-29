@@ -59,6 +59,7 @@ export interface SettingState {
   // 网盘设置
   uiShowPanPath: boolean
   uiShowPanMedia: boolean
+  uiShowPanRootFirst: string
   uiFolderSize: boolean
   uiFileOrderDuli: string
   uiTimeFolderFormate: string
@@ -111,6 +112,7 @@ export interface SettingState {
   debugDowningListMax: number
   debugDownedListMax: number
   debugFolderSizeCacheHour: number
+  debugProxyHost: string
   debugProxyPort: string
   // 自动填写 分享链接提取码
   yinsiLinkPassword: boolean
@@ -184,6 +186,7 @@ const setting: SettingState = {
   // 网盘设置
   uiShowPanPath: true,
   uiShowPanMedia: false,
+  uiShowPanRootFirst: 'all',
   uiFolderSize: true,
   uiFileOrderDuli: 'null',
   uiTimeFolderFormate: 'yyyy-MM-dd HH-mm-ss',
@@ -231,7 +234,7 @@ const setting: SettingState = {
   webDavEnable: false,
   webDavAutoEnable: false,
   webDavHost: '127.0.0.1',
-  webDavPort: 12000,
+  webDavPort: 8888,
   webDavListCache: 10,
   webDavStrategy: 'redirect',
 
@@ -243,7 +246,8 @@ const setting: SettingState = {
   debugDowningListMax: 1000,
   debugDownedListMax: 5000,
   debugFolderSizeCacheHour: 72,
-  debugProxyPort: '10000',
+  debugProxyHost: '127.0.0.1',
+  debugProxyPort: '6666',
   // 自动填写 分享链接提取码
   yinsiLinkPassword: false,
   yinsiZipPassword: false,
@@ -315,6 +319,7 @@ function _loadSetting(val: any) {
   // 网盘设置
   setting.uiShowPanPath = defaultBool(val.uiShowPanPath, true)
   setting.uiShowPanMedia = defaultBool(val.uiShowPanMedia, false)
+  setting.uiShowPanRootFirst = defaultValue(val.uiShowPanRootFirst, ['all', 'backup', 'resource'])
   setting.uiFolderSize = defaultBool(val.uiFolderSize, true)
   setting.uiFileOrderDuli = defaultString(val.uiFileOrderDuli, 'null')
   setting.uiTimeFolderFormate = defaultString(val.uiTimeFolderFormate, 'yyyy-MM-dd HH-mm-ss').replace('mm-dd', 'MM-dd').replace('HH-MM', 'HH-mm')
@@ -367,7 +372,8 @@ function _loadSetting(val: any) {
   setting.debugDowningListMax = 1000
   setting.debugDownedListMax = defaultNumberSub(val.debugDownedListMax, 5000, 1000, 50000)
   setting.debugFolderSizeCacheHour = defaultValue(val.debugFolderSizeCacheHour, [72, 2, 8, 24, 48, 72])
-  setting.debugProxyPort = defaultString(val.debugProxyPort, '10000')
+  setting.debugProxyHost = defaultString(val.debugProxyHost, '127.0.0.1')
+  setting.debugProxyPort = defaultString(val.debugProxyPort, '5000')
   // 自动填写 分享链接提取码
   setting.yinsiLinkPassword = defaultBool(val.yinsiLinkPassword, false)
   setting.yinsiZipPassword = defaultBool(val.yinsiZipPassword, false)
@@ -482,6 +488,8 @@ const useSettingStore = defineStore('setting', {
       }
       SaveSetting()
       useAppStore().toggleTheme(setting.uiTheme)
+      window.MainProxyHost = setting.debugProxyHost
+      window.MainProxyPort = setting.debugProxyPort
       window.WinMsgToUpload({ cmd: 'SettingRefresh' })
       window.WinMsgToDownload({ cmd: 'SettingRefresh' })
     },

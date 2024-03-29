@@ -22,8 +22,13 @@ export function PageMain() {
     .then(async () => {
       // 创建代理server
       if (!window.MainProxyServer) {
+        window.MainProxyHost = useSettingStore().debugProxyHost
         window.MainProxyPort = useSettingStore().debugProxyPort
         window.MainProxyServer = await createProxyServer(window.MainProxyPort)
+        window.MainProxyServer.on('close', async () => {
+          await Sleep(2000)
+          window.MainProxyServer = await createProxyServer(window.MainProxyPort)
+        })
       }
       // DebugLog.mSaveSuccess('小白羊启动')
       await ShareDAL.aLoadFromDB().catch((err: any) => {
@@ -74,7 +79,7 @@ export function PageMain() {
           port: useSettingStore().webDavPort,
           hostname: useSettingStore().webDavHost,
           requireAuthentification: false
-        }).start().then(()=>{
+        }).start().then(() => {
           useSettingStore().webDavEnable = WebDavServer.isStarted()
         }).catch((err: any) => {
           useSettingStore().webDavEnable = false

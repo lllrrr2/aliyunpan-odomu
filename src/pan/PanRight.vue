@@ -634,7 +634,7 @@ const onPanDragEnd = (ev: any) => {
     </div>
     <div v-show="panfileStore.SelectDirType == 'search' && !panfileStore.IsListSelected" class='toppanbtn'>
       <a-dropdown style='width: 100px;' @popup-visible-change="handleSearchCheck">
-        <a-button :disabled='panfileStore.ListLoading'>搜索范围</a-button>
+        <a-button :disabled='panfileStore.ListLoading'>范围</a-button>
         <template #content>
           <a-checkbox-group v-model="inputsearchType" direction="vertical">
             <a-checkbox value='backup' :disabled="useSettingStore().securityHideBackupDrive">备份盘</a-checkbox>
@@ -658,7 +658,7 @@ const onPanDragEnd = (ev: any) => {
         @press-enter='($event:any)=>topSearchAll($event.srcElement.value as string, inputsearchType)'
         @keydown.esc=';($event.target as any).blur()' />
       <a-button type='text' size='small' tabindex='-1' style='border: none'
-                @click="() => topSearchAll('topSearchAll高级搜索', inputsearchType)">高级搜索
+                @click="() => topSearchAll('topSearchAll高级搜索', inputsearchType)">高级
       </a-button>
     </div>
 
@@ -959,7 +959,7 @@ const onPanDragEnd = (ev: any) => {
             </div>
             <div class='filetime'>{{ item.timeStr }}</div>
             <div class='filesize' style="width: 76px" v-show="item.media_duration || item.media_play_cursor">
-              <span>{{ '总时:' + (item.media_duration || '未知时长')}}</span>
+              <span>{{ '总时:' + (item.media_duration || '未知时长') }}</span>
               <span>{{ '观看:' + (item.media_play_cursor || '未知状态') }}</span>
               <span>{{ item.media_width > 0 ? item.media_width + 'x' + item.media_height : '' }}</span>
             </div>

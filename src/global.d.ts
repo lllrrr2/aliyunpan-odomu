@@ -31,6 +31,7 @@ declare global {
     DownloadPort: any
     MainPort: any
     MainProxyServer: any
+    MainProxyHost: any
     MainProxyPort: any
     WinMsgToUpload: any
     WinMsgToDownload: any

@@ -248,7 +248,7 @@ const usePanFileStore = defineStore('panfile', {
     },
 
     mSearchListData(value: string) {
-      this.$patch({ ListSelected: new Set<string>(), ListFocusKey: '', ListSelectKey: '', ListSearchKey: value })
+      this.$patch({ ListSearchKey: value })
       this.mRefreshListDataShow(true)
     },
 

@@ -54,11 +54,11 @@ export default class UserDAL {
         const expire_time = new Date(token.expire_time).getTime()
         const session_expire_time = new Date(token.session_expires_in).getTime()
         // 自动刷新Token(过期前5分钟)
-        if (dateNow - expire_time <= 1000 * 60 * 5) {
+        if (expire_time - dateNow <= 1000 * 60 * 5) {
           await AliUser.ApiTokenRefreshAccount(token, false, true)
           await AliUser.OpenApiTokenRefreshAccount(token, false, true)
         }
-        if (dateNow - session_expire_time <= 1000 * 60) {
+        if (session_expire_time - dateNow <= 1000 * 60) {
           await AliUser.ApiSessionRefreshAccount(token, false, true)
         }
       } catch (err: any) {
@@ -198,10 +198,16 @@ export default class UserDAL {
     // 刷新网盘数据
     if (!useSettingStore().securityHideResourceDrive) {
       await PanDAL.aReLoadResourceDrive(token)
-      await PanDAL.aReLoadOneDirToShow(token.resource_drive_id, 'resource_root', true)
     }
     if (!useSettingStore().securityHideBackupDrive) {
       await PanDAL.aReLoadBackupDrive(token)
+    }
+    if (useSettingStore().uiShowPanRootFirst === 'resource') {
+      await PanDAL.aReLoadOneDirToShow(token.resource_drive_id, 'resource_root', true)
+    } else if (useSettingStore().uiShowPanRootFirst === 'backup')  {
+      await PanDAL.aReLoadOneDirToShow(token.backup_drive_id, 'backup_root', true)
+    } else {
+      await PanDAL.aReLoadOneDirToShow(token.resource_drive_id, 'resource_root', true)
       await PanDAL.aReLoadOneDirToShow(token.backup_drive_id, 'backup_root', true)
     }
   }
