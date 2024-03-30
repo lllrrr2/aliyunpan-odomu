@@ -330,8 +330,8 @@ export async function createProxyServer(port: number) {
     if (err.code === 'EADDRINUSE' || err.code === 'EACCES') {
       proxyServer.close()
       proxyServer.removeAllListeners('error')
-      DebugLog.mSaveDanger(`【软件服务端口】：${port}已被占用，请修改端口`)
-      message.error(`【软件服务端口】端口：${port}已被占用，请修改端口`, 5)
+      DebugLog.mSaveDanger(`端口：${port}已被占用，请前往【高级选项->刷新端口】`)
+      message.error(`端口：${port}已被占用，请前往【高级选项->刷新端口】`, 5)
     }
   })
   return proxyServer

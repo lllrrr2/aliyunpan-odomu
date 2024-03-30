@@ -373,7 +373,7 @@ function _loadSetting(val: any) {
   setting.debugDownedListMax = defaultNumberSub(val.debugDownedListMax, 5000, 1000, 50000)
   setting.debugFolderSizeCacheHour = defaultValue(val.debugFolderSizeCacheHour, [72, 2, 8, 24, 48, 72])
   setting.debugProxyHost = defaultString(val.debugProxyHost, '127.0.0.1')
-  setting.debugProxyPort = defaultString(val.debugProxyPort, '5000')
+  setting.debugProxyPort = defaultString(val.debugProxyPort, '6666')
   // 自动填写 分享链接提取码
   setting.yinsiLinkPassword = defaultBool(val.yinsiLinkPassword, false)
   setting.yinsiZipPassword = defaultBool(val.yinsiZipPassword, false)

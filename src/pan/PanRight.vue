@@ -954,11 +954,11 @@ const onPanDragEnd = (ev: any) => {
               </a-button>
               <a-button v-if="false" type='text' tabindex='-1' class='gengduo' disabled></a-button>
             </div>
-            <div class='filesize' style="max-width: 68px">
+            <div class='filesize'>
               {{ item.sizeStr }}
             </div>
             <div class='filetime'>{{ item.timeStr }}</div>
-            <div class='filesize' style="width: 76px" v-show="item.media_duration || item.media_play_cursor">
+            <div class='filesize' v-show="item.media_duration || item.media_play_cursor">
               <span>{{ '总时:' + (item.media_duration || '未知时长') }}</span>
               <span>{{ '观看:' + (item.media_play_cursor || '未知状态') }}</span>
               <span>{{ item.media_width > 0 ? item.media_width + 'x' + item.media_height : '' }}</span>

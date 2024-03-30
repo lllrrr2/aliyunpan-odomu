@@ -200,7 +200,7 @@ body[arco-theme='dark'] .fileitem.focus {
   word-break: keep-all;
 }
 .filesize {
-  width: 82px;
+  width: 78px;
   font-size: 14px;
   line-height: 16px;
   text-align: right;
@@ -212,8 +212,7 @@ body[arco-theme='dark'] .fileitem.focus {
   text-align: right;
 }
 .filetime {
-  width: 80px;
-  padding-right: 2px;
+  width: 74px;
   font-size: 12px;
   line-height: 14px;
   text-align: right;
