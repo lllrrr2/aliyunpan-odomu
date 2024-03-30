@@ -214,21 +214,16 @@ export async function createProxyServer(port: number) {
       let selectQuality = quality || uiVideoQuality
       let needRefreshUrl = proxyInfo && (file_id != proxyInfo.file_id || proxyInfo.expires_time <= Date.now())
       let changeVideoQuality = proxyInfo && proxyInfo.videoQuality && (selectQuality !== proxyInfo.videoQuality)
+      let subtitle_url = ''
       if (!proxyUrl || needRefreshUrl || changeVideoQuality) {
         // 获取地址
         let data = await getRawUrl(user_id, drive_id, file_id, encType, '', weifa, 'other', selectQuality)
         console.error('proxy getRawUrl', data)
         if (typeof data != 'string' && data.url) {
           let subtitleData = data.subtitles.find((sub: any) => sub.language === 'chi') || data.subtitles[0]
-          let info: FileInfo = {
-            user_id, drive_id, file_id, file_size, encType,
-            videoQuality: selectQuality,
-            expires_time: GetExpiresTime(data.url),
-            proxy_url: data.url,
-            subtitle_url: subtitleData && subtitleData.url || ''
-          }
-          await Db.saveValueObject('ProxyInfo', info)
+          subtitle_url = subtitleData && subtitleData.url || ''
           proxyUrl = data.url
+          proxyInfo = undefined
         }
       }
       console.warn('proxyUrl', proxyUrl)
@@ -237,6 +232,15 @@ export async function createProxyServer(port: number) {
         clientRes.end()
         await Db.deleteValueObject('ProxyInfo')
         return
+      } else if (!proxyInfo) {
+        let info: FileInfo = {
+          user_id, drive_id, file_id, file_size, encType,
+          videoQuality: selectQuality,
+          expires_time: GetExpiresTime(proxyUrl),
+          proxy_url: proxyUrl,
+          subtitle_url: subtitle_url
+        }
+        await Db.saveValueObject('ProxyInfo', info)
       }
       // 转码文件302重定向
       if (proxyUrl.includes('.aliyuncs.com')) {

@@ -897,8 +897,8 @@ const updateVideoTime = async () => {
   )
 }
 
-const handleHideClick = async () => {
-  await updateVideoTime()
+const handleHideClick = () => {
+  updateVideoTime()
   if (window.WebToWindow) window.WebToWindow({ cmd: 'close' })
 }
 const handleMinClick = (_e: any) => {
