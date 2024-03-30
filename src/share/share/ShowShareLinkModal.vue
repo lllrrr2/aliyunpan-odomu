@@ -295,7 +295,7 @@ const handleOK = (saveType: string) => {
       } as CheckNode)
     }
   } else if (saveType == 'file') {
-    selectNodes = getCheckNodeOnlyFile(treeData)
+    selectNodes = getCheckNodeOnlyFile(treeData, checkedMap, halfCheckedMap)
   } else if (saveType == 'folder') {
     selectNodes = getCheckNode(treeData, checkedMap, halfCheckedMap)
   } else if (saveType == 'fileAndFolder') {
@@ -351,12 +351,13 @@ function getCheckNode(list: TreeNodeData[], checkedMap: Map<string, boolean>, ha
 }
 
 
-function getCheckNodeOnlyFile(list: TreeNodeData[]) {
+function getCheckNodeOnlyFile(list: TreeNodeData[], checkedMap: Map<string, boolean>, halfCheckedMap: Map<string, boolean>) {
   const selectNodes: CheckNode[] = []
   for (let i = 0, maxi = list.length; i < maxi; i++) {
     const item = list[i]
     const key = list[i].key.toString()
-    if (item.isLeaf) {
+    if (item.isLeaf && checkedMap.has(key)) {
+      checkedMap.delete(key)
       selectNodes.push({
         file_id: key,
         name: item.title!.toString(),
@@ -365,7 +366,7 @@ function getCheckNodeOnlyFile(list: TreeNodeData[]) {
         children: []
       } as CheckNode)
     } else if (item.children && item.children.length > 0) {
-      const child = getCheckNodeOnlyFile(item.children)
+      const child = getCheckNodeOnlyFile(item.children, checkedMap, halfCheckedMap)
       for (let j = 0, maxj = child.length; j < maxj; j++) {
         if (!child[j].halfChecked) selectNodes.push(child[j])
       }
