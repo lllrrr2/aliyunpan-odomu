@@ -11,7 +11,6 @@ import type { Option } from 'artplayer/types/option'
 import AliFileCmd from '../aliapi/filecmd'
 import { getEncType, getProxyUrl, getRawUrl, IRawUrl } from '../utils/proxyhelper'
 import { TestAlt, TestKey } from '../utils/keyboardhelper'
-import message from '../utils/message'
 import { GetExpiresTime } from '../utils/utils'
 import artplayerPluginDanmuku from '../../src/module/video-plugins/artplayer-plugin-danmuku'
 import artplayerPluginLibass from '../../src/module/video-plugins/artplayer-plugin-libass'
@@ -239,6 +238,11 @@ const initHotKey = (art: Artplayer) => {
 const initEvent = (art: Artplayer) => {
   // 监听事件
   art.on('ready', async () => {
+    await art.play().catch()
+    await getVideoCursor(art, pageVideo.play_cursor)
+    art.playbackRate = playbackRate
+  })
+  art.on('restart', async () => {
     await art.play().catch()
     await getVideoCursor(art, pageVideo.play_cursor)
     art.playbackRate = playbackRate
@@ -510,13 +514,11 @@ const getVideoInfo = async (art: Artplayer) => {
   const data: string | IRawUrl = await getRawUrl(pageVideo.user_id, pageVideo.drive_id, pageVideo.file_id, pageVideo.encType, pageVideo.password, false, 'video')
   if (typeof data != 'string' && data.qualities.length > 0) {
     // 画质
-    const isBigFile = data.size >= 3 * 1024 * 1024 * 1024
     let uiVideoQuality = useSettingStore().uiVideoQuality
     let defaultQuality: selectorItem
     if (uiVideoQuality === 'Origin') {
-      defaultQuality = data.qualities[0]
       // 代理播放
-      defaultQuality.url = getProxyUrl({
+      data.qualities[0].url = getProxyUrl({
         user_id: pageVideo.user_id,
         drive_id: pageVideo.drive_id,
         file_id: pageVideo.file_id,
@@ -526,20 +528,10 @@ const getVideoInfo = async (art: Artplayer) => {
         quality: 'Origin',
         proxy_url: data.url
       })
+      defaultQuality = data.qualities[0]
     } else {
       let preData = data.qualities.filter(q => q.width)
       defaultQuality = preData.find(q => q.quality === uiVideoQuality) || preData[0] || data.qualities[0]
-    }
-
-    if (isBigFile && defaultQuality.html == '原画') {
-      if (pageVideo.encType) {
-        art.emit('video:error')
-        message.error('加密文件超过3GB，请使用自定义播放器播放')
-        return
-      }
-      if (data.qualities.length > 1) {
-        art.notice.show = '文件超过3GB，加载非常慢'
-      }
     }
     art.url = defaultQuality.url
     defaultQuality.default = true
@@ -631,7 +623,7 @@ const refreshPlayList = async (art: Artplayer, file_id?: string) => {
         $current && Artplayer.utils.addClass($current, 'art-list-icon')
       },
       onSelect: async (item: SettingOption, element: HTMLElement) => {
-        await art.emit('video:pause')
+        await updateVideoTime()
         await refreshSetting(art, item)
         lastPlayNumber = autoPlayNumber - 1
         Artplayer.utils.inverseClass(element, 'art-list-icon')
@@ -897,9 +889,10 @@ const updateVideoTime = async () => {
   )
 }
 
-const handleHideClick = () => {
-  updateVideoTime()
-  if (window.WebToWindow) window.WebToWindow({ cmd: 'close' })
+const handleHideClick = async () => {
+  await ArtPlayerRef.emit('video:pause')
+  await updateVideoTime()
+  window.close()
 }
 const handleMinClick = (_e: any) => {
   if (window.WebToWindow) window.WebToWindow({ cmd: 'minsize' })
