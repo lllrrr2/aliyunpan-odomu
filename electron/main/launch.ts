@@ -8,7 +8,6 @@ import { existsSync, readFileSync, writeFileSync } from 'fs'
 import { EventEmitter } from 'node:events'
 import exception from './core/exception'
 import ipcEvent from './core/ipcEvent'
-import path from 'path'
 
 type UserToken = {
   access_token: string;
@@ -66,10 +65,6 @@ export default class launch extends EventEmitter {
     }
     process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true'
     process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
-    process.env.DIST = path.join(__dirname, '../dist')
-    process.env.VITE_PUBLIC = app.isPackaged
-      ? process.env.DIST
-      : path.join(process.env.DIST, '../public')
 
     app.commandLine.appendSwitch('no-sandbox')
     app.commandLine.appendSwitch('disable-web-security')
@@ -79,6 +74,7 @@ export default class launch extends EventEmitter {
     app.commandLine.appendSwitch('ignore-connections-limit', 'bj29-enet.cn-beijing.data.alicloudccp.com,bj29-hz.cn-hangzhou.data.alicloudccp.com,bj29.cn-beijing.data.alicloudccp.com,alicloudccp.com,api.aliyundrive.com,aliyundrive.com,api.alipan.com,alipan.com')
     app.commandLine.appendSwitch('ignore-certificate-errors')
     app.commandLine.appendSwitch('proxy-bypass-list', '*')
+    app.commandLine.appendSwitch('no-proxy-server')
     app.commandLine.appendSwitch('wm-window-animations-disabled')
     app.commandLine.appendSwitch('enable-features', 'PlatformHEVCDecoderSupport')
     app.commandLine.appendSwitch('force_high_performance_gpu')

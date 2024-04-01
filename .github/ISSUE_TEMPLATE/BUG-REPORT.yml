@@ -5,11 +5,11 @@ body:
   - type: checkboxes
     attributes:
       label: 确认问题 / Assignments
-      description: 提交issue请确保完成以下前提，否则该issue可能被忽略 / Make sure you read checkboxs below
+      description: 提交issue请确保完成以下前提，否则该issue可能被忽略，**不解决小白问题（自行搜索解决）**
       options:
         - label: 不存在相似或相关的issue（**搜索以前issue**） / No similar or related issues
           required: true
-        - label: 不存在相似或相关的**Wiki**问题说明 / No similar or related wiki
+        - label: 不存在相似或相关的**Wiki/更新日志**问题说明 / No similar or related wiki
           required: true
         - label: 最新版本是否存在此问题 / Latest app does not work
           required: false
@@ -27,8 +27,8 @@ body:
       required: true
   - type: textarea
     attributes:
-      label: 日志提交(截取部分日志，不要太长) / 使用Ctrl+Shift+F12打开DevTools截图错误的网络请求
-      description: 日志位于设置-运行日志-复制日志(截取部分日志，不要太长), 最好使用Ctrl+Shift+F12打开DevTools截图错误的网络请求
+      label: 日志提交(**截取部分日志**) / 使用Ctrl+Shift+F12打开DevTools截图错误的网络请求
+      description: 设置-运行日志-复制日志(**截取部分日志**) / 使用Ctrl+Shift+F12打开DevTools截图错误的网络请求
       placeholder: "请用```将日志内容包裹"
   - type: input
     attributes:
