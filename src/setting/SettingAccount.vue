@@ -38,7 +38,7 @@ const openWebUrl = (type: string) => {
 }
 
 const copyCookies = async () => {
-  let cookies = await window.WebGetCookies({ url: 'https://www.alipan.com' }) as []
+  let cookies = await window.WebGetCookies({ url: 'https://www.aliyundrive.com' }) as []
   if (cookies.length == 0) cookies = await window.WebGetCookies({ url: 'https://www.aliyundrive.com' }) as []
   if (cookies.length > 0) {
     let cookiesText = ''

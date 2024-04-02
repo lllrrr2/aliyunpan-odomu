@@ -1,5 +1,5 @@
 <script setup lang='ts'>
-import { KeyboardState, useAppStore, useKeyboardStore, usePanFileStore, useSettingStore } from '../store'
+import { KeyboardState, useAppStore, useKeyboardStore, useSettingStore } from '../store'
 import { onBeforeUnmount, onMounted, ref } from 'vue'
 import Artplayer from 'artplayer'
 import HlsJs from 'hls.js'
@@ -364,9 +364,6 @@ const refreshSetting = async (art: Artplayer, item: any) => {
   const description = item.description
   if (settingStore.uiAutoColorVideo && (!description || !description.includes('ce74c3c'))) {
     AliFileCmd.ApiFileColorBatch(pageVideo.user_id, pageVideo.drive_id, item.description, 'ce74c3c', [item.file_id])
-      .then((success) => {
-        usePanFileStore().mColorFiles('ce74c3c', success)
-      })
   }
   if (onlineSubData.dataUrl) {
     URL.revokeObjectURL(onlineSubData.dataUrl)

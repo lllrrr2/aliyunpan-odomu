@@ -138,7 +138,7 @@ class Request {
       let response = await fetch(this.fileInfo.url, {
         headers: {
           Range: reqRange ? reqRange : 'bytes=0-' + file.size,
-          Referer: 'https://www.alipan.com/'
+          Referer: 'https://www.aliyundrive.com/'
         }
       })
       if (!response.ok || !response.body) {

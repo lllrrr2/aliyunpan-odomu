@@ -324,9 +324,6 @@ const PlayerUtils = {
           const { drive_id, file_id, description } = currentFileInfo
           if (uiAutoColorVideo && (!description || !description.includes('ce74c3c'))) {
             AliFileCmd.ApiFileColorBatch(token.user_id, drive_id, description, 'ce74c3c', [file_id])
-              .then((success) => {
-                usePanFileStore().mColorFiles('ce74c3c', success)
-              })
           }
         }
       })
@@ -399,7 +396,7 @@ const PlayerUtils = {
     let { file, subTitleFile, rawData, quality } = otherArgs
     let encType = getEncType(file)
     let play_url = ''
-    let play_referer = token.open_api_access_token ? 'https://openapi.alipan.com/' : 'https://www.alipan.com/'
+    let play_referer = token.open_api_access_token ? 'https://openapi.alipan.com/' : 'https://www.aliyundrive.com/'
     let {
       uiVideoEnablePlayerList,
       uiVideoPlayerExit,

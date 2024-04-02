@@ -35,7 +35,7 @@ export default class AliUser {
       SessionLockMap.delete(token.user_id)
       return true
     }
-    const apiUrl = 'https://api.alipan.com/users/v1/users/device/create_session'
+    const apiUrl = 'https://api.aliyundrive.com/users/v1/users/device/create_session'
     let { signature, publicKey } = GetSignature(0, token.user_id, token.device_id)
     const postData = {
       'deviceName': 'Edge浏览器',
@@ -78,7 +78,7 @@ export default class AliUser {
       return true
     }
 
-    const url = 'https://auth.alipan.com/v2/account/token'
+    const url = 'https://auth.aliyundrive.com/v2/account/token'
     const postData = { refresh_token: token.refresh_token, grant_type: 'refresh_token' }
     const resp = await AliHttp.Post(url, postData, '', '')
     TokenLockMap.delete(token.user_id)
@@ -298,7 +298,7 @@ export default class AliUser {
     if (need_open_api) {
       url = 'https://openapi.alipan.com/adrive/v1.0/user/getDriveInfo'
     } else {
-      url = 'https://user.alipan.com/v2/user/get'
+      url = 'https://user.aliyundrive.com/v2/user/get'
     }
     const resp = await AliHttp.Post(url, {}, token.user_id, '')
     if (AliHttp.IsSuccess(resp.code)) {
@@ -315,7 +315,7 @@ export default class AliUser {
 
   static async ApiUserSign(token: ITokenInfo): Promise<number> {
     if (!token.user_id) return -1
-    const signUrl = 'https://member.alipan.com/v1/activity/sign_in_list'
+    const signUrl = 'https://member.aliyundrive.com/v1/activity/sign_in_list'
     const signResp = await AliHttp.Post(signUrl, {}, token.user_id, '')
     // console.log(JSON.stringify(resp))
     if (AliHttp.IsSuccess(signResp.code)) {
@@ -339,7 +339,7 @@ export default class AliUser {
       }
       let reward = '无奖励'
       if (!sign_data['isReward']) {
-        const rewardUrl = 'https://member.alipan.com/v1/activity/sign_in_reward'
+        const rewardUrl = 'https://member.aliyundrive.com/v1/activity/sign_in_reward'
         const rewardResp = await AliHttp.Post(rewardUrl, { signInDay: signInCount }, token.user_id, '')
         if (AliHttp.IsSuccess(rewardResp.code)) {
           if (!rewardResp.body || !rewardResp.body.result || !rewardResp.body.success) {
@@ -363,7 +363,7 @@ export default class AliUser {
 
   static async ApiUserRewardSpace(user_id: string, gift_code: string) {
     if (!user_id) return false
-    const url = 'https://member.alipan.com/v1/users/rewards'
+    const url = 'https://member.aliyundrive.com/v1/users/rewards'
     const postData = { code: gift_code }
     const resp = await AliHttp.Post(url, postData, user_id, '')
     if (AliHttp.IsSuccess(resp.code)) {

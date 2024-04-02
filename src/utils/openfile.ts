@@ -163,9 +163,7 @@ async function Video(token: ITokenInfo, file: IAliGetFileModel, subTitleFile: an
     uiVideoPlayerPath
   } = useSettingStore()
   if (uiAutoColorVideo && (!desc || !desc.includes('ce74c3c'))) {
-    AliFileCmd.ApiFileColorBatch(token.user_id, file.drive_id, file.description, 'ce74c3c', [file.file_id]).then((success) => {
-      usePanFileStore().mColorFiles('ce74c3c', success)
-    })
+    AliFileCmd.ApiFileColorBatch(token.user_id, file.drive_id, file.description, 'ce74c3c', [file.file_id])
   }
   if (uiVideoPlayer == 'web') {
     let play_cursor = 0

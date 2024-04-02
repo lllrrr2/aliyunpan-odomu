@@ -31,7 +31,7 @@ export default defineComponent({
       }
 
       if (text && text.length == 11) {
-        linkTxt = 'alipan.com/s/' + text
+        linkTxt = 'aliyundrive.com/s/' + text
       }
 
       if (text && text.indexOf('aliyundrive.com/s/') >= 0) {
@@ -126,7 +126,7 @@ export default defineComponent({
             { match: /(aliyundrive|alipan).com\/s\//, message: '必须是阿里云盘(aliyundrive.com/s/...或alipan.com/s/...)' },
             { match: /(aliyundrive|alipan).com\/s\/[0-9a-zA-Z_]{11,}/, message: '格式错误：xxxxx.com/s/umaDDMR7w4F' }
           ]">
-          <a-input v-model.trim="form.sharelink" placeholder="例如：alipan.com/s/umaDDMR7w4F" allow-clear :input-attrs="{ id: 'DaoRuShareMultiInput', autofocus: 'autofocus' }" @paste.stop.prevent="onPaste" />
+          <a-input v-model.trim="form.sharelink" placeholder="例如：aliyundrive.com/s/umaDDMR7w4F" allow-clear :input-attrs="{ id: 'DaoRuShareMultiInput', autofocus: 'autofocus' }" @paste.stop.prevent="onPaste" />
         </a-form-item>
         <a-form-item field="password" label="提取码：" :rules="[{ length: 4, message: '提取码必须是4个字符' }]">
           <a-input v-model.trim="form.password" placeholder="没有不填" allow-clear style="max-width: 100px" />

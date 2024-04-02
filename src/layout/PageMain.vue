@@ -339,7 +339,7 @@ onUnmounted(() => {
               <div style="display:flex;">
                 <div style="flex: 1;">
                   <AntQRCode
-                    value="https://www.alipan.com/cpx/member?userCode=NDAwNTA5"
+                    value="https://www.aliyundrive.com/cpx/member?userCode=NDAwNTA5"
                     icon="/favicon.ico"
                     errorLevel="Q"
                     :bordered="false"

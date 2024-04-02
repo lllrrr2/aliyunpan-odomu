@@ -6,7 +6,7 @@ import { ShowErrorAndRelaunch } from './dialog'
 
 const DEBUGGING = !app.isPackaged
 export const ua = 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) aDrive/4.12.0 Chrome/108.0.5359.215 Electron/22.3.24 Safari/537.36'
-export const Referer = 'https://www.alipan.com/'
+export const Referer = 'https://www.aliyundrive.com/'
 export const AppWindow: {
   mainWindow: BrowserWindow | undefined
   uploadWindow: BrowserWindow | undefined

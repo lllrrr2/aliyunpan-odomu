@@ -446,7 +446,7 @@ export function dropMoveSelectedFile(drive_id: string, movetodirid: string, istr
 
 export async function menuFileEncTypeChange(istree: boolean) {
   const selectedData = PanDAL.GetPanSelectedData(istree)
-  const description = selectedData.fileDescription || selectedData.parentDirDescription
+  const description = selectedData.fileDescription || selectedData.parentDirDescription || ''
   if (selectedData.isError) {
     message.error('标记加密文件操作失败 父文件夹错误')
     return
@@ -473,8 +473,7 @@ export async function menuFileEncTypeChange(istree: boolean) {
     ]),
     onOk: async () => {
       try {
-        const successList = await AliFileCmd.ApiFileColorBatch(selectedData.user_id, selectedData.drive_id, description, encType, selectedData.selectedKeys)
-        usePanFileStore().mColorFiles(encType, successList)
+        await AliFileCmd.ApiFileColorBatch(selectedData.user_id, selectedData.drive_id, description, encType, selectedData.selectedKeys)
       } catch (err: any) {
         message.error(err.message)
         DebugLog.mSaveDanger('menuFileEncTypeChange', err)
@@ -524,8 +523,7 @@ export async function menuFileColorChange(istree: boolean, color: string) {
   if (topbtnLock.has('menuFileColorChange')) return
   topbtnLock.add('menuFileColorChange')
   try {
-    const successList = await AliFileCmd.ApiFileColorBatch(selectedData.user_id, selectedData.drive_id, description, color, selectedData.selectedKeys)
-    usePanFileStore().mColorFiles(color, successList)
+    await AliFileCmd.ApiFileColorBatch(selectedData.user_id, selectedData.drive_id, description, color, selectedData.selectedKeys)
   } catch (err: any) {
     message.error(err.message)
     DebugLog.mSaveDanger('menuFileColorChange', err)

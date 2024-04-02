@@ -278,10 +278,6 @@ const loginSuccess = (token: ITokenInfo) => {
           origin: 'https://auth.aliyundrive.com',
           storages: ['cookies', 'localstorage']
         })
-        window.WebClearCookies({
-          origin: 'https://auth.alipan.com',
-          storages: ['cookies', 'localstorage']
-        })
       }
       refreshStepTips('process', 3)
       refreshQrCodeStatus()
@@ -292,10 +288,6 @@ const loginSuccess = (token: ITokenInfo) => {
       if (window.WebClearCookies) {
         window.WebClearCookies({
           origin: 'https://auth.aliyundrive.com',
-          storages: ['cookies', 'localstorage']
-        })
-        window.WebClearCookies({
-          origin: 'https://auth.alipan.com',
           storages: ['cookies', 'localstorage']
         })
       }

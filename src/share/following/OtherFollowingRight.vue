@@ -45,12 +45,12 @@ const handleSelectList = (key: string) => {
   tuijianList.value = list
 }
 const handleCopyLink = (followingid: string, nick_name: string) => {
-  const url = 'https://www.alipan.com/u/' + followingid + '/feed#' + nick_name
+  const url = 'https://www.aliyundrive.com/u/' + followingid + '/feed#' + nick_name
   copyToClipboard(url)
   message.success('订阅链接已复制到剪切板')
 }
 const handleOpenLink = (followingid: string) => {
-  const url = 'https://www.alipan.com/u/' + followingid + '/feed'
+  const url = 'https://www.aliyundrive.com/u/' + followingid + '/feed'
   openExternal(url)
 }
 const handleFollowing = (followingid: string, isFollowing: boolean) => {

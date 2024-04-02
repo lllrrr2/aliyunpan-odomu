@@ -6,6 +6,7 @@ import { ApiBatch, ApiBatchMaker, ApiBatchMaker2, ApiBatchSuccess, EncodeEncName
 import { IDownloadUrl } from './models'
 import AliFile from './file'
 import message from '../utils/message'
+import usePanFileStore from '../pan/panfilestore'
 
 export default class AliFileCmd {
   static async ApiCreatNewForder(
@@ -118,28 +119,34 @@ export default class AliFileCmd {
     message.success('成功执行 清除历史', 1, loadingKey)
   }
 
-  static async ApiFileColorBatch(user_id: string, drive_id: string, description: string, color: string, file_idList: string[]): Promise<string[]> {
+  static async ApiFileColorBatch(user_id: string, drive_id: string, description: string, color: string, file_idList: string[]) {
     // 防止加密标记清空
-    if (color && color != 'notEncrypt') {
-      let parts = description.split(',') || []
-      let encryptPart = parts.find((part: any) => part.includes('xbyEncrypt')) || ''
-      let colorPart = color || parts.find((part: any) => /c.{6}$/.test(part)) || ''
-      color = color ? [encryptPart, colorPart].filter(Boolean).join(',') : encryptPart
-    } else {
-      color = ''
+    let parts = description.split(',') || []
+    let encryptPart = parts.find((part: any) => part.includes('xbyEncrypt')) || ''
+    let colorPart = parts.find((part: any) => /c.{6}$/.test(part)) || ''
+    if (color) {
+      if (color.includes('xbyEncrypt')) {
+        encryptPart = color
+      } else if (color === 'notEncrypt') {
+        encryptPart = ''
+      } else {
+        colorPart = color
+      }
     }
+    color = color ? [encryptPart, colorPart].filter(Boolean).join(',') : encryptPart
     let batchList = ApiBatchMaker('/file/update', file_idList, (file_id: string) => {
       return { drive_id: drive_id, file_id: file_id, description: color }
     })
     let title = ''
-    if (color == '') {
+    if (color == '' || color == 'notEncrypt') {
       title = '清除标记'
     } else if (color.includes('ce74c3c')) {
       title = ''
     } else if (color.includes('xbyEncrypt')) {
       title = '标记加密'
     }
-    return ApiBatchSuccess(title, batchList, user_id, '')
+    let successList = await ApiBatchSuccess(title, batchList, user_id, '')
+    usePanFileStore().mColorFiles(color, successList)
   }
 
 

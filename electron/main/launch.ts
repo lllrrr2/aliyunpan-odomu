@@ -144,10 +144,10 @@ export default class launch extends EventEmitter {
                 Referer: 'https://gitee.com/'
               }),
               ...(shouldAliPanOrigin && {
-                Origin: 'https://www.alipan.com'
+                Origin: 'https://www.aliyundrive.com'
               }),
               ...(shouldAliReferer && {
-                Referer: 'https://www.alipan.com/'
+                Referer: 'https://www.aliyundrive.com/'
               }),
               ...(shouldBiliBili && {
                 Referer: 'https://www.bilibili.com/',

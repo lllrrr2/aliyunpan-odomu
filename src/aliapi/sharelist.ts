@@ -71,7 +71,7 @@ export default class AliShareList {
     try {
       if (AliHttp.IsSuccess(resp.code)) {
         dir.next_marker = resp.body.next_marker
-        const downUrl = 'https://api.alipan.com/v2/file/download?t=' + Date.now().toString()
+        const downUrl = 'https://api.aliyundrive.com/v2/file/download?t=' + Date.now().toString()
         const timeNow = new Date().getTime()
         for (let i = 0, maxi = resp.body.items.length; i < maxi; i++) {
           const item = resp.body.items[i] as IAliShareItem

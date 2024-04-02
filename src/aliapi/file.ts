@@ -501,7 +501,7 @@ export default class AliFile {
     }
     postData += '],"resource":"file"}'
 
-    const url = 'v2/batch'
+    const url = 'adrive/v4/batch'
     const resp = await AliHttp.Post(url, postData, user_id, '')
     if (AliHttp.IsSuccess(resp.code)) {
       const responses = resp.body.responses

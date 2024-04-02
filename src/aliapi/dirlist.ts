@@ -35,7 +35,6 @@ export interface IAliDirBatchResp {
 }
 
 export default class AliDirList {
-
   static async ApiFastAllDirList(user_id: string, drive_id: string): Promise<IAliDirResp> {
     const result: IAliDirResp = {
       items: [],
@@ -60,7 +59,7 @@ export default class AliDirList {
       postData += '"headers": { "Content-Type": "application/json" }, "id": "id2","method": "POST","url": "/file/search"}'
       postData += '],"resource":"file"}'
 
-      const url = 'v2/batch?jsonmask=responses(id%2Cstatus%2Cbody(next_marker%2Citems(name%2Cfile_id%2Cdrive_id%2Cupdated_at%2Csize%2Cdescription%2Cparent_file_id)))'
+      const url = 'adrive/v4/batch?jsonmask=responses(id%2Cstatus%2Cbody(next_marker%2Citems(name%2Cfile_id%2Cdrive_id%2Cupdated_at%2Csize%2Cdescription%2Cparent_file_id)))'
       const resp = await AliHttp.Post(url, postData, user_id, '')
 
       try {
@@ -204,7 +203,7 @@ export default class AliDirList {
       }
       postData += '],"resource":"file"}'
 
-      const url = 'v2/batch?jsonmask=responses(id%2Cstatus%2Cbody(next_marker%2Citems(name%2Cfile_id%2Cdrive_id%2Cupdated_at%2Csize%2Cdescription%2Cparent_file_id)))'
+      const url = 'v4/batch?jsonmask=responses(id%2Cstatus%2Cbody(next_marker%2Citems(name%2Cfile_id%2Cdrive_id%2Cupdated_at%2Csize%2Cdescription%2Cparent_file_id)))'
       const resp = await AliHttp.Post(url, postData, user_id, '')
 
       try {
@@ -298,7 +297,6 @@ export default class AliDirList {
     return { created_at: new Date(), total_count: 0 }
   }
 
-
   static async ApiFastAllDirListByPID(user_id: string, drive_id: string, drive_root: string): Promise<IDirDataResp> {
     const result: IDirDataResp = {
       items: [],
@@ -353,7 +351,7 @@ export default class AliDirList {
       if (dirList.length == 0) break
       for (let i = 0, maxi = dirList.length; i < maxi; i++) {
         const dir = dirList[i]
-        if(!dir) break
+        if (!dir) break
         const query = 'type="folder" and ' + dir.dirID
         let postData = {
           drive_id: drive_id,
@@ -403,7 +401,7 @@ export default class AliDirList {
             errorMessage = (resp.code || '').toString()
             DebugLog.mSaveWarning('SSApiBatchDirFileList err=' + (resp.code || ''), resp.body)
           }
-        }  catch (err: any) {
+        } catch (err: any) {
           errorMessage = err.message || ''
           DebugLog.mSaveWarning('ApiBatchDirFileList', err)
         }
@@ -464,7 +462,7 @@ export default class AliDirList {
       }
       postData += '],"resource":"file"}'
 
-      const url = 'v2/batch?jsonmask=responses(id%2Cstatus%2Cbody(next_marker%2Citems(name%2Cfile_id%2Cdrive_id%2Cupdated_at%2Csize%2Cdescription%2Cparent_file_id)))'
+      const url = 'v4/batch?jsonmask=responses(id%2Cstatus%2Cbody(next_marker%2Citems(name%2Cfile_id%2Cdrive_id%2Cupdated_at%2Csize%2Cdescription%2Cparent_file_id)))'
       const resp = await AliHttp.Post(url, postData, user_id, '')
 
       try {

@@ -428,7 +428,7 @@ const handleRightClick = (e: { event: MouseEvent; node: any }) => {
               <i :class="'iconfont ' + item.icon" aria-hidden="true"></i>
             </div>
             <div class="filename">
-              <div :title="'https://www.alipan.com/t/' + item.share_id" @click="handleClickName(item)">
+              <div :title="'https://www.aliyundrive.com/t/' + item.share_id" @click="handleClickName(item)">
                 {{ item.share_name }}
               </div>
             </div>

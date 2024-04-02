@@ -202,7 +202,7 @@ const handleCopySelectedLink = () => {
   let link = ''
   for (let i = 0, maxi = list.length; i < maxi; i++) {
     const item = list[i]
-    link += GetShareUrlFormate(item.share_name, 'https://www.alipan.com/s/' + item.share_id, item.share_pwd) + '\n'
+    link += GetShareUrlFormate(item.share_name, 'https://www.aliyundrive.com/s/' + item.share_id, item.share_pwd) + '\n'
   }
   if (list.length == 0) {
     message.error('没有选中分享链接！')
@@ -214,7 +214,7 @@ const handleCopySelectedLink = () => {
 const handleBrowserLink = () => {
   const first = othershareStore.GetSelectedFirst()
   if (!first) return
-  if (first.share_id) openExternal('https://www.alipan.com/s/' + first.share_id)
+  if (first.share_id) openExternal('https://www.aliyundrive.com/s/' + first.share_id)
   if (first.share_pwd) {
     copyToClipboard(first.share_pwd)
     message.success('提取码已复制到剪切板')
@@ -435,7 +435,7 @@ const handleRightClick = (e: { event: MouseEvent; node: any }) => {
               <i class="iconfont iconlink2" aria-hidden="true"></i>
             </div>
             <div class="filename">
-              <div :title="'https://www.alipan.com/s/' + item.share_id" @click="handleOpenLink(item)">
+              <div :title="'https://www.aliyundrive.com/s/' + item.share_id" @click="handleOpenLink(item)">
                 {{ item.share_name }}
               </div>
             </div>
@@ -481,7 +481,7 @@ const handleRightClick = (e: { event: MouseEvent; node: any }) => {
       <div style="margin-bottom: 32px">
         <div class="arco-textarea-wrapper arco-textarea-scroll">
           <textarea v-model="daoruModelText" class="arco-textarea daoruinput"
-                    placeholder="请粘贴，每行一条分享链接，例如：https://www.alipan.com/s/9inQ0eeZ8w8 提取码: CNp7"></textarea>
+                    placeholder="请粘贴，每行一条分享链接，例如：https://www.aliyundrive.com/s/9inQ0eeZ8w8 提取码: CNp7"></textarea>
         </div>
         <div>
           <span class="oporg">注：仅导入记录，不会导入分享的文件</span>

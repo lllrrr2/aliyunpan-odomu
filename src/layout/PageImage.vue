@@ -286,7 +286,7 @@ function _imageUrlSmall(item: OneImageModel) {
       password: pageImage.password
     })
   }
-  return 'https://api.alipan.com/v2/file/download?t=' + Date.now().toString() + '&drive_id=' + item.drive_id + '&file_id=' + item.file_id + '&image_thumbnail_process=image%2Fresize%2Cl_60%2Fformat%2Cjpg%2Fauto-orient%2C1'
+  return 'https://api.aliyundrive.com/v2/file/download?t=' + Date.now().toString() + '&drive_id=' + item.drive_id + '&file_id=' + item.file_id + '&image_thumbnail_process=image%2Fresize%2Cl_60%2Fformat%2Cjpg%2Fauto-orient%2C1'
 }
 
 function _imageUrlBig(item: OneImageModel) {
@@ -300,7 +300,7 @@ function _imageUrlBig(item: OneImageModel) {
       password: pageImage.password
     })
   }
-  return 'https://api.alipan.com/v2/file/download?t=' + Date.now().toString() + '&drive_id=' + item.drive_id + '&file_id=' + item.file_id + '&image_thumbnail_process=image%2Fresize%2Cl_1920%2Fformat%2Cwebp%2Fauto-orient%2C1'
+  return 'https://api.aliyundrive.com/v2/file/download?t=' + Date.now().toString() + '&drive_id=' + item.drive_id + '&file_id=' + item.file_id + '&image_thumbnail_process=image%2Fresize%2Cl_1920%2Fformat%2Cwebp%2Fauto-orient%2C1'
 }
 
 function _imageUrlRaw(item: OneImageModel) {
@@ -314,7 +314,7 @@ function _imageUrlRaw(item: OneImageModel) {
       password: pageImage.password
     })
   }
-  return 'https://api.alipan.com/v2/file/download?t=' + Date.now().toString() + '&drive_id=' + item.drive_id + '&file_id=' + item.file_id
+  return 'https://api.aliyundrive.com/v2/file/download?t=' + Date.now().toString() + '&drive_id=' + item.drive_id + '&file_id=' + item.file_id
 }
 
 function getImageUrl(item: OneImageModel) {

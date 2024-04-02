@@ -94,7 +94,7 @@ export default class AliTrash {
       if (AliHttp.IsSuccess(resp.code)) {
         dir.next_marker = resp.body.next_marker
         const isrecover = dir.dirID == 'recover'
-        const downurl = isrecover ? '' : 'https://api.alipan.com/v2/file/download?t=' + Date.now().toString()
+        const downurl = isrecover ? '' : 'https://api.aliyundrive.com/v2/file/download?t=' + Date.now().toString()
 
         for (let i = 0, maxi = resp.body.items.length; i < maxi; i++) {
           const item = resp.body.items[i] as IAliFileItem

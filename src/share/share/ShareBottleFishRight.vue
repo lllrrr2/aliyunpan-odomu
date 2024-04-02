@@ -64,7 +64,7 @@ const handleCopySelectedLink = () => {
   let link = ''
   for (let i = 0, maxi = list.length; i < maxi; i++) {
     const item = list[i]
-    link += GetShareUrlFormate(item.share_name, 'https://www.alipan.com/s/' + item.shareId, '') + '\n'
+    link += GetShareUrlFormate(item.share_name, 'https://www.aliyundrive.com/s/' + item.shareId, '') + '\n'
   }
   if (list.length == 0) {
     message.error('没有选中分享链接！')
@@ -77,7 +77,7 @@ const handleBrowserLink = () => {
   const first = shareBottleFishStore.GetSelectedFirst()
   if (!first) return
   if (first.shareId) {
-    openExternal('https://www.alipan.com/s/' + first.shareId)
+    openExternal('https://www.aliyundrive.com/s/' + first.shareId)
   }
 }
 
@@ -200,7 +200,7 @@ const handleRightClick = (e: { event: MouseEvent; node: any }) => {
               <i class="iconfont iconlink2" aria-hidden="true"></i>
             </div>
             <div class="filename">
-              <div :title="'https://www.alipan.com/s/' + item.shareId" @click="handleOpenLink(item)">
+              <div :title="'https://www.aliyundrive.com/s/' + item.shareId" @click="handleOpenLink(item)">
                 {{ item.share_name }}
               </div>
             </div>

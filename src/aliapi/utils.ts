@@ -140,7 +140,7 @@ export function DecodeEncName(user_id: string, item: IAliFileItem | IAliGetFileM
 
 async function _ApiBatch(postData: string, user_id: string, share_token: string, result: IAliBatchResult): Promise<void> {
   if (!user_id && !share_token) return
-  const url = 'v2/batch'
+  const url = 'adrive/v4/batch'
   const resp = await AliHttp.Post(url, postData, user_id, share_token)
   if (AliHttp.IsSuccess(resp.code)) {
     const responses = resp.body.responses

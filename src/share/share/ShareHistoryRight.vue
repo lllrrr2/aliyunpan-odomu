@@ -206,7 +206,7 @@ const handleCopySelectedLink = () => {
   let link = ''
   for (let i = 0, maxi = list.length; i < maxi; i++) {
     const item = list[i]
-    link += GetShareUrlFormate(item.share_name, 'https://www.alipan.com/s/' + item.share_id, '') + '\n'
+    link += GetShareUrlFormate(item.share_name, 'https://www.aliyundrive.com/s/' + item.share_id, '') + '\n'
   }
   if (list.length == 0) {
     message.error('没有选中分享链接！')
@@ -219,7 +219,7 @@ const handleBrowserLink = () => {
   const first = shareHistoryStore.GetSelectedFirst()
   if (!first) return
   if (first.share_id) {
-    openExternal('https://www.alipan.com/s/' + first.share_id)
+    openExternal('https://www.aliyundrive.com/s/' + first.share_id)
   }
 }
 
@@ -397,7 +397,7 @@ const handleRightClick = (e: { event: MouseEvent; node: any }) => {
               <i class="iconfont iconlink2" aria-hidden="true"></i>
             </div>
             <div class="filename">
-              <div :title="'https://www.alipan.com/s/' + item.share_id" @click="handleOpenLink(item)">
+              <div :title="'https://www.aliyundrive.com/s/' + item.share_id" @click="handleOpenLink(item)">
                 {{ item.share_name }}
               </div>
             </div>

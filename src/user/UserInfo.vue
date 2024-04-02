@@ -37,7 +37,6 @@ const handleLogOff = () => {
 const handleLogin = () => {
   if (window.WebClearCookies) {
     window.WebClearCookies({ origin: 'https://auth.aliyundrive.com', storages: ['cookies', 'localstorage'] })
-    window.WebClearCookies({ origin: 'https://auth.alipan.com', storages: ['cookies', 'localstorage'] })
   }
   useUserStore().userShowLogin = true
 }
