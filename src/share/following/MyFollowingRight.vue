@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { h, ref } from 'vue'
 import {
   KeyboardState,
   useAppStore,
@@ -24,6 +24,7 @@ import AliShare from '../../aliapi/share'
 
 import { Tooltip as AntdTooltip } from 'ant-design-vue'
 import { modalShowShareLink } from '../../utils/modal'
+import { Modal } from '@arco-design/web-vue'
 
 const daoruModel = ref(false)
 const daoruModelLoading = ref(false)
@@ -91,11 +92,22 @@ const handleBrowserLink = () => {
 const handleDeleteSelectedLink = () => {
   const list = myfollowingStore.GetSelected()
   if (list.length == 0) {
-    message.error('没有选中任何分享链接！')
+    message.error('没有选中任何订阅链接！')
     return
   }
-  const idList = ArrayKeyList<string>('user_id', list)
-  FollowingDAL.aSetFollowingBatch(useUserStore().user_id, idList, false)
+  Modal.open({
+    title: '取消选中的订阅',
+    okText: '继续',
+    bodyStyle: { minWidth: '340px' },
+    content: () => h('div', {
+      style: 'color: red',
+      innerText: '该操作不可逆，是否继续？'
+    }),
+    onOk: async () => {
+      const idList = ArrayKeyList<string>('user_id', list)
+      await FollowingDAL.aSetFollowingBatch(useUserStore().user_id, idList, false)
+    }
+  })
 }
 const handleDaoRuLink = () => {
   daoruModel.value = true

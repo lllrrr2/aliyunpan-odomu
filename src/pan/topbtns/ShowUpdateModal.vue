@@ -65,7 +65,7 @@ const handleOK = async () => {
       if (localVersion) {
         writeFile(localVersion, version, async (err) => {
           if (err) {
-            message.error('更新本地版本号失败，请检查【Resources文件夹】是否有写入权限', 5)
+            message.error('更新本地版本号失败，请检查【Resources文件夹】是否有写入权限【不要安装到系统盘】', 5)
           } else {
             message.info('热更新完毕，重新打开应用...', 0)
             await Sleep(500)

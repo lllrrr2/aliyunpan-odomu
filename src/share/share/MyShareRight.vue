@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { h, ref } from 'vue'
 import { IAliShareItem } from '../../aliapi/alimodels'
 import {
   KeyboardState,
@@ -31,6 +31,7 @@ import { ArrayKeyList } from '../../utils/utils'
 import { GetShareUrlFormate } from '../../utils/shareurl'
 import { TestButton } from '../../utils/mosehelper'
 import { xorWith } from 'lodash'
+import { Modal } from '@arco-design/web-vue'
 
 const viewlist = ref()
 const inputsearch = ref()
@@ -248,17 +249,34 @@ const handleDeleteSelectedLink = (delby: any) => {
       }
     }
   }
-
   if (list.length == 0) {
     message.error('没有需要清理的分享链接！')
     return
   }
-
-  const selectKeys = ArrayKeyList<string>('share_id', list)
-  AliShare.ApiCancelShareBatch(useUserStore().user_id, selectKeys).then((success: string[]) => {
-    useMyShareStore().mDeleteFiles(success)
-    message.success(name + '成功！')
-  })
+  if (delby == 'selected') {
+    Modal.open({
+      title: name,
+      okText: '继续',
+      bodyStyle: { minWidth: '340px' },
+      content: () => h('div', {
+        style: 'color: red',
+        innerText: '该操作不可逆，是否继续？'
+      }),
+      onOk: async () => {
+        const selectKeys = ArrayKeyList<string>('share_id', list)
+        AliShare.ApiCancelShareBatch(useUserStore().user_id, selectKeys).then((success: string[]) => {
+          useMyShareStore().mDeleteFiles(success)
+          message.success(name + '成功！')
+        })
+      }
+    })
+  } else {
+    const selectKeys = ArrayKeyList<string>('share_id', list)
+    AliShare.ApiCancelShareBatch(useUserStore().user_id, selectKeys).then((success: string[]) => {
+      useMyShareStore().mDeleteFiles(success)
+      message.success(name + '成功！')
+    })
+  }
 }
 
 const handleSearchInput = (value: string) => {
@@ -342,9 +360,9 @@ const handleRightClick = (e: { event: MouseEvent; node: any }) => {
     </div>
     <div v-show="!myshareStore.IsListSelected" class="toppanbtn">
       <a-dropdown trigger="hover" position="bl" @select="handleDeleteSelectedLink">
-        <a-button type="text" size="small" tabindex="-1"><i class="iconfont iconrest" />清理全部 <i
-          class="iconfont icondown" /></a-button>
-
+        <a-button type="text" size="small" tabindex="-1">
+          <i class="iconfont iconrest" />清理全部
+          <i class="iconfont icondown" /></a-button>
         <template #content>
           <a-doption :value="'expired'" class="danger">删除全部 过期已失效</a-doption>
           <a-doption :value="'deleted'" class="danger">删除全部 文件已删除</a-doption>

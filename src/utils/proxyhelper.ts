@@ -275,6 +275,9 @@ export async function createProxyServer(port: number) {
         }, (httpResp: any) => {
           console.error('httpResp.headers', httpResp.statusCode, httpResp.headers)
           clientRes.statusCode = httpResp.statusCode
+          for (const key in httpResp.headers) {
+            clientRes.setHeader(key, httpResp.headers[key])
+          }
           if (clientRes.statusCode % 300 < 5) {
             // 可能出现304，redirectUrl = undefined
             const redirectUrl = httpResp.headers.location || '-'
@@ -289,9 +292,11 @@ export async function createProxyServer(port: number) {
           } else if (httpResp.headers['content-range'] && httpResp.statusCode === 200) {
             // 文件断点续传下载
             clientRes.statusCode = 206
-          }
-          for (const key in httpResp.headers) {
-            clientRes.setHeader(key, httpResp.headers[key])
+          } else if (httpResp.statusCode === 403) {
+            resolve(true)
+            decryptTransform && decryptTransform.destroy()
+            clientRes.end()
+            return
           }
           // 解密文件名
           if (clientReq.method === 'GET' && clientRes.statusCode === 200 && encType && securityFileNameAutoDecrypt) {

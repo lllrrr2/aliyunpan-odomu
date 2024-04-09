@@ -84,7 +84,7 @@ const playByHls = (video: HTMLMediaElement, url: string, art: Artplayer) => {
     // @ts-ignore
     if (art.hls) art.hls.destroy()
     const hls = new HlsJs({
-      maxBufferLength: 100
+      maxBufferLength: 500
     })
     hls.detachMedia()
     hls.loadSource(url)

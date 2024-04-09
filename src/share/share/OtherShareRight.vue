@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { h, ref } from 'vue'
 import {
   IOtherShareLinkModel,
   KeyboardState,
@@ -28,6 +28,7 @@ import { ArrayKeyList } from '../../utils/utils'
 import { GetShareUrlFormate } from '../../utils/shareurl'
 import { TestButton } from '../../utils/mosehelper'
 import { xorWith } from 'lodash'
+import { Modal } from '@arco-design/web-vue'
 
 const daoruModel = ref(false)
 const daoruModelLoading = ref(false)
@@ -221,20 +222,48 @@ const handleBrowserLink = () => {
   }
 }
 
-const handleDeleteSelectedLink = (delby: string) => {
+const handleDeleteSelectedLink = (delby: any) => {
+  const name = delby == 'selected' ? '删除选中的链接' : delby == 'expired' ? '清理全部过期已失效' : ''
   let list: IOtherShareLinkModel[] = []
   if (delby == 'selected') {
     list = othershareStore.GetSelected()
+  } else {
+    list = []
+    const allList = othershareStore.ListDataRaw
+    let item: IOtherShareLinkModel
+    for (let i = 0, maxi = allList.length; i < maxi; i++) {
+      item = allList[i]
+      if (delby == 'expired') {
+        if (item.expired) list.push(item)
+      }
+    }
   }
   if (list.length == 0) {
-    message.error('没有选择要删除的分享链接！')
+    message.error('没有需要删除的分享链接！')
     return
   }
-
-  const selectKeys = ArrayKeyList<string>('share_id', list)
-  ShareDAL.DeleteOtherShare(selectKeys).then(() => {
-    message.success('成功删除' + selectKeys.length + '条')
-  })
+  if (delby == 'selected') {
+    Modal.open({
+      title: name,
+      okText: '继续',
+      bodyStyle: { minWidth: '340px' },
+      content: () => h('div', {
+        style: 'color: red',
+        innerText: '该操作不可逆，是否继续？'
+      }),
+      onOk: async () => {
+        const selectKeys = ArrayKeyList<string>('share_id', list)
+        ShareDAL.DeleteOtherShare(selectKeys).then(() => {
+          message.success('成功删除' + selectKeys.length + '条')
+        })
+      }
+    })
+  } else {
+    const selectKeys = ArrayKeyList<string>('share_id', list)
+    ShareDAL.DeleteOtherShare(selectKeys).then(() => {
+      message.success('成功删除' + selectKeys.length + '条')
+    })
+  }
 }
 const handleDaoRuLink = () => {
   daoruModel.value = true
@@ -305,11 +334,16 @@ const handleRightClick = (e: { event: MouseEvent; node: any }) => {
       </a-button>
     </div>
     <div class="toppanbtn">
-      <a-button type="text" size="small" tabindex="-1" title="Ctrl+N" @click="handleDaoRuLink"><i
-        class="iconfont iconlink2" />导入
+      <a-button type="text" size="small" tabindex="-1" title="Ctrl+N" @click="handleDaoRuLink">
+        <i class="iconfont iconlink2" />导入
       </a-button>
-      <a-button type="text" size="small" tabindex="-1" title="Ctrl+U" @click="handleRefreshStats"><i
-        class="iconfont iconyibu" />更新
+      <a-button type="text" size="small" tabindex="-1" title="Ctrl+U" @click="handleRefreshStats">
+        <i class="iconfont iconyibu" />更新
+      </a-button>
+      <a-button v-if="!othershareStore.IsListSelected"
+                class="danger" type="text" size="small" tabindex="-1"
+                @click="handleDeleteSelectedLink">
+        <i class="iconfont iconrest" />删除过期
       </a-button>
     </div>
     <div v-show="othershareStore.IsListSelected" class="toppanbtn">
@@ -327,7 +361,6 @@ const handleRightClick = (e: { event: MouseEvent; node: any }) => {
         <i class="iconfont icondelete" />删除
       </a-button>
     </div>
-
     <div style="flex-grow: 1"></div>
     <div class="toppanbtn">
       <a-input-search ref="inputsearch" tabindex="-1" size="small"
@@ -428,7 +461,8 @@ const handleRightClick = (e: { event: MouseEvent; node: any }) => {
               :class="'rangselect ' + (rangSelectFiles[item.share_id] ? (rangSelectStart == item.share_id ? 'rangstart' : rangSelectEnd == item.share_id ? 'rangend' : 'rang') : '')">
               <a-button shape="circle" type="text" tabindex="-1" class="select" :title="index"
                         @click.prevent.stop="handleSelect(item.share_id, $event, true)">
-                <i :class="othershareStore.ListSelected.has(item.share_id) ? 'iconfont iconrsuccess' : 'iconfont iconpic2'" />
+                <i
+                  :class="othershareStore.ListSelected.has(item.share_id) ? 'iconfont iconrsuccess' : 'iconfont iconpic2'" />
               </a-button>
             </div>
             <div class="fileicon">

@@ -230,10 +230,11 @@ const handleRename = (newName: string, encType: string = '', inputpassword: stri
     <div class='modalbody' style='width: 440px'>
       <a-form ref='formRef' :model='form' layout='vertical'>
         <a-form-item field='fileName' :rules='ispic ? album_rules : file_rules'>
-          <template #label>{{ ispic ? '相册名' : '文件名' }}：<span class='opblue'
-                                                                   style='margin-left: 16px; font-size: 12px'> 不要有特殊字符 &lt; > : * ? \\ / \' " </span>
+          <template #label>
+            {{ ispic ? '相册名' : '文件名' }}：
+            <span class='opblue' style='margin-left: 16px; font-size: 12px'> 不要有特殊字符 &lt; > : * ? \\ / \' " </span>
           </template>
-          <a-input v-model.trim='form.fileName' :placeholder='form.bakName' allow-clear
+          <a-input v-model='form.fileName' :placeholder='form.bakName' allow-clear
                    :input-attrs="{ id: 'RenameInput', autofocus: 'autofocus' }" />
         </a-form-item>
         <a-form-item v-if='ispic' field='description' label='相册描述：' class='textareafill'>
