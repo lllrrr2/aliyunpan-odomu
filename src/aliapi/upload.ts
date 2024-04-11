@@ -162,19 +162,12 @@ export default class AliUpload {
       postData.content_hash_name = 'sha1'
       postData.proof_version = 'v1'
       postData.proof_code = proof_code
-    } else {
-      postData.content_hash = ''
-      postData.content_hash_name = 'none'
-      postData.proof_version = 'v1'
-      postData.proof_code = ''
     }
 
     let partSize = 10485760
     if (fileSize > 0) {
       let partIndex = 0
-
       while (fileSize > partSize * 8000) partSize = partSize + 10485760
-
       while (partIndex * partSize < fileSize) {
         postData.part_info_list.push({ part_number: partIndex + 1, part_size: partSize })
         partIndex++

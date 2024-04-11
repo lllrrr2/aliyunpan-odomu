@@ -87,11 +87,11 @@ export function EncodeEncName(user_id: string, name: string, isDir: boolean, enc
         let plainName = ''
         let basename = path.basename(name)
         let extname = path.extname(name)
-        if (settingStore.securityEncFileNameHideExt) {
+        if (mime.lookup(extname) && !settingStore.securityEncFileNameHideExt) {
+          plainName = basename.replace(extname, '')
+        } else {
           plainName = basename
           extname = ''
-        } else {
-          plainName = basename.replace(extname, '')
         }
         return encodeName(securityPassword, securityEncType, plainName) + extname
       }).join('/')
@@ -150,8 +150,6 @@ async function _ApiBatch(postData: string, user_id: string, share_token: string,
         result.count++
         const respi = responses[i]
         if (respi.body && respi.body.async_task_id) {
-
-
           result.async_task.push({
             drive_id: respi.body.drive_id || '',
             file_id: respi.id,
@@ -160,7 +158,6 @@ async function _ApiBatch(postData: string, user_id: string, share_token: string,
             newfile_id: respi.body.file_id || ''
           })
         } else if (respi.body && respi.body.share_id && respi.body.share_msg) {
-
           result.reslut.push({
             id: respi.id,
             share_id: respi.body.share_id,
@@ -237,18 +234,15 @@ export async function ApiBatch(title: string, batchList: string[], user_id: stri
     let type: AsyncType = '异步'
     if (title == '放入回收站') type = '放回收站'
     if (title == '从回收站还原') type = '回收站还原'
-
     if (title == '彻底删除') type = '彻底删除'
     if (title == '批量复制') type = '复制'
     if (title == '复制') type = '复制'
     if (!title && share_token) type = '导入分享'
-
     const footStore = useFootStore()
     for (let i = 0, maxi = result.async_task.length; i < maxi; i++) {
       const task = result.async_task[i]
 
       if (type == '放回收站' || type == '彻底删除') {
-
         result.reslut.push({ id: task.file_id, file_id: task.newfile_id })
       }
 

@@ -18,7 +18,9 @@ class Dlna extends EventEmitter {
 
   constructor() {
     super()
-    this.ssdpClient = new SSDPClient()
+    try {
+      this.ssdpClient = new SSDPClient()
+    } catch {}
   }
 
   search() {
