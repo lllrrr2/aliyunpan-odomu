@@ -133,7 +133,7 @@ export default class launch extends EventEmitter {
           const shouldQQTv = details.url.indexOf('v.qq.com') > 0 || details.url.indexOf('video.qq.com') > 0
           const shouldAliPanOrigin =   details.url.indexOf('.aliyundrive.com') > 0 || details.url.indexOf('.alipan.com') > 0
           const shouldAliReferer = !shouldQQTv && !shouldBiliBili && !shouldGieeReferer && (!details.referrer || details.referrer.trim() === '' || /(\/localhost:)|(^file:\/\/)|(\/127.0.0.1:)/.exec(details.referrer) !== null)
-          const shouldToken = details.url.includes('alipan') && details.url.includes('download')
+          const shouldToken = shouldAliPanOrigin && details.url.includes('download')
           const shouldOpenApiToken = details.url.includes('adrive/v1.0') || details.url.includes('adrive/v1.1')
 
           cb({
