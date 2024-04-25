@@ -72,14 +72,14 @@ export default function setting (art, danmuku) {
 
   function addSetting () {
     art.setting.add({
-      width: 300,
+      width: 280,
       name: 'danmuku',
       html: '弹幕设置',
       tooltip: '更多设置',
       icon: $danmuConfig,
       selector: [
         {
-          width: 300,
+          width: 280,
           html: '弹幕速度',
           icon: '',
           tooltip: option.speed,
@@ -92,7 +92,7 @@ export default function setting (art, danmuku) {
           }
         },
         {
-          width: 300,
+          width: 280,
           html: '字体大小',
           icon: '',
           tooltip: option.fontSize + 'px',
@@ -105,7 +105,7 @@ export default function setting (art, danmuku) {
           }
         },
         {
-          width: 300,
+          width: 280,
           html: '不透明度',
           icon: '',
           tooltip: (option.opacity * 100) + '%',
@@ -118,7 +118,7 @@ export default function setting (art, danmuku) {
           }
         },
         {
-          width: 300,
+          width: 280,
           html: '显示范围',
           icon: '',
           tooltip: '1/4',
@@ -207,7 +207,7 @@ export default function setting (art, danmuku) {
           }
         },
         {
-          width: 300,
+          width: 280,
           html: '匹配标题',
           icon: '',
           tooltip: option.matchType == 'folder' ? '文件夹名' : '文件名',
@@ -231,7 +231,7 @@ export default function setting (art, danmuku) {
           }
         },
         {
-          width: 300,
+          width: 280,
           html: '匹配集数',
           icon: '',
           tooltip: option.matchEsp == 'auto' ? '自动匹配' : '手动输入',

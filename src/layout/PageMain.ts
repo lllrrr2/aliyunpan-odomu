@@ -22,15 +22,19 @@ export function PageMain() {
     .then(async () => {
       // 创建代理server
       if (!window.MainProxyServer) {
-        window.MainProxyHost = useSettingStore().debugProxyHost
         window.MainProxyPort = useSettingStore().debugProxyPort
         window.MainProxyServer = await createProxyServer(window.MainProxyPort)
-        window.MainProxyServer.on('close', async () => {
-          await Sleep(2000)
-          window.MainProxyServer = await createProxyServer(window.MainProxyPort)
+        window.MainProxyServer.on('error', async (err: any) => {
+          if (err.code === 'EADDRINUSE' || err.code === 'EACCES') {
+            window.MainProxyServer.removeAllListeners('error')
+            await Sleep(500)
+            window.MainProxyPort = Math.floor(Math.random() * (10000 - 2000 + 1) + 2000)
+            window.MainProxyServer = await createProxyServer(window.MainProxyPort)
+            useSettingStore().debugProxyPort = window.MainProxyPort
+          }
         })
       }
-      // DebugLog.mSaveSuccess('小白羊启动')
+      DebugLog.mSaveSuccess('小白羊启动，服务端口：' + window.MainProxyPort)
       await ShareDAL.aLoadFromDB().catch((err: any) => {
         DebugLog.mSaveDanger('ShareDALLDB', err)
       })

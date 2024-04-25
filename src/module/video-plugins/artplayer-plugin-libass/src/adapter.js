@@ -41,7 +41,7 @@ export default class LibassAdapter {
       this.libass.setTrackByUrl(this.#toAbsoluteUrl(url))
       this.currentType = 'ass'
       this.visible = this.art.subtitle.show
-    } else if (url.startsWith('blob:')) {
+    } else if (url.length > 0 && url.startsWith('blob:')) {
       fetch(url)
         .then(res => res.text())
         .then((text) => {

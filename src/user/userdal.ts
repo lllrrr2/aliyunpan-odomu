@@ -56,6 +56,8 @@ export default class UserDAL {
         // 自动刷新Token(过期前5分钟)
         if (expire_time - dateNow <= 1000 * 60 * 5) {
           await AliUser.ApiTokenRefreshAccount(token, false, true)
+        }
+        if (expire_time - dateNow <= 1000 * 60 * 5) {
           await AliUser.OpenApiTokenRefreshAccount(token, false, true)
         }
         if (session_expire_time - dateNow <= 1000 * 60) {
@@ -204,7 +206,7 @@ export default class UserDAL {
     }
     if (useSettingStore().uiShowPanRootFirst === 'resource') {
       await PanDAL.aReLoadOneDirToShow(token.resource_drive_id, 'resource_root', true)
-    } else if (useSettingStore().uiShowPanRootFirst === 'backup')  {
+    } else if (useSettingStore().uiShowPanRootFirst === 'backup') {
       await PanDAL.aReLoadOneDirToShow(token.backup_drive_id, 'backup_root', true)
     } else {
       await PanDAL.aReLoadOneDirToShow(token.resource_drive_id, 'resource_root', true)

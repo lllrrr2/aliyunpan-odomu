@@ -13,6 +13,7 @@ import { humanSize, Sleep } from '../utils/format'
 import { RuningList } from './uiupload'
 import path from 'path'
 import fspromises from 'fs/promises'
+import AliUser from '../aliapi/user'
 
 export async function StartUpload(fileui: IUploadingUI): Promise<void> {
   const token = await UserDAL.GetUserTokenFromDB(fileui.user_id)
@@ -21,6 +22,12 @@ export async function StartUpload(fileui: IUploadingUI): Promise<void> {
     fileui.Info.failedCode = 402
     fileui.Info.failedMessage = '找不到账号,无法继续'
     return
+  }
+  const expire_time = new Date(token.expire_time).getTime()
+  if (expire_time - new Date().getTime() < 60000) {
+    // token过期失效，尝试刷新
+    await AliUser.ApiTokenRefreshAccount(token, false, true)
+    await AliUser.OpenApiTokenRefreshAccount(token, false, true)
   }
   // 创建文件夹
   if (fileui.File.isDir) {

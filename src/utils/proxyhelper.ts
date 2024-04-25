@@ -10,8 +10,6 @@ import AliFile from '../aliapi/file'
 import path from 'path'
 import { localPwd } from './aria2c'
 import os from 'os'
-import DebugLog from './debuglog'
-import message from './message'
 
 // 默认maxFreeSockets=256
 const httpsAgent = new HttpsAgent({ keepAlive: true })
@@ -107,16 +105,16 @@ export function getFlowEnc(user_id: string, fileSize: number, encType: string, p
 }
 
 export function getProxyUrl(info: FileInfo) {
-  let { debugProxyHost, debugProxyPort } = useSettingStore()
-  let proxyUrl = `http://${debugProxyHost}:${debugProxyPort}/proxy`
+  let { debugProxyPort } = useSettingStore()
+  let proxyUrl = `http://${getIPAddress()}:${debugProxyPort}/proxy`
   let params = Object.keys(info).filter(v => info[v])
     .map((key: string) => `${encodeURIComponent(key)}=${encodeURIComponent(info[key]!!)}`)
   return `${proxyUrl}?${params.join('&')}`
 }
 
 export function getRedirectUrl(info: FileInfo) {
-  let { debugProxyHost, debugProxyPort } = useSettingStore()
-  let redirectUrl = `http://${debugProxyHost}:${debugProxyPort}/redirect`
+  let { debugProxyPort } = useSettingStore()
+  let redirectUrl = `http://${getIPAddress()}:${debugProxyPort}/redirect`
   let params = Object.keys(info).filter(v => info[v])
     .map((key: string) => `${encodeURIComponent(key)}=${encodeURIComponent(info[key]!!)}`)
   return `${redirectUrl}?${params.join('&')}`
@@ -314,7 +312,7 @@ export async function createProxyServer(port: number) {
           } else {
             httpResp.pipe(clientRes)
           }
-        })
+        }).end()
         clientReq.pipe(agentServer)
         // 关闭解密流
         agentServer.on('close', async () => {
@@ -335,13 +333,5 @@ export async function createProxyServer(port: number) {
     }
   })
   proxyServer.listen(port)
-  proxyServer.on('error', (err: any) => {
-    if (err.code === 'EADDRINUSE' || err.code === 'EACCES') {
-      proxyServer.close()
-      proxyServer.removeAllListeners('error')
-      DebugLog.mSaveDanger(`端口：${port}已被占用，请前往【高级选项->刷新端口】`)
-      message.error(`端口：${port}已被占用，请前往【高级选项->刷新端口】`, 5)
-    }
-  })
   return proxyServer
 }

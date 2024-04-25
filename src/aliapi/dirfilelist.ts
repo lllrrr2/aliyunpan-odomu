@@ -571,7 +571,7 @@ export default class AliDirFileList {
   }
 
   static async _ApiVideoListRecent(orderby: string, order: string, dir: IAliFileResp, pageIndex: number): Promise<boolean> {
-    let need_open_api = true
+    let need_open_api = useSettingStore().uiEnableOpenApi
     let url = ''
     if (need_open_api) {
       url = 'adrive/v1.1/openFile/video/recentList'
@@ -579,7 +579,7 @@ export default class AliDirFileList {
       url = 'adrive/v2/video/recentList'
     }
     const postData = {}
-    const resp = await AliHttp.Post(url, postData, dir.m_user_id, '')
+    const resp = await AliHttp.Post(url, postData, dir.m_user_id, '', need_open_api)
     return AliDirFileList._FileListOnePage(orderby, order, dir, resp, pageIndex)
   }
 

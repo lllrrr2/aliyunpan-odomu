@@ -112,7 +112,7 @@ export default class AliHttp {
                   if (flag) {
                     return { code: 401, header: '', body: '' } as IUrlRespData
                   }
-                  return { code: 403, header: '', body: 'NetError 账号需要重新登录' } as IUrlRespData
+                  return { code: 403, header: '', body: '刷新OpenApiToken失败，请检查设置' } as IUrlRespData
                 })
               }
             } else {
@@ -384,7 +384,7 @@ export default class AliHttp {
     })
   }
 
-  static async Post(url: string, postData: any, user_id: string, share_token: string): Promise<IUrlRespData> {
+  static async Post(url: string, postData: any, user_id: string, share_token: string, need_open_api: boolean = false): Promise<IUrlRespData> {
     if (!url.startsWith('http') && !url.startsWith('https')) {
       if (url.includes('adrive/v1.0') || url.includes('adrive/v1.1')) {
         url = AliHttp.baseOpenApi + url
@@ -393,7 +393,7 @@ export default class AliHttp {
       }
     }
     for (let i = 0; i <= 5; i++) {
-      const resp = await AliHttp._Post(url, postData, user_id, share_token)
+      const resp = await AliHttp._Post(url, postData, user_id, share_token, need_open_api)
       if (resp.code == 429
         && resp.body.display_message
         && !url.includes('getDownloadUrl')
@@ -413,7 +413,7 @@ export default class AliHttp {
     return { code: 608, header: '', body: 'NetError PostLost' } as IUrlRespData
   }
 
-  private static _Post(url: string, postData: any, user_id: string, share_token: string): Promise<IUrlRespData> {
+  private static _Post(url: string, postData: any, user_id: string, share_token: string, need_open_api: boolean): Promise<IUrlRespData> {
     return UserDAL.GetUserTokenFromDB(user_id).then((token) => {
       const headers: any = {}
       if (url.includes('aliyundrive') || url.includes('alipan')) {
@@ -422,7 +422,6 @@ export default class AliHttp {
       if (token) {
         let token_type = token.token_type
         let access_token = token.access_token
-        let need_open_api = url.includes('openapi')
         if (need_open_api && token.open_api_access_token) {
           token_type = token.open_api_token_type || 'Bearer'
           access_token = token.open_api_access_token

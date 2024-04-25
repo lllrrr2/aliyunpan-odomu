@@ -21,9 +21,14 @@ export interface SettingState {
   uiUpdateProxyUrl: string
 
   // 账户设置
+  uiEnableOpenApi: boolean
   uiEnableOpenApiType: string
   uiOpenApiClientId: string
   uiOpenApiClientSecret: string
+  uiOpenApiAuthCode: string
+  uiOpenApiRedirectUri: string
+  uiOpenApiCodeChallenge: string
+  uiOpenApiCodeChallengeMethod: string
 
   // 安全设置
   securityEncType: string
@@ -112,7 +117,6 @@ export interface SettingState {
   debugDowningListMax: number
   debugDownedListMax: number
   debugFolderSizeCacheHour: number
-  debugProxyHost: string
   debugProxyPort: string
   // 自动填写 分享链接提取码
   yinsiLinkPassword: boolean
@@ -148,9 +152,14 @@ const setting: SettingState = {
   uiUpdateProxyUrl: 'https://mirror.ghproxy.com',
 
   // 账户设置
+  uiEnableOpenApi: true,
   uiEnableOpenApiType: 'inline',
   uiOpenApiClientId: '',
   uiOpenApiClientSecret: '',
+  uiOpenApiAuthCode: '',
+  uiOpenApiRedirectUri: 'oob',
+  uiOpenApiCodeChallenge: '11111',
+  uiOpenApiCodeChallengeMethod: 'plain',
 
   // 安全设置
   securityEncType: 'aesctr',
@@ -246,8 +255,7 @@ const setting: SettingState = {
   debugDowningListMax: 1000,
   debugDownedListMax: 5000,
   debugFolderSizeCacheHour: 72,
-  debugProxyHost: '127.0.0.1',
-  debugProxyPort: '6666',
+  debugProxyPort: '6272',
   // 自动填写 分享链接提取码
   yinsiLinkPassword: false,
   yinsiZipPassword: false,
@@ -283,9 +291,14 @@ function _loadSetting(val: any) {
   setting.uiUpdateProxyUrl = defaultString(val.uiUpdateProxyUrl, 'https://mirror.ghproxy.com')
 
   // 账户设置
-  setting.uiEnableOpenApiType = defaultValue(val.uiEnableOpenApiType, ['inline', 'custom'])
+  setting.uiEnableOpenApi = defaultBool(val.uiEnableOpenApi, true)
+  setting.uiEnableOpenApiType = defaultValue(val.uiEnableOpenApiType, ['inline', 'custom', 'pkce'])
   setting.uiOpenApiClientId = defaultString(val.uiOpenApiClientId, '')
   setting.uiOpenApiClientSecret = defaultString(val.uiOpenApiClientSecret, '')
+  setting.uiOpenApiAuthCode = defaultString(val.uiOpenApiAuthCode, '')
+  setting.uiOpenApiRedirectUri = defaultString(val.uiOpenApiRedirectUri, 'oob')
+  setting.uiOpenApiCodeChallenge = defaultString(val.uiOpenApiCodeChallenge, '11111')
+  setting.uiOpenApiCodeChallengeMethod = defaultValue(val.uiOpenApiCodeChallengeMethod, ['plain', 'S256'])
 
   // 安全设置
   setting.securityEncType = defaultValue(val.securityEncType, ['aesctr', 'rc4md5'])
@@ -372,8 +385,7 @@ function _loadSetting(val: any) {
   setting.debugDowningListMax = 1000
   setting.debugDownedListMax = defaultNumberSub(val.debugDownedListMax, 5000, 1000, 50000)
   setting.debugFolderSizeCacheHour = defaultValue(val.debugFolderSizeCacheHour, [72, 2, 8, 24, 48, 72])
-  setting.debugProxyHost = defaultString(val.debugProxyHost, '127.0.0.1')
-  setting.debugProxyPort = defaultString(val.debugProxyPort, '6666')
+  setting.debugProxyPort = defaultString(val.debugProxyPort, '6272')
   // 自动填写 分享链接提取码
   setting.yinsiLinkPassword = defaultBool(val.yinsiLinkPassword, false)
   setting.yinsiZipPassword = defaultBool(val.yinsiZipPassword, false)
@@ -488,7 +500,6 @@ const useSettingStore = defineStore('setting', {
       }
       SaveSetting()
       useAppStore().toggleTheme(setting.uiTheme)
-      window.MainProxyHost = setting.debugProxyHost
       window.MainProxyPort = setting.debugProxyPort
       window.WinMsgToUpload({ cmd: 'SettingRefresh' })
       window.WinMsgToDownload({ cmd: 'SettingRefresh' })

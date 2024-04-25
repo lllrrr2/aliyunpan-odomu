@@ -244,13 +244,13 @@ onUnmounted(() => {
               </svg>
             </div>
           </div>
-          <span style='margin-right: 8px'>{{ footStore.loadingInfo }}</span>
+          <span>{{ footStore.loadingInfo }}</span>
         </div>
-        <div class='footinfo'>
+        <div :style="footStore.loadingInfo ? '' : 'margin-left: -8px'">
           {{ footStore.GetSpaceInfo }}
         </div>
         <div class='flexauto' />
-        <div :style="{ display: 'flex', paddingRight: '16px', flexShrink: 0, flexGrow: 0 }">
+        <div :style="{ display: 'flex', flexShrink: 0, flexGrow: 0 }">
           <div class='flexauto'></div>
           <div class='footinfo'>
             {{ footStore.GetInfo }}
@@ -566,8 +566,7 @@ a {
 }
 
 .footinfo {
-  padding: 0 8px;
-  opacity: 0.9;
+  padding: 0 2px;
 }
 
 body[arco-theme='dark'] .footinfo {

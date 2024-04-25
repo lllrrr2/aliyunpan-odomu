@@ -3,9 +3,6 @@ import useSettingStore from './settingstore'
 import AppCache from '../utils/appcache'
 import MySwitch from '../layout/MySwitch.vue'
 import { getUserData, openExternal } from '../utils/electronhelper'
-import message from '../utils/message'
-import { createProxyServer, getIPAddress } from '../utils/proxyhelper'
-import { Sleep } from '../utils/format'
 
 const settingStore = useSettingStore()
 const cb = (val: any) => {
@@ -15,37 +12,6 @@ const userData = getUserData()
 
 const handleJumpPath = () => {
   openExternal(userData)
-}
-const handleResetHost = () => {
-  if (settingStore.debugProxyHost.includes('127')) {
-    let localIp = getIPAddress()
-    cb({ debugProxyHost: localIp })
-  } else {
-    cb({ debugProxyHost: '127.0.0.1' })
-  }
-}
-
-const handleResetPort = async () => {
-  // 重启软件服务
-  if (window.MainProxyServer) {
-    const debugProxyPort = Math.floor(Math.random() * (10000 - 2000 + 1) + 2000)
-    const loadingKey = 'proxyServer' + Date.now().toString()
-    message.loading('重启软件服务中...', 60, loadingKey)
-    await window.MainProxyServer.close()
-    createProxyServer(debugProxyPort).catch(err => {
-      message.error('软件服务重启失败', 3, loadingKey)
-    }).then(async (debugProxyServer: any) => {
-      window.MainProxyPort = debugProxyPort
-      window.MainProxyServer = debugProxyServer
-      window.MainProxyServer.on('close', async () => {
-        await Sleep(2000)
-        window.MainProxyServer = await createProxyServer(window.MainProxyPort)
-      })
-      cb({ debugProxyPort: debugProxyPort.toString() })
-      await Sleep(2000)
-      message.success('软件服务重启完成', 3, loadingKey)
-    })
-  }
 }
 </script>
 
@@ -180,29 +146,6 @@ const handleResetPort = async () => {
         </div>
       </template>
     </a-popover>
-    <div class='settingrow'>
-      <a-input-search
-        tabindex='-1'
-        placeholder='默认：127.0.0.1'
-        hide-button
-        style="width: fit-content"
-        v-model.trim="settingStore.debugProxyHost"
-        search-button
-        button-text='切换地址'
-        @search="handleResetHost"
-        @update:model-value='cb({ debugProxyHost: $event })' />
-    </div>
-    <div class='settingrow'>
-      <a-input-search
-        tabindex='-1'
-        placeholder='默认：5000' hide-button
-        style="width: fit-content"
-        v-model.trim="settingStore.debugProxyPort"
-        search-button
-        button-text='随机端口'
-        @search="handleResetPort"
-        @update:model-value='cb({ debugProxyPort: $event })' />
-    </div>
     <div class='settingspace'></div>
     <div class="settinghead">
       :缓存路径

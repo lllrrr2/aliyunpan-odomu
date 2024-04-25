@@ -127,7 +127,8 @@ export default class AliUser {
 
 
   static async OpenApiTokenRefreshAccount(token: ITokenInfo, showMessage: boolean, forceRefresh: boolean = false): Promise<boolean> {
-    if (!token.open_api_refresh_token) return false
+    const isPKCE = useSettingStore().uiEnableOpenApiType === 'pkce'
+    if (!useSettingStore().uiEnableOpenApi || !token.open_api_refresh_token || isPKCE) return false
     if (!forceRefresh && new Date(token.open_api_expires_in).getTime() >= Date.now()) return true
     // 防止重复刷新
     if (forceRefresh) {
@@ -242,6 +243,11 @@ export default class AliUser {
       grant_type: 'authorization_code',
       client_id: client_id,
       client_secret: client_secret
+    }
+    // PKCE模式
+    if (useSettingStore().uiEnableOpenApiType === 'pkce') {
+      postData.code_verifier = useSettingStore().uiOpenApiCodeChallenge
+      delete postData.client_secret
     }
     const url = 'https://openapi.alipan.com/oauth/access_token'
     const resp = await AliHttp.Post(url, postData, '', '')
